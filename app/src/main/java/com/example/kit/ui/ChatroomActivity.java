@@ -1,5 +1,6 @@
 package com.example.kit.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -21,6 +22,7 @@ import com.example.kit.adapters.ChatMessageRecyclerAdapter;
 import com.example.kit.models.ChatMessage;
 import com.example.kit.models.Chatroom;
 import com.example.kit.models.User;
+import com.google.android.gms.common.util.CollectionUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
@@ -238,15 +240,44 @@ public class ChatroomActivity extends AppCompatActivity implements
         }
     }
 
+    public void left() {
+        Intent returnIntent = new Intent();
+        returnIntent.putExtra("left", true);
+        // setResult(RESULT_OK);
+        setResult(RESULT_OK, returnIntent); //By not passing the intent in the result, the calling activity will get null data.
+        super.finish();
+    }
+
     private void leaveChatroom(){
 
-        DocumentReference joinChatroomRef = mDb
-                .collection(getString(R.string.collection_chatrooms))
-                .document(mChatroom.getChatroom_id())
-                .collection(getString(R.string.collection_chatroom_user_list))
-                .document(FirebaseAuth.getInstance().getUid());
-
+        CollectionReference chatrooms = mDb.collection("Chatrooms");
+        final DocumentReference chatroom = chatrooms.document(mChatroom.getChatroom_id());
+        CollectionReference user_list = chatroom.collection("User List");
+        DocumentReference joinChatroomRef = user_list.document(FirebaseAuth.getInstance().getUid());
         joinChatroomRef.delete();
+        final int[] count = new int[1];
+        user_list.orderBy("email").addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+                if (e != null) {
+                    Log.e(TAG, "onEvent: Listen failed.", e);
+                    return;
+                }
+
+                if(queryDocumentSnapshots != null){
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+
+                        count[0] += 1;
+                        }
+
+                    }
+                if (count[0] == 0){
+                    System.out.println("check34");
+                    chatroom.delete();
+                }
+            }
+        });
+        left();
     }
 
     private void joinChatroom(){

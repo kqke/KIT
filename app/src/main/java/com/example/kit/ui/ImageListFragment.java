@@ -58,7 +58,6 @@ public class ImageListFragment extends Fragment implements ImageListRecyclerAdap
     }
 
     private void getImageResouces(){
-        mImageResources.add(R.drawable.cwm_logo);
         mImageResources.add(R.drawable.cartman_cop);
         mImageResources.add(R.drawable.eric_cartman);
         mImageResources.add(R.drawable.ike);

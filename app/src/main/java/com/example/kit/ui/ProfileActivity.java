@@ -51,8 +51,8 @@ public class ProfileActivity extends AppCompatActivity implements
 
     private void retrieveProfileImage(){
         RequestOptions requestOptions = new RequestOptions()
-                .error(R.drawable.cwm_logo)
-                .placeholder(R.drawable.cwm_logo);
+                .error(R.drawable.cartman_cop)
+                .placeholder(R.drawable.cartman_cop);
 
         int avatar = 0;
         try{
@@ -103,8 +103,8 @@ public class ProfileActivity extends AppCompatActivity implements
 
         // display the image
         RequestOptions requestOptions = new RequestOptions()
-                .placeholder(R.drawable.cwm_logo)
-                .error(R.drawable.cwm_logo);
+                .placeholder(R.drawable.cartman_cop)
+                .error(R.drawable.cartman_cop);
 
         Glide.with(this)
                 .setDefaultRequestOptions(requestOptions)
