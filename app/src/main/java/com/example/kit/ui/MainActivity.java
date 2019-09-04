@@ -273,10 +273,7 @@ public class MainActivity extends AppCompatActivity implements
             case 0: {
                 if (resultCode == RESULT_OK){
                     if ((boolean)data.getExtras().get("left")){
-                        initChatroomRecyclerView();
-                        getChatrooms();
-                        mChatroomRecyclerAdapter.notifyDataSetChanged();
-                        System.out.println("check13");
+                        mChatroomRecyclerAdapter.notifyItemRangeChanged(0, mChatroomRecyclerAdapter.getItemCount());
                     }
                 }
             }
@@ -306,8 +303,6 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void getChatrooms(){
-        mChatroomIds.clear();
-        mChatrooms.clear();
         FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().build();
         mDb.setFirestoreSettings(settings);
 
