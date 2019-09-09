@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import io.opencensus.internal.Utils;
 
 import com.example.kit.R;
+import com.example.kit.UserClient;
 import com.example.kit.models.ChatMessage;
 import com.example.kit.models.User;
 import com.google.firebase.auth.FirebaseAuth;
@@ -52,11 +53,13 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
         if (viewType == VIEW_TYPE_MESSAGE_SENT) {
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_message_sent, parent, false);
-            return new SentMessageHolder(view);
+            final RecyclerView.ViewHolder holder = new SentMessageHolder(view);
+            return holder;
         } else if (viewType == VIEW_TYPE_MESSAGE_RECEIVED) {
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_message_received, parent, false);
-            return new ReceivedMessageHolder(view);
+            final RecyclerView.ViewHolder holder = new ReceivedMessageHolder(view);
+            return holder;
         }
 
         return null;
@@ -65,7 +68,6 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
     @Override
     public int getItemViewType(int position) {
         ChatMessage message = (ChatMessage) mMessages.get(position);
-
         if (message.getUser().getUser_id().equals(mUserID)) {
             // If the current user is the sender of the message
             return VIEW_TYPE_MESSAGE_SENT;
@@ -137,7 +139,7 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
 
         SentMessageHolder(View itemView) {
             super(itemView);
-            messageText = (TextView) itemView.findViewById(R.id.text_message_body);
+            messageText = (TextView) itemView.findViewById(R.id.chat_message_message);
             timeText = (TextView) itemView.findViewById(R.id.text_message_time);
         }
 
