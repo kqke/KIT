@@ -6,52 +6,87 @@ import androidx.core.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
+import io.opencensus.internal.Utils;
 
 import com.example.kit.R;
 import com.example.kit.models.ChatMessage;
 import com.example.kit.models.User;
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.net.URL;
+import java.text.DateFormat;
 import java.util.ArrayList;
 
-public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<ChatMessageRecyclerAdapter.ViewHolder>{
+import static com.example.kit.Constants.VIEW_TYPE_MESSAGE_SENT;
+import static com.example.kit.Constants.VIEW_TYPE_MESSAGE_RECEIVED;
+
+
+public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
 
     private ArrayList<ChatMessage> mMessages = new ArrayList<>();
     private ArrayList<User> mUsers = new ArrayList<>();
     private Context mContext;
+    private String mUserID;
 
     public ChatMessageRecyclerAdapter(ArrayList<ChatMessage> messages,
                                       ArrayList<User> users,
-                                      Context context) {
+                                      Context context, String userID) {
         this.mMessages = messages;
         this.mUsers = users;
         this.mContext = context;
+        this.mUserID = userID;
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_chat_message_list_item, parent, false);
-        final ViewHolder holder = new ViewHolder(view);
-        return holder;
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+//        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_chat_message_list_item, parent, false);
+//        final ViewHolder holder = new ViewHolder(view);
+//        return holder;
+        View view;
+
+        if (viewType == VIEW_TYPE_MESSAGE_SENT) {
+            view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_message_sent, parent, false);
+            return new SentMessageHolder(view);
+        } else if (viewType == VIEW_TYPE_MESSAGE_RECEIVED) {
+            view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_message_received, parent, false);
+            return new ReceivedMessageHolder(view);
+        }
+
+        return null;
     }
 
     @Override
-    public void onBindViewHolder(@NonNull final ViewHolder holder, final int position) {
+    public int getItemViewType(int position) {
+        ChatMessage message = (ChatMessage) mMessages.get(position);
 
-
-        if(FirebaseAuth.getInstance().getUid().equals(mMessages.get(position).getUser().getUser_id())){
-            ((ViewHolder)holder).username.setTextColor(ContextCompat.getColor(mContext, R.color.green1));
+        if (message.getUser().getUser_id().equals(mUserID)) {
+            // If the current user is the sender of the message
+            return VIEW_TYPE_MESSAGE_SENT;
+        } else {
+            // If some other user sent the message
+            return VIEW_TYPE_MESSAGE_RECEIVED;
         }
-        else{
-            ((ViewHolder)holder).username.setTextColor(ContextCompat.getColor(mContext, R.color.blue2));
-        }
+    }
 
-        ((ViewHolder)holder).username.setText(mMessages.get(position).getUser().getUsername());
-        ((ViewHolder)holder).message.setText(mMessages.get(position).getMessage());
+    @Override
+    public void onBindViewHolder(@NonNull final RecyclerView.ViewHolder holder, final int position) {
+
+        ChatMessage message = (ChatMessage) mMessages.get(position);
+
+        switch (holder.getItemViewType()) {
+            case VIEW_TYPE_MESSAGE_SENT:
+                ((SentMessageHolder) holder).bind(message);
+                break;
+            case VIEW_TYPE_MESSAGE_RECEIVED:
+                ((ReceivedMessageHolder) holder).bind(message);
+        }
     }
 
 
@@ -69,6 +104,49 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<ChatMessage
             super(itemView);
             message = itemView.findViewById(R.id.chat_message_message);
             username = itemView.findViewById(R.id.chat_message_username);
+        }
+    }
+
+    private class ReceivedMessageHolder extends RecyclerView.ViewHolder {
+        TextView messageText, timeText, nameText;
+//        ImageView profileImage;
+
+        ReceivedMessageHolder(View itemView) {
+            super(itemView);
+            messageText = (TextView) itemView.findViewById(R.id.chat_message_message);
+            nameText = (TextView) itemView.findViewById(R.id.chat_message_username);
+            timeText = (TextView) itemView.findViewById(R.id.text_message_time); //missing
+//            profileImage = (ImageView) itemView.findViewById(R.id.image_message_profile); //missing
+        }
+
+        void bind(ChatMessage message) {
+            messageText.setText(message.getMessage());
+
+            // Format the stored timestamp into a readable String using method.
+
+            timeText.setText(DateFormat.getTimeInstance(DateFormat.SHORT).format(message.getTimestamp()));
+            nameText.setText(message.getUser().getUsername());
+
+//             Insert the profile image from the URL into the ImageView.
+//            Utils.displayRoundImageFromUrl(mContext, message.getUser().getUsername(), profileImage);
+        }
+    }
+
+    private class SentMessageHolder extends RecyclerView.ViewHolder {
+        TextView messageText, timeText, nameText;
+
+        SentMessageHolder(View itemView) {
+            super(itemView);
+            messageText = (TextView) itemView.findViewById(R.id.text_message_body);
+            timeText = (TextView) itemView.findViewById(R.id.text_message_time);
+        }
+
+        void bind(ChatMessage message) {
+            messageText.setText(message.getMessage());
+
+            // Format the stored timestamp into a readable String using method.
+            timeText.setText(DateFormat.getTimeInstance(DateFormat.SHORT).format(message.getTimestamp()));
+            nameText.setText(message.getUser().getUsername());
         }
     }
 

@@ -370,6 +370,7 @@ public class MainActivity extends AppCompatActivity implements
     private void navChatroomActivity(Chatroom chatroom){
         Intent intent = new Intent(MainActivity.this, ChatroomActivity.class);
         intent.putExtra(getString(R.string.intent_chatroom), chatroom);
+        intent.putExtra(getString(R.string.intent_user_loc), mUserLocation.getUser().getUser_id());
         startActivityForResult(intent, 0);
     }
 
