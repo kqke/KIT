@@ -7,3 +7,6 @@
 - notifications when people are in your area
 - add ability to upload profile photo
 - add meeting feature
+
+- login activity missing an option for registering with google account
+- integrate firebase login into login activity
