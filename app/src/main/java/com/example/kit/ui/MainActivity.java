@@ -267,6 +267,15 @@ public class MainActivity extends AppCompatActivity implements
                 else{
                     getLocationPermission();
                 }
+                break;
+
+            }
+            case 0: {
+                if (resultCode == RESULT_OK){
+                    if ((boolean)data.getExtras().get("left")){
+                        mChatroomRecyclerAdapter.notifyItemRangeChanged(0, mChatroomRecyclerAdapter.getItemCount());
+                    }
+                }
             }
         }
 
@@ -364,7 +373,8 @@ public class MainActivity extends AppCompatActivity implements
     private void navChatroomActivity(Chatroom chatroom){
         Intent intent = new Intent(MainActivity.this, ChatroomActivity.class);
         intent.putExtra(getString(R.string.intent_chatroom), chatroom);
-        startActivity(intent);
+        intent.putExtra(getString(R.string.intent_user_loc), mUserLocation.getUser().getUser_id());
+        startActivityForResult(intent, 0);
     }
 
     private void newChatroomDialog(){
