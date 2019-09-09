@@ -52,7 +52,6 @@ public class ChatroomActivity extends AppCompatActivity implements
     //widgets
     private Chatroom mChatroom;
     private EditText mMessage;
-    private String mUserID;
 
     //vars
     private ListenerRegistration mChatMessageEventListener, mUserListEventListener;
@@ -167,7 +166,9 @@ public class ChatroomActivity extends AppCompatActivity implements
     }
 
     private void initChatroomRecyclerView(){
-        mChatMessageRecyclerAdapter = new ChatMessageRecyclerAdapter(mMessages, new ArrayList<User>(), this, mUserID);
+        User user = ((UserClient)(getApplicationContext())).getUser();
+        String userID = user.getUser_id();
+        mChatMessageRecyclerAdapter = new ChatMessageRecyclerAdapter(mMessages, new ArrayList<User>(), this, userID);
         mChatMessageRecyclerView.setAdapter(mChatMessageRecyclerAdapter);
         mChatMessageRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -256,7 +257,6 @@ public class ChatroomActivity extends AppCompatActivity implements
     private void getIncomingIntent(){
         if(getIntent().hasExtra(getString(R.string.intent_chatroom))){
             mChatroom = getIntent().getParcelableExtra(getString(R.string.intent_chatroom));
-            mUserID = getIntent().getStringExtra(getString(R.string.intent_user_loc));
             setChatroomName();
             joinChatroom();
         }
