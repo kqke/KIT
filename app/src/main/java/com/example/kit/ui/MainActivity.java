@@ -267,15 +267,6 @@ public class MainActivity extends AppCompatActivity implements
                 else{
                     getLocationPermission();
                 }
-                break;
-
-            }
-            case 0: {
-                if (resultCode == RESULT_OK){
-                    if ((boolean)data.getExtras().get("left")){
-                        mChatroomRecyclerAdapter.notifyItemRangeChanged(0, mChatroomRecyclerAdapter.getItemCount());
-                    }
-                }
             }
         }
 
@@ -303,7 +294,10 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void getChatrooms(){
-        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().build();
+
+        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
+                .setTimestampsInSnapshotsEnabled(true)
+                .build();
         mDb.setFirestoreSettings(settings);
 
         CollectionReference chatroomsCollection = mDb
@@ -370,7 +364,7 @@ public class MainActivity extends AppCompatActivity implements
     private void navChatroomActivity(Chatroom chatroom){
         Intent intent = new Intent(MainActivity.this, ChatroomActivity.class);
         intent.putExtra(getString(R.string.intent_chatroom), chatroom);
-        startActivityForResult(intent, 0);
+        startActivity(intent);
     }
 
     private void newChatroomDialog(){

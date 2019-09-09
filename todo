@@ -10,3 +10,4 @@
 
 - login activity missing an option for registering with google account
 - integrate firebase login into login activity
+- realign user messages
