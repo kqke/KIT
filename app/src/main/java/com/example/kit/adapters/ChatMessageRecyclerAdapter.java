@@ -3,6 +3,8 @@ package com.example.kit.adapters;
 import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -135,12 +137,13 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
     }
 
     private class SentMessageHolder extends RecyclerView.ViewHolder {
-        TextView messageText, timeText, nameText;
+        TextView messageText, timeText;
 
         SentMessageHolder(View itemView) {
             super(itemView);
             messageText = (TextView) itemView.findViewById(R.id.chat_message_message);
             timeText = (TextView) itemView.findViewById(R.id.text_message_time);
+            Log.d("BC", "SentMessageHolder: " + timeText.toString());
         }
 
         void bind(ChatMessage message) {
@@ -148,7 +151,6 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
 
             // Format the stored timestamp into a readable String using method.
             timeText.setText(DateFormat.getTimeInstance(DateFormat.SHORT).format(message.getTimestamp()));
-            nameText.setText(message.getUser().getUsername());
         }
     }
 
