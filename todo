@@ -1,19 +1,13 @@
 - convert public chatrooms to private chats and group chats
 - add contacts
 - fix map and location services
-- add google login
+
 - enter other user profile
 - add map page to see all contacts
 - notifications when people are in your area
 - add ability to upload profile photo
 - add meeting feature
 
-- login activity missing an option for registering with google account
-- integrate firebase login into login activity
-- realign user messages
 
 
-to fix -
-
-- app doesn't wait for firebase authentication
-- timestamp bug - does the message get its timestamp from
+- add sign out option (through firebase auth)
