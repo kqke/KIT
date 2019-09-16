@@ -36,8 +36,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ui.UsernameActivity" />
         <activity android:name=".ui.ChatroomActivity" />
         <activity android:name=".ui.ProfileActivity" />
+        <activity android:name=".ui.AddContactsActivity" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"

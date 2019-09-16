@@ -52,6 +52,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -384,31 +385,52 @@ public class ContactsActivity extends AppCompatActivity implements
         startActivityForResult(intent, 0);
     }
 
-    private void navAddContactActivity(String cid){
+    private void navAddContactActivity(String cid, String username){
         Intent intent = new Intent(ContactsActivity.this, AddContactsActivity.class);
         intent.putExtra(getString(R.string.intent_contact), cid);
+        intent.putExtra("un", username);
         startActivityForResult(intent, 0);
     }
 
     protected void search(final String username){
-    final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    final DocumentReference un = db.collection(getString(R.string.collection_usernames)).document(username);
-    un.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-        @Override
-        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-            if (task.isSuccessful()){
-                DocumentSnapshot doc = task.getResult();
-                if (doc.exists()){
-                    Username uname = doc.toObject(Username.class);
-                    navAddContactActivity(uname.getUser_id());
-                }
-                else {
-                    newContactDialog();
+//    final FirebaseFirestore db = FirebaseFirestore.getInstance();
+//    final DocumentReference un = db.collection(getString(R.string.collection_usernames)).document(username);
+//    un.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+//        @Override
+//        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+//            if (task.isSuccessful()){
+//                DocumentSnapshot doc = task.getResult();
+//                if (doc.exists()){
+//                    Username uname = doc.toObject(Username.class);
+//                    navAddContactActivity(uname.getUser_id());
+//                }
+//                else {
+//                    newContactDialog();
+//                }
+//            }
+//        }
+//    });
+        CollectionReference usersRef = mDb.collection("Users");
+        Query query = usersRef.whereEqualTo("username", username);
+        query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    for (DocumentSnapshot documentSnapshot : task.getResult()) {
+                        String uname = documentSnapshot.getString("username");
+
+                        if (uname.equals(username)) {
+                            Log.d(TAG, "User Exists");
+                            User user = documentSnapshot.toObject(User.class);
+                            Log.d(TAG, "onComplete: Barak contact id" + user.getUser_id());
+                            navAddContactActivity(user.getUser_id(), username);
+                        }
+                    }
                 }
             }
-        }
-    });
-}
+        });
+    }
+
 
     private void newContactDialog(){
 

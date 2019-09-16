@@ -15,16 +15,6 @@
 
     </androidx.recyclerview.widget.RecyclerView>
 
-    <ImageButton
-        android:id="@+id/imageButton"
-        android:layout_width="108dp"
-        android:layout_height="121dp"
-        app:srcCompat="@android:drawable/ic_menu_info_details"
-        tools:layout_editor_absoluteX="36dp"
-        tools:layout_editor_absoluteY="578dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="parent" />
-
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_create_chatroom"
         android:layout_width="wrap_content"
@@ -34,6 +24,13 @@
         android:src="@drawable/ic_add_white_24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <ImageButton
+        android:id="@+id/imageButton"
+        android:layout_width="108dp"
+        android:layout_height="121dp"
+        app:srcCompat="@android:drawable/ic_menu_info_details"
+        tools:layout_editor_absoluteY="582dp" />
 
     <ProgressBar
         android:layout_width="wrap_content"

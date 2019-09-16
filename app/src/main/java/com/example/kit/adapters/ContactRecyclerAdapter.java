@@ -30,7 +30,7 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_chatroom_list_item, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_contact_list_item, parent, false);
         final ViewHolder holder = new ViewHolder(view, mContactRecyclerClickListener);
 
 
