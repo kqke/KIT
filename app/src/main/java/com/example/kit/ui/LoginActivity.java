@@ -26,6 +26,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity
 {
@@ -121,16 +123,24 @@ public class LoginActivity extends AppCompatActivity
                     DocumentReference userRef = db.collection(getString(R.string.collection_users))
                             .document(user.getUid());
 
+
+
                     userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                         @Override
                         public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                             if(task.isSuccessful()){
                                 Log.d(TAG, "onComplete: successfully set the user client.");
-                                User user = task.getResult().toObject(User.class);
-                                System.out.println("yadadada");
-                                System.out.println(user);
-                                ((UserClient)(getApplicationContext())).setUser(user);
-                                startMainActivity();
+                                DocumentSnapshot ds = task.getResult();
+                                if (ds.exists()) {
+                                    User user = task.getResult().toObject(User.class);
+                                    System.out.println("yadadada");
+                                    System.out.println(user);
+                                    ((UserClient) (getApplicationContext())).setUser(user);
+                                    startMainActivity();
+                                }
+                                else {
+
+                                }
                             }
                         }
                     });
