@@ -19,6 +19,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -82,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements
     private boolean mLocationPermissionGranted = false;
     private FusedLocationProviderClient mFusedLocationClient;
     private UserLocation mUserLocation;
+    private ImageButton ib;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements
         mChatroomRecyclerView = findViewById(R.id.chatrooms_recycler_view);
 
         findViewById(R.id.fab_create_chatroom).setOnClickListener(this);
+        findViewById(R.id.imageButton).setOnClickListener(this);
 
         mDb = FirebaseFirestore.getInstance();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -292,6 +295,12 @@ public class MainActivity extends AppCompatActivity implements
 
             case R.id.fab_create_chatroom:{
                 newChatroomDialog();
+                break;
+            }
+
+            case R.id.imageButton:{
+                Intent intent = new Intent(MainActivity.this, ContactsActivity.class);
+                startActivity(intent);
             }
         }
     }

@@ -34,4 +34,12 @@
         app:layout_constraintTop_toTopOf="parent"
         android:visibility="gone"/>
 
+    <ImageButton
+        android:id="@+id/imageButton"
+        android:layout_width="80dp"
+        android:layout_height="84dp"
+        app:srcCompat="@android:drawable/ic_menu_info_details"
+        tools:layout_editor_absoluteX="16dp"
+        tools:layout_editor_absoluteY="622dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
