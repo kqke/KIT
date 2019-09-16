@@ -291,7 +291,7 @@ public class ContactsActivity extends AppCompatActivity implements
     }
 
     private void initSupportActionBar(){
-        setTitle("Chatrooms");
+        setTitle("Contacts");
     }
 
 
