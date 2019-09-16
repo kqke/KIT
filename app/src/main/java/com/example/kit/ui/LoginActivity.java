@@ -1,5 +1,6 @@
 package com.example.kit.ui;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -26,6 +27,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 
 import java.util.ArrayList;
+
+import static com.example.kit.Constants.GET_USERNAME_REQUEST;
 
 public class LoginActivity extends AppCompatActivity
 {
@@ -77,7 +80,17 @@ public class LoginActivity extends AppCompatActivity
             // Successfully signed in
             if (resultCode == RESULT_OK) {
                 // Success
-                startMainActivity();
+//                startMainActivity();
+            }
+            else {
+                // Handle Error
+            }
+        }
+        else if (requestCode == GET_USERNAME_REQUEST)
+        {
+            if (resultCode == RESULT_OK) {
+                String userName = data.getData().toString();
+                registerNewUser(userName);
             }
             else {
                 // Handle Error
@@ -126,11 +139,17 @@ public class LoginActivity extends AppCompatActivity
                         public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                             if(task.isSuccessful()){
                                 Log.d(TAG, "onComplete: successfully set the user client.");
-                                User user = task.getResult().toObject(User.class);
+                                User user_ = task.getResult().toObject(User.class);
                                 System.out.println("yadadada");
-                                System.out.println(user);
-                                ((UserClient)(getApplicationContext())).setUser(user);
-                                startMainActivity();
+                                System.out.println(user_);
+                                if(user_ == null)
+                                {
+                                    getUserName();
+                                }
+                                else {
+                                    ((UserClient) (getApplicationContext())).setUser(user_);
+                                    startMainActivity();
+                                }
                             }
                         }
                     });
@@ -145,6 +164,34 @@ public class LoginActivity extends AppCompatActivity
                 // ...
             }
         };
+    }
+
+    private void getUserName(){
+        Intent intent = new Intent(LoginActivity.this, UsernameActivity.class);
+        startActivityForResult(intent, GET_USERNAME_REQUEST);
+    }
+
+
+    private User registerNewUser(String userName){
+        FirebaseUser cur_user = mAuth.getCurrentUser();
+        User user = new User();
+        String email = cur_user.getEmail();
+        user.setEmail(email);
+        user.setUsername(userName);
+        user.setUser_id(FirebaseAuth.getInstance().getUid());
+
+        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
+                .setTimestampsInSnapshotsEnabled(true)
+                .build();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.setFirestoreSettings(settings);
+
+        DocumentReference newUserRef = db
+                .collection(getString(R.string.collection_users))
+                .document(FirebaseAuth.getInstance().getUid());
+
+        newUserRef.set(user);
+        return user;
     }
 
     @Override
