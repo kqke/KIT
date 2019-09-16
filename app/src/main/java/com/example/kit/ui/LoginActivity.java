@@ -28,13 +28,11 @@ import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import java.util.ArrayList;
 
 public class LoginActivity extends AppCompatActivity
-//        implements
-//        View.OnClickListener
 {
 
     private static final String TAG = "LoginActivity";
 
-//    //Firebase
+    //Firebase
     private FirebaseAuth.AuthStateListener mAuthListener;
 
     private ProgressBar mProgressBar;
@@ -132,11 +130,12 @@ public class LoginActivity extends AppCompatActivity
                                 System.out.println("yadadada");
                                 System.out.println(user);
                                 ((UserClient)(getApplicationContext())).setUser(user);
+                                startMainActivity();
                             }
                         }
                     });
 
-                    startMainActivity();
+
 
                 } else {
                     // User is signed out
