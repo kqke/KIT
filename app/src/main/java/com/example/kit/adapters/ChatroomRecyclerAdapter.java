@@ -11,15 +11,23 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.kit.R;
 import com.example.kit.models.Chatroom;
+import com.example.kit.models.Contact;
+import com.example.kit.models.UChatroom;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 
 public class ChatroomRecyclerAdapter extends RecyclerView.Adapter<ChatroomRecyclerAdapter.ViewHolder>{
 
-    private ArrayList<Chatroom> mChatrooms = new ArrayList<>();
+    private ArrayList<UChatroom> mChatrooms = new ArrayList<>();
     private ChatroomRecyclerClickListener mChatroomRecyclerClickListener;
 
-    public ChatroomRecyclerAdapter(ArrayList<Chatroom> chatrooms, ChatroomRecyclerClickListener chatroomRecyclerClickListener) {
+    public ChatroomRecyclerAdapter(ArrayList<UChatroom> chatrooms, ChatroomRecyclerClickListener chatroomRecyclerClickListener) {
         this.mChatrooms = chatrooms;
         mChatroomRecyclerClickListener = chatroomRecyclerClickListener;
     }
@@ -36,7 +44,7 @@ public class ChatroomRecyclerAdapter extends RecyclerView.Adapter<ChatroomRecycl
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        ((ViewHolder)holder).chatroomTitle.setText(mChatrooms.get(position).getTitle());
+        ((ViewHolder)holder).chatroomTitle.setText(mChatrooms.get(position).getDisplay_name());
     }
 
     @Override

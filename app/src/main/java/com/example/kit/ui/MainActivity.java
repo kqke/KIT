@@ -30,6 +30,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.kit.R;
 import com.example.kit.adapters.ChatroomRecyclerAdapter;
 import com.example.kit.models.Chatroom;
+import com.example.kit.models.UChatroom;
 import com.example.kit.models.User;
 import com.example.kit.models.UserLocation;
 import com.google.android.gms.common.ConnectionResult;
@@ -38,7 +39,6 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements
     private ProgressBar mProgressBar;
 
     //vars
-    private ArrayList<Chatroom> mChatrooms = new ArrayList<>();
+    private ArrayList<UChatroom> mChatrooms = new ArrayList<>();
     private Set<String> mChatroomIds = new HashSet<>();
     private ChatroomRecyclerAdapter mChatroomRecyclerAdapter;
     private RecyclerView mChatroomRecyclerView;
@@ -93,6 +93,8 @@ public class MainActivity extends AppCompatActivity implements
         mChatroomRecyclerView = findViewById(R.id.chatrooms_recycler_view);
 
         findViewById(R.id.fab_create_chatroom).setOnClickListener(this);
+        ib = findViewById(R.id.imageButton);
+        ib.setVisibility(View.INVISIBLE);
         findViewById(R.id.imageButton).setOnClickListener(this);
 
         mDb = FirebaseFirestore.getInstance();
@@ -138,10 +140,12 @@ public class MainActivity extends AppCompatActivity implements
             public void onComplete(@NonNull Task<android.location.Location> task) {
                 if (task.isSuccessful()) {
                     Location location = task.getResult();
-                    GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-                    mUserLocation.setGeo_point(geoPoint);
-                    mUserLocation.setTimestamp(null);
-                    saveUserLocation();
+                    if (location != null) {
+                        GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+                        mUserLocation.setGeo_point(geoPoint);
+                        mUserLocation.setTimestamp(null);
+                        saveUserLocation();
+                    }
                 }
             }
         });
@@ -294,13 +298,15 @@ public class MainActivity extends AppCompatActivity implements
         switch (view.getId()){
 
             case R.id.fab_create_chatroom:{
-                newChatroomDialog();
+                Intent intent = new Intent(MainActivity.this, ContactMessageActivity.class);
+                startActivity(intent);
                 break;
             }
 
             case R.id.imageButton:{
                 Intent intent = new Intent(MainActivity.this, ContactsActivity.class);
                 startActivity(intent);
+                break;
             }
         }
     }
@@ -319,7 +325,7 @@ public class MainActivity extends AppCompatActivity implements
         mDb.setFirestoreSettings(settings);
 
         CollectionReference chatroomsCollection = mDb
-                .collection(getString(R.string.collection_chatrooms));
+                .collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_user_chatrooms));
 
         mChatroomEventListener = chatroomsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -334,7 +340,7 @@ public class MainActivity extends AppCompatActivity implements
                 if(queryDocumentSnapshots != null){
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
 
-                        Chatroom chatroom = doc.toObject(Chatroom.class);
+                        UChatroom chatroom = doc.toObject(UChatroom.class);
                         if(!mChatroomIds.contains(chatroom.getChatroom_id())){
                             mChatroomIds.add(chatroom.getChatroom_id());
                             mChatrooms.add(chatroom);
@@ -348,72 +354,72 @@ public class MainActivity extends AppCompatActivity implements
         });
     }
 
-    private void buildNewChatroom(String chatroomName){
+//    private void buildNewChatroom(String chatroomName){
+//
+//        final Chatroom chatroom = new Chatroom();
+////        chatroom.setTitle(chatroomName);
+//
+////        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
+////                .setTimestampsInSnapshotsEnabled(true)
+////                .build();
+////        mDb.setFirestoreSettings(settings);
+//
+//        DocumentReference newChatroomRef = mDb
+//                .collection(getString(R.string.collection_chatrooms))
+//                .document();
+//
+//        chatroom.setChatroom_id(newChatroomRef.getId());
+//
+//        newChatroomRef.set(chatroom).addOnCompleteListener(new OnCompleteListener<Void>() {
+//            @Override
+//            public void onComplete(@NonNull Task<Void> task) {
+//                hideDialog();
+//
+//                if(task.isSuccessful()){
+//                    navChatroomActivity(chatroom);
+//                }else{
+//                    View parentLayout = findViewById(android.R.id.content);
+//                    Snackbar.make(parentLayout, "Something went wrong.", Snackbar.LENGTH_SHORT).show();
+//                }
+//            }
+//        });
+//    }
 
-        final Chatroom chatroom = new Chatroom();
-        chatroom.setTitle(chatroomName);
-
-//        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
-//                .setTimestampsInSnapshotsEnabled(true)
-//                .build();
-//        mDb.setFirestoreSettings(settings);
-
-        DocumentReference newChatroomRef = mDb
-                .collection(getString(R.string.collection_chatrooms))
-                .document();
-
-        chatroom.setChatroom_id(newChatroomRef.getId());
-
-        newChatroomRef.set(chatroom).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                hideDialog();
-
-                if(task.isSuccessful()){
-                    navChatroomActivity(chatroom);
-                }else{
-                    View parentLayout = findViewById(android.R.id.content);
-                    Snackbar.make(parentLayout, "Something went wrong.", Snackbar.LENGTH_SHORT).show();
-                }
-            }
-        });
-    }
-
-    private void navChatroomActivity(Chatroom chatroom){
+    private void navChatroomActivity(UChatroom chatroom){
         Intent intent = new Intent(MainActivity.this, ChatroomActivity.class);
-        intent.putExtra(getString(R.string.intent_chatroom), chatroom);
+        intent.putExtra(getString(R.string.intent_uchatroom), chatroom);
         startActivityForResult(intent, 0);
     }
 
-    private void newChatroomDialog(){
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Enter a chatroom name");
-
-        final EditText input = new EditText(this);
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-        builder.setView(input);
-
-        builder.setPositiveButton("CREATE", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if(!input.getText().toString().equals("")){
-                    buildNewChatroom(input.getText().toString());
-                }
-                else {
-                    Toast.makeText(MainActivity.this, "Enter a chatroom name", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-
-        builder.show();
-    }
+//    private void newChatroomDialog(){
+//
+//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//        builder.setTitle("Enter a chatroom name");
+//
+//        final EditText input = new EditText(this);
+//        input.setInputType(InputType.TYPE_CLASS_TEXT);
+//        builder.setView(input);
+//
+//        builder.setPositiveButton("CREATE", new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                if(!input.getText().toString().equals("")){
+//                    buildNewChatroom(input.getText().toString());
+//                }
+//                else {
+//                    Toast.makeText(MainActivity.this, "Enter a chatroom name", Toast.LENGTH_SHORT).show();
+//                }
+//            }
+//        });
+//        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                dialog.cancel();
+//            }
+//        });
+//
+//        builder.show();
+//    }
 
     @Override
     protected void onDestroy() {

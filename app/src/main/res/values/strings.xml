@@ -31,9 +31,11 @@
     <string name="collection_chat_messages">Chat Messages</string>
     <string name="collection_chatroom_user_list">User List</string>
     <string name="collection_user_locations">User Locations</string>
+    <string name="collection_user_chatrooms">user_chatrooms</string>
 
     <!-- Intent extras -->
     <string name="intent_chatroom">intent_chatroom</string>
+    <string name="intent_uchatroom">intent_uchatroom</string>
     <string name="intent_contact">intent_contact</string>
     <string name="intent_user_list">intent_user_list</string>
     <string name="intent_user_locations">intent_user_locations</string>

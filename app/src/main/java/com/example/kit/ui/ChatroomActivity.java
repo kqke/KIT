@@ -21,6 +21,7 @@ import com.example.kit.UserClient;
 import com.example.kit.adapters.ChatMessageRecyclerAdapter;
 import com.example.kit.models.ChatMessage;
 import com.example.kit.models.Chatroom;
+import com.example.kit.models.UChatroom;
 import com.example.kit.models.User;
 import com.example.kit.models.UserLocation;
 import com.google.android.gms.common.util.CollectionUtils;
@@ -51,7 +52,7 @@ public class ChatroomActivity extends AppCompatActivity implements
     private static final String TAG = "ChatroomActivity";
 
     //widgets
-    private Chatroom mChatroom;
+    private UChatroom mChatroom;
     private EditText mMessage;
 
     //vars
@@ -256,8 +257,8 @@ public class ChatroomActivity extends AppCompatActivity implements
 
 
     private void getIncomingIntent(){
-        if(getIntent().hasExtra(getString(R.string.intent_chatroom))){
-            mChatroom = getIntent().getParcelableExtra(getString(R.string.intent_chatroom));
+        if(getIntent().hasExtra(getString(R.string.intent_uchatroom))){
+            mChatroom = getIntent().getParcelableExtra(getString(R.string.intent_uchatroom));
             setChatroomName();
             joinChatroom();
         }
@@ -305,18 +306,22 @@ public class ChatroomActivity extends AppCompatActivity implements
 
     private void joinChatroom(){
 
+        String cid = mChatroom.getChatroom_id();
+        String uid = FirebaseAuth.getInstance().getUid();
+
         DocumentReference joinChatroomRef = mDb
                 .collection(getString(R.string.collection_chatrooms))
                 .document(mChatroom.getChatroom_id())
                 .collection(getString(R.string.collection_chatroom_user_list))
-                .document(FirebaseAuth.getInstance().getUid());
+                .document(uid);
+
 
         User user = ((UserClient)(getApplicationContext())).getUser();
         joinChatroomRef.set(user); // Don't care about listening for completion.
     }
 
     private void setChatroomName(){
-        getSupportActionBar().setTitle(mChatroom.getTitle());
+        getSupportActionBar().setTitle(mChatroom.getDisplay_name());
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
     }
