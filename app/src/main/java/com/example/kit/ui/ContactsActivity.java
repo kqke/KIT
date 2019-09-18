@@ -322,7 +322,7 @@ public class ContactsActivity extends AppCompatActivity implements
         mDb.setFirestoreSettings(settings);
 
         CollectionReference contactsCollection = mDb
-                .collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_requests));
+                .collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_contacts));
 
         mContactEventListener = contactsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -488,7 +488,7 @@ public class ContactsActivity extends AppCompatActivity implements
 
     @Override
     public void onContactSelected(int position) {
-        acceptRequest(mContacts.get(position));
+        navContactActivity(mContacts.get(position));
     }
 
     private void signOut(){
