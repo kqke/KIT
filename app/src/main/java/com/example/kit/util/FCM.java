@@ -1,4 +1,4 @@
-package com.example.kit.services;
+package com.example.kit.util;
 
 import android.util.Log;
 
