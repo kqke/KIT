@@ -322,7 +322,7 @@ public class ContactsActivity extends AppCompatActivity implements
         mDb.setFirestoreSettings(settings);
 
         CollectionReference contactsCollection = mDb
-                .collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_contacts));
+                .collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_users));
 
         mContactEventListener = contactsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override

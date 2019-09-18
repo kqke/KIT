@@ -42,6 +42,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.GetTokenResult;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -68,7 +69,8 @@ import static com.example.kit.Constants.RC_SIGN_IN;
 
 public class MainActivity extends AppCompatActivity implements
         View.OnClickListener,
-        ChatroomRecyclerAdapter.ChatroomRecyclerClickListener
+        ChatroomRecyclerAdapter.ChatroomRecyclerClickListener,
+        FirebaseAuth.IdTokenListener
 {
 
     private static final String TAG = "MainActivity";
@@ -498,4 +500,24 @@ public class MainActivity extends AppCompatActivity implements
     }
 
 
+    @Override
+    public void onIdTokenChanged(@NonNull FirebaseAuth firebaseAuth) {
+        final DocumentReference userRef = mDb.collection(getString(R.string.collection_users)).document(firebaseAuth.getUid());
+        firebaseAuth.getAccessToken(true).addOnCompleteListener(new OnCompleteListener<GetTokenResult>() {
+            @Override
+            public void onComplete(@NonNull Task<GetTokenResult> task) {
+                if (!task.isSuccessful()) {return;}
+                final String token = task.getResult().getToken();
+                userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (!task.isSuccessful()) {return;}
+                        User user = task.getResult().toObject(User.class);
+                        user.setToken(token);
+                    }
+                });
+            }
+        });
+
+    }
 }
