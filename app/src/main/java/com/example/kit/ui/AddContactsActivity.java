@@ -16,6 +16,7 @@ import com.example.kit.R;
 import com.example.kit.UserClient;
 import com.example.kit.models.Contact;
 import com.example.kit.models.User;
+import com.example.kit.util.FCM;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -35,13 +36,13 @@ public class AddContactsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_contacts);
         Intent intent = getIntent();
-        addUser(intent.getStringExtra(getString(R.string.intent_contact)), intent.getStringExtra("un"));
+        addUser((User)intent.getParcelableExtra(getString(R.string.intent_contact)));
 
     }
 
 
-    protected void addUser(final String uid, final String username) {
-        Log.d(TAG, "addUser: uid = " + uid);
+    protected void addUser(final User contact) {
+        Log.d(TAG, "addUser: uid = " + contact.getUser_id());
         FirebaseFirestore fs = FirebaseFirestore.getInstance();
         final DocumentReference user = fs.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid());
         user.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -49,13 +50,13 @@ public class AddContactsActivity extends AppCompatActivity {
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if (task.isSuccessful()) {
                     Log.d(TAG, "onComplete: start");
-                    newContactDialog(uid, username);
+                    newContactDialog(contact);
                 }
             }
         });
     }
 
-    private void newContactDialog(final String cid, final String username){
+    private void newContactDialog(final User contactUser){
         final FirebaseFirestore fs = FirebaseFirestore.getInstance();
         final String uid = FirebaseAuth.getInstance().getUid();
         final DocumentReference userRef = fs.collection(getString(R.string.collection_users)).document(uid);
@@ -72,17 +73,19 @@ public class AddContactsActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int which) {
                 if (!input.getText().toString().equals("")) {
                     m_Text = input.getText().toString();
-                    Contact contact = new Contact(m_Text, username, null, cid);
-                    userRef.collection(getString(R.string.collection_pending)).document(cid).set(contact).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    Contact contact = new Contact(m_Text, contactUser.getUsername(), null, contactUser.getUser_id());
+                    userRef.collection(getString(R.string.collection_pending)).document().set(contact).addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
                             Log.d(TAG, "DocumentSnapshot successfully written!");
                             m_Text = "";
                             DocumentReference contactRef =
-                                    fs.collection(getString(R.string.collection_users)).document(cid).collection(getString(R.string.collection_requests)).document(uid);
+                                    fs.collection(getString(R.string.collection_users)).document(contactUser.getUser_id()).collection(getString(R.string.collection_requests)).document(uid);
                             contactRef.set(new Contact(user.getUsername(), user.getEmail(), user.getAvatar(), user.getUser_id())).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
+                                    FCM.send_FCM_Notification(contactUser.getToken(), "Friend Request", user.getUsername() +" has sent " +
+                                            "you a friend request");
                                     Intent result = new Intent();
                                     result.putExtra(getString(R.string.intent_contact), true);
                                     setResult(1, result);
