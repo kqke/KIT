@@ -101,6 +101,8 @@ public class ContactMessageActivity extends AppCompatActivity implements
 
         initSupportActionBar();
         initContactRecyclerView();
+
+
     }
 
 
@@ -138,10 +140,12 @@ public class ContactMessageActivity extends AppCompatActivity implements
             public void onComplete(@NonNull Task<android.location.Location> task) {
                 if (task.isSuccessful()) {
                     Location location = task.getResult();
-                    GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-                    mUserLocation.setGeo_point(geoPoint);
-                    mUserLocation.setTimestamp(null);
-                    saveUserLocation();
+                    if(location != null) {
+                        GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+                        mUserLocation.setGeo_point(geoPoint);
+                        mUserLocation.setTimestamp(null);
+                        saveUserLocation();
+                    }
                 }
             }
         });

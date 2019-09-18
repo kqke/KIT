@@ -228,6 +228,7 @@ public class ChatroomActivity extends AppCompatActivity implements
                     }
                 }
             });
+
         }
     }
 

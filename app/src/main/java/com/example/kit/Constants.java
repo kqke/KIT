@@ -11,4 +11,5 @@ public class Constants {
     public static final int EMPTY = -1;
     public static final int WRONG_FORMAT = -2;
     public static final int GET_USERNAME_REQUEST = 9002;
+    public static final int RC_SIGN_IN = 900;
 }

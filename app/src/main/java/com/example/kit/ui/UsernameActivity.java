@@ -45,7 +45,7 @@ public class UsernameActivity extends AppCompatActivity
         setContentView(R.layout.activity_username);
         mUsername = (EditText) findViewById(R.id.input_username);
         mProgressBar = findViewById(R.id.progressBar);
-        findViewById(R.id.btn_register).setOnClickListener(this);
+        findViewById(R.id.btn_go).setOnClickListener(this);
         mDb = FirebaseFirestore.getInstance();
 
         hideSoftKeyboard();
@@ -55,8 +55,8 @@ public class UsernameActivity extends AppCompatActivity
     public void onClick(View v) {
         showDialog();
         switch (v.getId()){
-            case R.id.btn_register: {
-                Log.d(TAG, "onClick: attempting to register.");
+            case R.id.btn_go: {
+                Log.d(TAG, "onClick: attempting to verify username.");
                 String userName = mUsername.getText().toString();
                     switch (checkUsername(userName)) {
                         case EMPTY:{

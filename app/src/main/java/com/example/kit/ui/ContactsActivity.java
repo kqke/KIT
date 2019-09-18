@@ -450,7 +450,7 @@ public class ContactsActivity extends AppCompatActivity implements
                     search(input.getText().toString());
                 }
                 else {
-                    Toast.makeText(ContactsActivity.this, "Enter a chatroom name", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ContactsActivity.this, "Enter a username", Toast.LENGTH_SHORT).show();
                 }
             }
         });

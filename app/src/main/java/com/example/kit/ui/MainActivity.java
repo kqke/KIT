@@ -33,8 +33,10 @@ import com.example.kit.models.Chatroom;
 import com.example.kit.models.UChatroom;
 import com.example.kit.models.User;
 import com.example.kit.models.UserLocation;
+import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -61,6 +63,7 @@ import javax.annotation.Nullable;
 import static com.example.kit.Constants.ERROR_DIALOG_REQUEST;
 import static com.example.kit.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 import static com.example.kit.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
+import static com.example.kit.Constants.RC_SIGN_IN;
 
 
 public class MainActivity extends AppCompatActivity implements
@@ -98,10 +101,15 @@ public class MainActivity extends AppCompatActivity implements
         findViewById(R.id.imageButton).setOnClickListener(this);
 
         mDb = FirebaseFirestore.getInstance();
+
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         initSupportActionBar();
         initChatroomRecyclerView();
+
+        Intent intent=new Intent("com.example.kit.services.MyFirebaseMessagingService");
+        intent.setPackage("com.example.kit");
+        this.startService(intent);
     }
 
 
