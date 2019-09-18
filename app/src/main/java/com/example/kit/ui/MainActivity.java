@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements
 
         findViewById(R.id.fab_create_chatroom).setOnClickListener(this);
         ib = findViewById(R.id.imageButton);
-        ib.setVisibility(View.INVISIBLE);
+//        ib.setVisibility(View.INVISIBLE);
         findViewById(R.id.imageButton).setOnClickListener(this);
 
         mDb = FirebaseFirestore.getInstance();

@@ -26,6 +26,8 @@
     <!-- Firestore Strings -->
     <string name="collection_users">Users</string>
     <string name="collection_contacts">Contacts</string>
+    <string name="collection_pending">Pending</string>
+    <string name="collection_requests">Requests</string>
     <string name="collection_usernames">Usernames</string>
     <string name="collection_chatrooms">Chatrooms</string>
     <string name="collection_chat_messages">Chat Messages</string>

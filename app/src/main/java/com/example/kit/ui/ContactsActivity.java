@@ -11,6 +11,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 
+import com.example.kit.UserClient;
 import com.example.kit.adapters.ContactRecyclerAdapter;
 import com.example.kit.models.Chatroom;
 import com.example.kit.models.Contact;
@@ -86,6 +87,7 @@ public class ContactsActivity extends AppCompatActivity implements
     private boolean mLocationPermissionGranted = false;
     private FusedLocationProviderClient mFusedLocationClient;
     private UserLocation mUserLocation;
+    private String m_Text;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -320,7 +322,7 @@ public class ContactsActivity extends AppCompatActivity implements
         mDb.setFirestoreSettings(settings);
 
         CollectionReference contactsCollection = mDb
-                .collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_contacts));
+                .collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_requests));
 
         mContactEventListener = contactsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -486,7 +488,7 @@ public class ContactsActivity extends AppCompatActivity implements
 
     @Override
     public void onContactSelected(int position) {
-        navContactActivity(mContacts.get(position));
+        acceptRequest(mContacts.get(position));
     }
 
     private void signOut(){
@@ -528,6 +530,64 @@ public class ContactsActivity extends AppCompatActivity implements
 
     private void hideDialog(){
         mProgressBar.setVisibility(View.GONE);
+    }
+
+    private void acceptRequest(final Contact contact){
+        final FirebaseFirestore fs = FirebaseFirestore.getInstance();
+        final String uid = FirebaseAuth.getInstance().getUid();
+        final DocumentReference userRef = fs.collection(getString(R.string.collection_users)).document(uid);
+        final User user = ((UserClient)getApplicationContext()).getUser();
+        android.app.AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Enter a display name");
+
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        builder.setPositiveButton("CREATE", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (!input.getText().toString().equals("")) {
+                    m_Text = input.getText().toString();
+                    userRef.collection(getString(R.string.collection_contacts)).document(contact.getCid()).set(new Contact(m_Text,
+                            contact.getUsername(), contact.getAvatar(), contact.getCid())).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            userRef.collection(getString(R.string.collection_requests)).document(contact.getCid()).delete();
+                            final DocumentReference contactRef =
+                                    fs.collection(getString(R.string.collection_users)).document(contact.getCid());
+                            contactRef.collection(getString(R.string.collection_pending)).document(user.getUser_id()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                    if (!task.isSuccessful()){return;}
+                                    final Contact ucontact = task.getResult().toObject(Contact.class);
+                                    contactRef.collection(getString(R.string.collection_contacts)).document(ucontact.getCid()).set(ucontact).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (!task.isSuccessful()) {return;}
+                                            contactRef.collection(getString(R.string.collection_pending)).document(ucontact.getCid()).delete();
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+
+
+                }
+                else {
+                    Toast.makeText(ContactsActivity.this, "Enter a chatroom name", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
     }
 
 
