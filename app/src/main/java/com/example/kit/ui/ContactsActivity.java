@@ -13,18 +13,15 @@ import android.os.Bundle;
 
 import com.example.kit.UserClient;
 import com.example.kit.adapters.ContactRecyclerAdapter;
-import com.example.kit.models.Chatroom;
 import com.example.kit.models.Contact;
 import com.example.kit.models.User;
 import com.example.kit.models.UserLocation;
-import com.example.kit.models.Username;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.material.snackbar.Snackbar;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -322,7 +319,7 @@ public class ContactsActivity extends AppCompatActivity implements
         mDb.setFirestoreSettings(settings);
 
         CollectionReference contactsCollection = mDb
-                .collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_contacts));
+                .collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_pending));
 
         mContactEventListener = contactsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -428,6 +425,10 @@ public class ContactsActivity extends AppCompatActivity implements
                         }
                     }
                 }
+                if (task.getResult().isEmpty()){
+                    Toast.makeText(ContactsActivity.this, "No User was found for this username", Toast.LENGTH_SHORT).show();
+                    newContactDialog();
+                }
             }
         });
     }
@@ -450,6 +451,7 @@ public class ContactsActivity extends AppCompatActivity implements
                 }
                 else {
                     Toast.makeText(ContactsActivity.this, "Enter a username", Toast.LENGTH_SHORT).show();
+                    newContactDialog();
                 }
             }
         });
@@ -487,7 +489,7 @@ public class ContactsActivity extends AppCompatActivity implements
 
     @Override
     public void onContactSelected(int position) {
-        navContactActivity(mContacts.get(position));
+        removePeniding(mContacts.get(position));
     }
 
     private void signOut(){
@@ -589,5 +591,36 @@ public class ContactsActivity extends AppCompatActivity implements
         builder.show();
     }
 
+    public void removePeniding(final Contact contact){
+        final FirebaseFirestore fs = FirebaseFirestore.getInstance();
+        final String uid = FirebaseAuth.getInstance().getUid();
+        final DocumentReference userRef = fs.collection(getString(R.string.collection_users)).document(uid);
+        final User user = ((UserClient)getApplicationContext()).getUser();
+        android.app.AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Are you sure you want to delete");
 
+        builder.setPositiveButton("DELETE", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                userRef.collection(getString(R.string.collection_pending)).document(contact.getCid()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        fs.collection(getString(R.string.collection_users)).document(contact.getCid()).collection(getString(R.string.collection_requests)).document(uid).delete();
+                    }
+                });
+
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
 }
+
+

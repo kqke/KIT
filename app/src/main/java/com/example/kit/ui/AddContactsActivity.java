@@ -74,7 +74,7 @@ public class AddContactsActivity extends AppCompatActivity {
                 if (!input.getText().toString().equals("")) {
                     m_Text = input.getText().toString();
                     Contact contact = new Contact(m_Text, contactUser.getUsername(), null, contactUser.getUser_id());
-                    userRef.collection(getString(R.string.collection_pending)).document().set(contact).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    userRef.collection(getString(R.string.collection_pending)).document(contactUser.getUser_id()).set(contact).addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
                             Log.d(TAG, "DocumentSnapshot successfully written!");
