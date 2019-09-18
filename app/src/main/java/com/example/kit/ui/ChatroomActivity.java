@@ -24,6 +24,7 @@ import com.example.kit.models.Chatroom;
 import com.example.kit.models.UChatroom;
 import com.example.kit.models.User;
 import com.example.kit.models.UserLocation;
+import com.example.kit.services.FCM;
 import com.google.android.gms.common.util.CollectionUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -39,6 +40,7 @@ import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.auth.Token;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -64,6 +66,7 @@ public class ChatroomActivity extends AppCompatActivity implements
     private Set<String> mMessageIds = new HashSet<>();
     private ArrayList<User> mUserList = new ArrayList<>();
     private ArrayList<UserLocation> mUserLocations = new ArrayList<>();
+    private ArrayList<String> mUserTokens = new ArrayList<>();
 
 
     @Override
@@ -142,6 +145,7 @@ public class ChatroomActivity extends AppCompatActivity implements
                             for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                                 User user = doc.toObject(User.class);
                                 mUserList.add(user);
+                                mUserTokens.add(user.getToken());
                                 System.out.println(user.getUser_id());
                                 getUserLocation(user);
                             }
@@ -209,11 +213,11 @@ public class ChatroomActivity extends AppCompatActivity implements
                     .collection(getString(R.string.collection_chat_messages))
                     .document();
 
-            ChatMessage newChatMessage = new ChatMessage();
+            final ChatMessage newChatMessage = new ChatMessage();
             newChatMessage.setMessage(message);
             newChatMessage.setMessage_id(newMessageDoc.getId());
 
-            User user = ((UserClient)(getApplicationContext())).getUser();
+            final User user = ((UserClient)(getApplicationContext())).getUser();
             Log.d(TAG, "insertNewMessage: retrieved user client: " + user.toString());
             newChatMessage.setUser(user);
             newChatMessage.setTimestamp(new Date());
@@ -221,6 +225,11 @@ public class ChatroomActivity extends AppCompatActivity implements
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     if(task.isSuccessful()){
+                        String uid = user.getUser_id();
+                        for (User u: mUserList){
+                            if (u.getUser_id().equals(uid)) {continue;}
+                            FCM.send_FCM_Notification(u.getToken(), newChatMessage.getMessage());
+                        }
                         clearMessage();
                     }else{
                         View parentLayout = findViewById(android.R.id.content);
