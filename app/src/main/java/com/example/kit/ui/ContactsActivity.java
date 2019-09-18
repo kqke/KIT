@@ -322,7 +322,7 @@ public class ContactsActivity extends AppCompatActivity implements
         mDb.setFirestoreSettings(settings);
 
         CollectionReference contactsCollection = mDb
-                .collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_users));
+                .collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_contacts));
 
         mContactEventListener = contactsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -387,10 +387,9 @@ public class ContactsActivity extends AppCompatActivity implements
         startActivityForResult(intent, 0);
     }
 
-    private void navAddContactActivity(String cid, String username){
+    private void navAddContactActivity(User user){
         Intent intent = new Intent(ContactsActivity.this, AddContactsActivity.class);
-        intent.putExtra(getString(R.string.intent_contact), cid);
-        intent.putExtra("un", username);
+        intent.putExtra(getString(R.string.intent_contact), user);
         startActivityForResult(intent, 0);
     }
 
@@ -425,7 +424,7 @@ public class ContactsActivity extends AppCompatActivity implements
                             Log.d(TAG, "User Exists");
                             User user = documentSnapshot.toObject(User.class);
                             Log.d(TAG, "onComplete: Barak contact id" + user.getUser_id());
-                            navAddContactActivity(user.getUser_id(), username);
+                            navAddContactActivity(user);
                         }
                     }
                 }

@@ -223,9 +223,9 @@ public class ChatroomActivity extends AppCompatActivity implements
                 public void onComplete(@NonNull Task<Void> task) {
                     if(task.isSuccessful()){
                         String uid = user.getUser_id();
-                        for (User u: mUserList){
+                        for (final User u: mUserList){
                             if (u.getUser_id().equals(uid)) {continue;}
-                            FCM.send_FCM_Notification(u.getToken(), newChatMessage.getMessage());
+                            FCM.send_FCM_Notification(u.getToken(), "message", newChatMessage.getMessage());
                         }
                         clearMessage();
                     }else{
