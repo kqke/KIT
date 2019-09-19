@@ -51,6 +51,7 @@
 
     <!-- Fragments Names -->
     <string name="fragment_user_list">User List</string>
+    <string name="fragment_map_frag">Map Fragt</string>
     <string name="fragment_image_list">Image List</string>
 
     <!-- Other Strings -->
