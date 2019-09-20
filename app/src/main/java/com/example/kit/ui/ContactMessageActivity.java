@@ -518,10 +518,10 @@ public class ContactMessageActivity extends AppCompatActivity implements
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()){
-            case R.id.action_sign_out:{
-                signOut();
-                return true;
-            }
+//            case R.id.action_sign_out:{
+//                signOut();
+//                return true;
+//            }
             case R.id.action_profile:{
                 startActivity(new Intent(this, ProfileActivity.class));
                 return true;

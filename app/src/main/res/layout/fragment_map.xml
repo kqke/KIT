@@ -25,7 +25,6 @@
                 android:id="@+id/frag_map" />
         </RelativeLayout>
 
-
     </LinearLayout>
 
     <ProgressBar

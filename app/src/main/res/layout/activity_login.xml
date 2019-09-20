@@ -8,7 +8,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/progressBar"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="200dp"
+        android:layout_centerVertical="true"
         android:visibility="invisible"/>
 
 </RelativeLayout>

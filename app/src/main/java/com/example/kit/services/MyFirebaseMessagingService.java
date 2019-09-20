@@ -10,9 +10,14 @@ import androidx.core.app.NotificationCompat;
 
 import com.example.kit.R;
 
+import com.example.kit.models.User;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.GetTokenResult;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -22,7 +27,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class MyFirebaseMessagingService extends FirebaseMessagingService {
+public class MyFirebaseMessagingService extends FirebaseMessagingService
+        implements FirebaseAuth.IdTokenListener{
 
     private static final String TAG = MyFirebaseMessagingService.class.getSimpleName();
 
@@ -75,5 +81,32 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             Log.e(TAG, "saveToken: NullPointerException: "  + e.getMessage() );
 //            stopSelf();
         }
+    }
+
+    @Override
+    public void onIdTokenChanged(@NonNull FirebaseAuth firebaseAuth) {
+        final DocumentReference userRef = FirebaseFirestore.getInstance()
+                .collection(getString(R.string.collection_users))
+                .document(firebaseAuth.getUid());
+        firebaseAuth.getAccessToken(true)
+                .addOnCompleteListener(new OnCompleteListener<GetTokenResult>() {
+            @Override
+            public void onComplete(@NonNull Task<GetTokenResult> task) {
+                if (!task.isSuccessful()) {
+                    return;
+                }
+                final String token = task.getResult().getToken();
+                userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (!task.isSuccessful()) {
+                            return;
+                        }
+                        User user = task.getResult().toObject(User.class);
+                        user.setToken(token);
+                    }
+                });
+            }
+        });
     }
 }
