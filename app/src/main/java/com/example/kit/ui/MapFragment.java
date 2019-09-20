@@ -3,9 +3,6 @@ package com.example.kit.ui;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.fragment.app.Fragment;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -17,9 +14,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.kit.R;
-import com.example.kit.adapters.UserRecyclerAdapter;
 import com.example.kit.models.ClusterMarker;
-import com.example.kit.models.User;
+import com.example.kit.models.Contact;
 import com.example.kit.models.UserLocation;
 import com.example.kit.util.MyClusterManagerRenderer;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -37,30 +33,44 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.maps.android.clustering.ClusterManager;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 import static com.example.kit.Constants.MAPVIEW_BUNDLE_KEY;
 
-public class MapFragment extends Fragment implements OnMapReadyCallback {
+public class MapFragment extends DBGeoFragment
+        implements OnMapReadyCallback {
 
-    private static final String TAG = "MapFrag";
+    //TODO
+    // navigate to Profile bubble when user is clicked
 
-    //widgets
-//    private RecyclerView mUserListRecyclerView;
-    private MapView mMapView;
+    //Tag
+    private static final String TAG = "ChatsFragment";
 
-
-    //vars
-    private ArrayList<User> mContactList = new ArrayList<>();
-    private ArrayList<UserLocation> mContactLocations = new ArrayList<>();
-//    private UserRecyclerAdapter mUserRecyclerAdapter;
+    //Maps
     private GoogleMap mGoogleMap;
-    private UserLocation mUserPosition;
     private LatLngBounds mMapBoundary;
     private ClusterManager<ClusterMarker> mClusterManager;
     private MyClusterManagerRenderer mClusterManagerRenderer;
     private ArrayList<ClusterMarker> mClusterMarkers = new ArrayList<>();
 
+    //Runnable
+    private Handler mHandler = new Handler();
+    private Runnable mRunnable;
+    private static final int LOCATION_UPDATE_INTERVAL = 3000;
+
+    //Vars
+    private ArrayList<Contact> mContactList = new ArrayList<>();
+    private ArrayList<UserLocation> mContactLocations = new ArrayList<>();
+
+    //Widgets
+    private MapView mMapView;
+
+    /*
+    ----------------------------- Lifecycle ---------------------------------
+    */
+
+    public MapFragment() {
+        super();
+    }
 
     public static MapFragment newInstance() {
         return new MapFragment();
@@ -72,13 +82,87 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         super.onCreate(savedInstanceState);
         if (mContactLocations.size() == 0) {
             if (getArguments() != null) {
-                mUserPosition = getArguments().getParcelable("userPos");
+                mUserLocation = getArguments().getParcelable("userPos");
                 mContactList = getArguments().getParcelableArrayList(getString(R.string.intent_user_list));
-
                 mContactLocations = getArguments().getParcelableArrayList(getString(R.string.intent_user_locations));
             }
         }
     }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        Log.d(TAG, "onCreateView: ");
+        View view = inflater.inflate(R.layout.fragment_map, container, false);
+        init(view);
+        setUserPosition();
+        initGoogleMap(savedInstanceState);
+        return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mMapView.onResume();
+        startUserLocationsRunnable();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mMapView.onStart();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        mMapView.onStop();
+    }
+
+    @Override
+    public void onPause() {
+        mMapView.onPause();
+        super.onPause();
+    }
+
+    @Override
+    public void onDestroy() {
+        mMapView.onDestroy();
+        super.onDestroy();
+        stopLocationUpdates();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mMapView.onLowMemory();
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        Bundle mapViewBundle = outState.getBundle(MAPVIEW_BUNDLE_KEY);
+        if (mapViewBundle == null) {
+            mapViewBundle = new Bundle();
+            outState.putBundle(MAPVIEW_BUNDLE_KEY, mapViewBundle);
+        }
+        mMapView.onSaveInstanceState(mapViewBundle);
+    }
+
+    /*
+    ----------------------------- init ---------------------------------
+    */
+
+    private void init(View v){
+        mMapView = v.findViewById(R.id.frag_map);
+        Log.d(TAG, "b4 init");
+        Log.d(TAG, "after init");
+    }
+
+    /*
+    ----------------------------- DB ---------------------------------
+    */
 
     private void setUserPosition() {
         DocumentReference userLocRef =
@@ -87,50 +171,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if (!task.isSuccessful()){return;}
-                mUserPosition = task.getResult().toObject(UserLocation.class);
-                mContactLocations.add(mUserPosition);
-
+                mUserLocation = task.getResult().toObject(UserLocation.class);
+                mContactLocations.add(mUserLocation);
             }
         });
-
     }
-
-    private void setCameraView() {
-        double lat = mUserPosition.getGeo_point().getLatitude();
-        double lon = mUserPosition.getGeo_point().getLongitude();
-        double bb = lat - .1;
-        double lb = lon - .1;
-        double tb = lat + .1;
-        double rb = lon + .1;
-        int width = getResources().getDisplayMetrics().widthPixels;
-        int height = getResources().getDisplayMetrics().heightPixels;
-        int padding = 4;
-
-        mMapBoundary = new LatLngBounds(new LatLng(bb, lb), new LatLng(tb, rb));
-
-        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary, width, height, padding));
-    }
-
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        Log.d(TAG, "onCreateView: ");
-        View view = inflater.inflate(R.layout.activity_map_fragment, container, false);
-//        mUserListRecyclerView = view.findViewById(R.id.user_list_recycler_view);
-        mMapView = view.findViewById(R.id.frag_map);
-
-//        initUserListRecyclerView();
-        Log.d(TAG, "b4 init");
-        initGoogleMap(savedInstanceState);
-        setUserPosition();
-
-        Log.d(TAG, "after init");
-        return view;
-    }
-
-    private Handler mHandler = new Handler();
-    private Runnable mRunnable;
-    private static final int LOCATION_UPDATE_INTERVAL = 3000;
 
     private void startUserLocationsRunnable() {
         Log.d(TAG, "startUserLocationsRunnable: starting runnable for retrieving updated locations.");
@@ -147,9 +192,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         mHandler.removeCallbacks(mRunnable);
     }
 
-
     private void retrieveUserLocations() {
-        Log.d(TAG, "retrieveUserLocations: retrieving location of all users in the chatroom.");
+        Log.d(TAG, "retrieveUserLocations: retrieving location of all users in the chatroom");
         try {
             for (final ClusterMarker clusterMarker : mClusterMarkers) {
                 DocumentReference userLocationRef = FirebaseFirestore.getInstance()
@@ -160,7 +204,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                         if (task.isSuccessful()) {
                             final UserLocation updatedUserLocation = task.getResult().toObject(UserLocation.class);
-// update the location
+                            // update the location
                             for (int i = 0; i < mClusterMarkers.size(); i++) {
                                 try {
                                     if (mClusterMarkers.get(i).getUser().getUser_id().equals(updatedUserLocation.getUser().getUser_id())) {
@@ -184,6 +228,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    /*
+    ----------------------------- Map ---------------------------------
+    */
+
     private void initGoogleMap(Bundle savedInstanceState) {
         // *** IMPORTANT ***
         // MapView requires that the Bundle you pass contain _ONLY_ MapView SDK
@@ -192,56 +240,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         if (savedInstanceState != null) {
             mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
         }
-
         mMapView.onCreate(mapViewBundle);
-
         mMapView.getMapAsync(this);
-    }
-
-//    private void initUserListRecyclerView() {
-//        mUserRecyclerAdapter = new UserRecyclerAdapter(m);
-//        mUserListRecyclerView.setAdapter(mUserRecyclerAdapter);
-//        mUserListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-//    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        Bundle mapViewBundle = outState.getBundle(MAPVIEW_BUNDLE_KEY);
-        if (mapViewBundle == null) {
-            mapViewBundle = new Bundle();
-            outState.putBundle(MAPVIEW_BUNDLE_KEY, mapViewBundle);
-        }
-
-        mMapView.onSaveInstanceState(mapViewBundle);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        mMapView.onResume();
-        startUserLocationsRunnable();
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        mMapView.onStart();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        mMapView.onStop();
     }
 
     @Override
     public void onMapReady(GoogleMap map) {
         Log.d(TAG, "onMapReady: ");
-        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
+        if (ActivityCompat.checkSelfPermission(mActivity, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION)
+                && ActivityCompat.checkSelfPermission(mActivity, Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             return;
         }
@@ -250,44 +258,21 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         addMapMarkers();
     }
 
-    @Override
-    public void onPause() {
-        mMapView.onPause();
-        super.onPause();
-    }
-
-    @Override
-    public void onDestroy() {
-        mMapView.onDestroy();
-        super.onDestroy();
-        stopLocationUpdates();
-    }
-
-    @Override
-    public void onLowMemory() {
-        super.onLowMemory();
-        mMapView.onLowMemory();
-    }
-
     private void addMapMarkers() {
-
         if (mGoogleMap != null) {
-
             if (mClusterManager == null) {
-                mClusterManager = new ClusterManager<ClusterMarker>(getActivity().getApplicationContext(), mGoogleMap);
+                mClusterManager = new ClusterManager<ClusterMarker>(mActivity.getApplicationContext(), mGoogleMap);
             }
             if (mClusterManagerRenderer == null) {
                 mClusterManagerRenderer = new MyClusterManagerRenderer(
-                        getActivity(),
+                        mActivity,
                         mGoogleMap,
                         mClusterManager
                 );
                 mClusterManager.setRenderer(mClusterManagerRenderer);
             }
-
             System.out.println(mContactLocations.toString());
             for (UserLocation userLocation : mContactLocations) {
-
                 Log.d(TAG, "addMapMarkers: location: " + userLocation.getGeo_point().toString());
                 try {
                     String snippet = "";
@@ -316,11 +301,25 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 } catch (NullPointerException e) {
                     Log.e(TAG, "addMapMarkers: NullPointerException: " + e.getMessage());
                 }
-
             }
             mClusterManager.cluster();
-
             setCameraView();
+        }
+    }
+
+    private void setCameraView() {
+        if(mUserLocation != null) {
+            double lat = mUserLocation.getGeo_point().getLatitude();
+            double lon = mUserLocation.getGeo_point().getLongitude();
+            double bb = lat - .1;
+            double lb = lon - .1;
+            double tb = lat + .1;
+            double rb = lon + .1;
+            int width = getResources().getDisplayMetrics().widthPixels;
+            int height = getResources().getDisplayMetrics().heightPixels;
+            int padding = 4;
+            mMapBoundary = new LatLngBounds(new LatLng(bb, lb), new LatLng(tb, rb));
+            mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary, width, height, padding));
         }
     }
 }

@@ -37,8 +37,6 @@ public class ChatroomRecyclerAdapter extends RecyclerView.Adapter<ChatroomRecycl
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_chatroom_list_item, parent, false);
         final ViewHolder holder = new ViewHolder(view, mChatroomRecyclerClickListener);
-
-
         return holder;
     }
 

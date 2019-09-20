@@ -38,8 +38,6 @@
                     android:hint="@string/prompt_username"
                     android:layout_below="@+id/textChooseUsername"/>
 
-
-
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/btn_go"
                     android:layout_width="match_parent"

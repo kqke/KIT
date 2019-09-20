@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentTransaction;
 import android.util.Log;
 import android.view.Menu;
@@ -47,8 +48,28 @@ import java.util.Set;
 public class ChatroomActivity extends AppCompatActivity implements
         View.OnClickListener
 {
+    //TODO
+    // add actionbar to the map fragment that opens up with chat participants
+    //TODO
+    // make a nicer menu for actionbar actions
+    //TODO
+    // make a better layout for the keyboard, which includes a schedule a meeting button
+    //TODO
+    // onLongClickListener for message items
+    //TODO
+    // chatroom images
+    //TODO
+    // swipe functionality for messages? (like in whatsapp)
 
+    //Tag
     private static final String TAG = "ChatroomActivity";
+
+    //RecyclerView
+    private RecyclerView mChatMessageRecyclerView;
+    private ChatMessageRecyclerAdapter mChatMessageRecyclerAdapter;
+
+    //Firebase
+    private FirebaseFirestore mDb;
 
     //widgets
     private UChatroom mChatroom;
@@ -56,31 +77,147 @@ public class ChatroomActivity extends AppCompatActivity implements
 
     //vars
     private ListenerRegistration mChatMessageEventListener, mUserListEventListener;
-    private RecyclerView mChatMessageRecyclerView;
-    private ChatMessageRecyclerAdapter mChatMessageRecyclerAdapter;
-    private FirebaseFirestore mDb;
     private ArrayList<ChatMessage> mMessages = new ArrayList<>();
     private Set<String> mMessageIds = new HashSet<>();
     private ArrayList<User> mUserList = new ArrayList<>();
     private ArrayList<UserLocation> mUserLocations = new ArrayList<>();
     private ArrayList<String> mUserTokens = new ArrayList<>();
 
+    /*
+    ----------------------------- Lifecycle ---------------------------------
+    */
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chatroom);
-        mMessage = findViewById(R.id.input_message);
-        mChatMessageRecyclerView = findViewById(R.id.chatmessage_recycler_view);
+        init();
+    }
 
-        findViewById(R.id.checkmark).setOnClickListener(this);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getChatMessages();
+    }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(mChatMessageEventListener != null){
+            mChatMessageEventListener.remove();
+        }
+        if(mUserListEventListener != null){
+            mUserListEventListener.remove();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.chatroom_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    /*
+    ----------------------------- init ---------------------------------
+    */
+
+    private void init(){
         mDb = FirebaseFirestore.getInstance();
-
+        initView();
         getIncomingIntent();
-        initChatroomRecyclerView();
         getChatroomUsers();
     }
+
+    private void initView(){
+        setContentView(R.layout.activity_chatroom);
+        mMessage = findViewById(R.id.input_message);
+        findViewById(R.id.checkmark).setOnClickListener(this);
+        initChatroomRecyclerView();
+        setSupportActionBar((Toolbar)findViewById(R.id.upper_toolbar));
+    }
+
+    private void getIncomingIntent(){
+        if(getIntent().hasExtra(getString(R.string.intent_uchatroom))){
+            mChatroom = getIntent().getParcelableExtra(getString(R.string.intent_uchatroom));
+            setChatroomName();
+            joinChatroom();
+        }
+    }
+
+    private void initChatroomRecyclerView(){
+        mChatMessageRecyclerView = findViewById(R.id.chatmessage_recycler_view);
+        User user = ((UserClient)(getApplicationContext())).getUser();
+        String userID = user.getUser_id();
+        mChatMessageRecyclerAdapter = new ChatMessageRecyclerAdapter(mMessages, new ArrayList<User>(), this, userID);
+        mChatMessageRecyclerView.setAdapter(mChatMessageRecyclerAdapter);
+        mChatMessageRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        mChatMessageRecyclerView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v,
+                                       int left, int top, int right, int bottom,
+                                       int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                if (bottom < oldBottom) {
+                    mChatMessageRecyclerView.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(mMessages.size() > 0){
+                                mChatMessageRecyclerView.smoothScrollToPosition(
+                                        mChatMessageRecyclerView.getAdapter().getItemCount() - 1);
+                            }
+
+                        }
+                    }, 100);
+                }
+            }
+        });
+
+    }
+
+    /*
+    ----------------------------- onClick ---------------------------------
+    */
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.checkmark:{
+                insertNewMessage();
+            }
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()){
+            case android.R.id.home:{
+                UserListFragment fragment =
+                        (UserListFragment) getSupportFragmentManager().findFragmentByTag(getString(R.string.fragment_user_list));
+                if(fragment != null){
+                    if(fragment.isVisible()){
+                        getSupportFragmentManager().popBackStack();
+                        return true;
+                    }
+                }
+                finish();
+                return true;
+            }
+            case R.id.action_chatroom_user_list:{
+                inflateUserListFragment();
+                return true;
+            }
+            case R.id.action_chatroom_leave:{
+                leaveChatroom();
+                return true;
+            }
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+
+    }
+
+    /*
+    ----------------------------- DB ---------------------------------
+    */
 
     private void getChatMessages(){
 
@@ -118,7 +255,6 @@ public class ChatroomActivity extends AppCompatActivity implements
     }
 
     private void getChatroomUsers(){
-
         CollectionReference usersRef = mDb
                 .collection(getString(R.string.collection_chatrooms))
                 .document(mChatroom.getChatroom_id())
@@ -155,7 +291,6 @@ public class ChatroomActivity extends AppCompatActivity implements
 
     private void getUserLocation(User user){
         DocumentReference locRef = mDb.collection(getString(R.string.collection_user_locations)).document(user.getUser_id());
-
         locRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -166,35 +301,6 @@ public class ChatroomActivity extends AppCompatActivity implements
                 }
             }
         });
-    }
-
-    private void initChatroomRecyclerView(){
-        User user = ((UserClient)(getApplicationContext())).getUser();
-        String userID = user.getUser_id();
-        mChatMessageRecyclerAdapter = new ChatMessageRecyclerAdapter(mMessages, new ArrayList<User>(), this, userID);
-        mChatMessageRecyclerView.setAdapter(mChatMessageRecyclerAdapter);
-        mChatMessageRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        mChatMessageRecyclerView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-            @Override
-            public void onLayoutChange(View v,
-                                       int left, int top, int right, int bottom,
-                                       int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                if (bottom < oldBottom) {
-                    mChatMessageRecyclerView.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            if(mMessages.size() > 0){
-                                mChatMessageRecyclerView.smoothScrollToPosition(
-                                        mChatMessageRecyclerView.getAdapter().getItemCount() - 1);
-                            }
-
-                        }
-                    }, 100);
-                }
-            }
-        });
-
     }
 
 
@@ -238,49 +344,7 @@ public class ChatroomActivity extends AppCompatActivity implements
         }
     }
 
-    private void clearMessage(){
-        mMessage.setText("");
-    }
-
-    private void inflateUserListFragment(){
-		hideSoftKeyboard();
-		
-        UserListFragment fragment = UserListFragment.newInstance();
-        Bundle bundle = new Bundle();
-        bundle.putParcelableArrayList(getString(R.string.intent_user_list), mUserList);
-        bundle.putParcelableArrayList(getString(R.string.intent_user_locations), mUserLocations);
-        fragment.setArguments(bundle);
-
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.setCustomAnimations(R.anim.slide_in_up, R.anim.slide_out_up);
-        transaction.replace(R.id.user_list_container, fragment, getString(R.string.fragment_user_list));
-        transaction.addToBackStack(getString(R.string.fragment_user_list));
-        transaction.commit();
-    }
-
-	private void hideSoftKeyboard(){
-        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-    }
-
-
-    private void getIncomingIntent(){
-        if(getIntent().hasExtra(getString(R.string.intent_uchatroom))){
-            mChatroom = getIntent().getParcelableExtra(getString(R.string.intent_uchatroom));
-            setChatroomName();
-            joinChatroom();
-        }
-    }
-
-    public void left() {
-        Intent returnIntent = new Intent();
-        returnIntent.putExtra("left", true);
-        // setResult(RESULT_OK);
-        setResult(RESULT_OK, returnIntent); //By not passing the intent in the result, the calling activity will get null data.
-        super.finish();
-    }
-
     private void leaveChatroom(){
-
         CollectionReference chatrooms = mDb.collection("Chatrooms");
         final DocumentReference chatroom = chatrooms.document(mChatroom.getChatroom_id());
         CollectionReference user_list = chatroom.collection("User List");
@@ -299,9 +363,9 @@ public class ChatroomActivity extends AppCompatActivity implements
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
 
                         count[0] += 1;
-                        }
-
                     }
+
+                }
                 if (count[0] == 0){
                     System.out.println("check34");
                     chatroom.delete();
@@ -312,7 +376,6 @@ public class ChatroomActivity extends AppCompatActivity implements
     }
 
     private void joinChatroom(){
-
         String cid = mChatroom.getChatroom_id();
         String uid = FirebaseAuth.getInstance().getUid();
 
@@ -327,72 +390,48 @@ public class ChatroomActivity extends AppCompatActivity implements
         joinChatroomRef.set(user); // Don't care about listening for completion.
     }
 
+    /*
+    ----------------------------- nav ---------------------------------
+    */
+
+    private void inflateUserListFragment(){
+		hideSoftKeyboard();
+		
+        UserListFragment fragment = UserListFragment.newInstance();
+        Bundle bundle = new Bundle();
+        bundle.putParcelableArrayList(getString(R.string.intent_user_list), mUserList);
+        bundle.putParcelableArrayList(getString(R.string.intent_user_locations), mUserLocations);
+        fragment.setArguments(bundle);
+
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.setCustomAnimations(R.anim.slide_in_up, R.anim.slide_out_up);
+        transaction.replace(R.id.user_list_container, fragment, getString(R.string.fragment_user_list));
+        transaction.addToBackStack(getString(R.string.fragment_user_list));
+        transaction.commit();
+    }
+
+    public void left() {
+        Intent returnIntent = new Intent();
+        returnIntent.putExtra("left", true);
+        setResult(RESULT_OK, returnIntent);
+        super.finish();
+    }
+
+    /*
+    ----------------------------- utils ---------------------------------
+    */
+
     private void setChatroomName(){
         getSupportActionBar().setTitle(mChatroom.getDisplay_name());
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        getChatMessages();
+    private void clearMessage(){
+        mMessage.setText("");
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if(mChatMessageEventListener != null){
-            mChatMessageEventListener.remove();
-        }
-        if(mUserListEventListener != null){
-            mUserListEventListener.remove();
-        }
+    private void hideSoftKeyboard(){
+        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.chatroom_menu, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()){
-            case android.R.id.home:{
-                UserListFragment fragment =
-                        (UserListFragment) getSupportFragmentManager().findFragmentByTag(getString(R.string.fragment_user_list));
-                if(fragment != null){
-                    if(fragment.isVisible()){
-                        getSupportFragmentManager().popBackStack();
-                        return true;
-                    }
-                }
-                finish();
-                return true;
-            }
-            case R.id.action_chatroom_user_list:{
-                inflateUserListFragment();
-                return true;
-            }
-            case R.id.action_chatroom_leave:{
-                leaveChatroom();
-                return true;
-            }
-            default:{
-                return super.onOptionsItemSelected(item);
-            }
-        }
-
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()){
-            case R.id.checkmark:{
-                insertNewMessage();
-            }
-        }
-    }
-
 }

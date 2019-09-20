@@ -26,7 +26,6 @@ public class UserLocation implements Parcelable{
     }
 
     public UserLocation() {
-
     }
 
     protected UserLocation(Parcel in) {

@@ -50,18 +50,27 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
     private RecyclerView mUserListRecyclerView;
     private MapView mMapView;
 
+    //RecyclerView
+    private UserRecyclerAdapter mUserRecyclerAdapter;
+
+    //Map
+    private GoogleMap mGoogleMap;
+    private UserLocation mUserPosition;
+    private LatLngBounds mMapBoundary;
 
     //vars
     private ArrayList<User> mUserList = new ArrayList<>();
     private ArrayList<UserLocation> mUserLocations = new ArrayList<>();
-    private UserRecyclerAdapter mUserRecyclerAdapter;
-    private GoogleMap mGoogleMap;
-    private UserLocation mUserPosition;
-    private LatLngBounds mMapBoundary;
     private ClusterManager<ClusterMarker> mClusterManager;
     private MyClusterManagerRenderer mClusterManagerRenderer;
     private ArrayList<ClusterMarker> mClusterMarkers = new ArrayList<>();
 
+    //TODO
+    // Should inherit from a common ancestor with MapFragment
+
+    /*
+    ----------------------------- Lifecycle ---------------------------------
+    */
 
     public static UserListFragment newInstance() {
         return new UserListFragment();
@@ -147,7 +156,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                         if (task.isSuccessful()) {
                             final UserLocation updatedUserLocation = task.getResult().toObject(UserLocation.class);
-// update the location
+                            // update the location
                             for (int i = 0; i < mClusterMarkers.size(); i++) {
                                 try {
                                     if (mClusterMarkers.get(i).getUser().getUser_id().equals(updatedUserLocation.getUser().getUser_id())) {
