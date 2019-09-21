@@ -43,14 +43,14 @@ public class MapFragment extends DBGeoFragment
     // navigate to Profile bubble when user is clicked
 
     //Tag
-    private static final String TAG = "ChatsFragment";
+    private static final String TAG = "MapFragment";
 
-    //Maps
-    private GoogleMap mGoogleMap;
-    private LatLngBounds mMapBoundary;
-    private ClusterManager<ClusterMarker> mClusterManager;
-    private MyClusterManagerRenderer mClusterManagerRenderer;
-    private ArrayList<ClusterMarker> mClusterMarkers = new ArrayList<>();
+    //Map
+    protected GoogleMap mGoogleMap;
+    protected LatLngBounds mMapBoundary;
+    protected ClusterManager<ClusterMarker> mClusterManager;
+    protected MyClusterManagerRenderer mClusterManagerRenderer;
+    protected ArrayList<ClusterMarker> mClusterMarkers = new ArrayList<>();
 
     //Runnable
     private Handler mHandler = new Handler();
@@ -62,7 +62,7 @@ public class MapFragment extends DBGeoFragment
     private ArrayList<UserLocation> mContactLocations = new ArrayList<>();
 
     //Widgets
-    private MapView mMapView;
+    protected MapView mMapView;
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -156,8 +156,6 @@ public class MapFragment extends DBGeoFragment
 
     private void init(View v){
         mMapView = v.findViewById(R.id.frag_map);
-        Log.d(TAG, "b4 init");
-        Log.d(TAG, "after init");
     }
 
     /*
@@ -232,7 +230,7 @@ public class MapFragment extends DBGeoFragment
     ----------------------------- Map ---------------------------------
     */
 
-    private void initGoogleMap(Bundle savedInstanceState) {
+    protected void initGoogleMap(Bundle savedInstanceState) {
         // *** IMPORTANT ***
         // MapView requires that the Bundle you pass contain _ONLY_ MapView SDK
         // objects or sub-Bundles.

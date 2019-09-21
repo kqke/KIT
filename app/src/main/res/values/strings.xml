@@ -53,6 +53,10 @@
     <string name="fragment_user_list">User List</string>
     <string name="fragment_map_frag">Map Fragt</string>
     <string name="fragment_image_list">Image List</string>
+    <string name="fragment_chats">Chats</string>
+    <string name="fragment_contacts">Contacts</string>
+    <string name="fragment_profile">Profile</string>
+    <string name="fragment_settings">Settings</string>
 
     <!-- Other Strings -->
     <string name="action_create_chatroom">Create Chatroom</string>

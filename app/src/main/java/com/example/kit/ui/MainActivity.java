@@ -17,13 +17,16 @@ public class MainActivity extends AppCompatActivity
 {
 
     //TODO
-    // actionbar functionality (fix the strings shown) + additional menu options if necessary
+    // chat crashes on orientation change and locations are not updated properly
+    //TODO
+    // launch different fragments for private chats (no user list)
+    // and for group chats (with user list)
+    //TODO
+    // actionbar functionality - additional menu options if necessary
     //TODO
     // try to move the location check to here
     //TODO
     // should we make this the launcher activity that redirects to login if necessary?
-    //TODO
-    // consider adding map to bottom navi bar
     //TODO
     // settings fragment
     //TODO
@@ -32,8 +35,6 @@ public class MainActivity extends AppCompatActivity
     // search fragment?
     //TODO
     // add meeting invites as a new message type
-    //TODO
-    // make a superclass for MapFragment & UserListFragment
     //TODO
     // Login activity isn't perfect yet
     //TODO
@@ -47,13 +48,17 @@ public class MainActivity extends AppCompatActivity
     //  merge activity_login.xml & activity_username.xml
     //TODO
     //  transitions between activities
+    //TODO
+    // different activities for group and private chats
+    //TODO
+    // top right button on map not working
 
     //Tag
     private static final String TAG = "MainActivity";
 
     //Fragments
 //    private static final String SEARCH_FRAG = "SEARCH_FRAG";
-    private static final String CHATS_MAP_FRAG = "CHATS_MAP_FRAG";
+    private static final String CHATS_FRAG = "CHATS_FRAG";
     private static final String CONATCTS_FRAG = "CONTACTS_FRAG";
     private static final String PROFLE_FRAG = "PROFILE_FRAG";
     private static final String SETTINGS_FRAG = "SETTINGS_FRAG";
@@ -76,14 +81,14 @@ public class MainActivity extends AppCompatActivity
     private void initView(){
         setContentView(R.layout.activity_main);
         setSupportActionBar((Toolbar)findViewById(R.id.upper_toolbar));
-        setTitle(R.string.fui_default_toolbar_title);
+        setTitle(R.string.fragment_chats);
         initNavigationBar();
     }
 
     private void initNavigationBar() {
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navi_bar);
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.add(R.id.fragment_container, ChatsMapFragment.newInstance(), CHATS_MAP_FRAG)
+        ft.add(R.id.fragment_container, ChatsFragment.newInstance(), CHATS_FRAG)
                 .commit();
         bottomNav.setOnNavigationItemSelectedListener
                 (new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -100,23 +105,23 @@ public class MainActivity extends AppCompatActivity
                                 //TODO
                                 // highlight chats action on navibar
                                 // basically do nothing
-                                replaceFragment(ChatsMapFragment.newInstance(), CHATS_MAP_FRAG);
-                                setTitle(R.string.fui_default_toolbar_title);
+                                replaceFragment(ChatsFragment.newInstance(), CHATS_FRAG);
+                                setTitle(R.string.fragment_chats);
                                 return true;
                             }
                             case R.id.action_contacts:{
                                 replaceFragment(ContactsRequestsPendingFragment.newInstance(), CONATCTS_FRAG);
-                                setTitle(R.string.title_activity_contacts);
+                                setTitle(R.string.fragment_contacts);
                                 return true;
                             }
                             case R.id.action_profile:{
                                 replaceFragment(ProfileFragment.newInstance(), PROFLE_FRAG);
-                                setTitle(R.string.action_profile);
+                                setTitle(R.string.fragment_profile);
                                 return true;
                             }
                             case R.id.action_settings:{
                                 replaceFragment(SettingsFragment.newInstance(), SETTINGS_FRAG);
-                                setTitle(R.string.common_google_play_services_update_title);
+                                setTitle(R.string.fragment_settings);
                                 return true;
                             }
                         }
