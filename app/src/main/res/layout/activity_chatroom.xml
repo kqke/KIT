@@ -1,69 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/White">
+    android:orientation="vertical">
 
     <androidx.appcompat.widget.Toolbar
-        android:id="@+id/upper_toolbar"
+        android:id="@+id/toolbar"
         android:title="KIT"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/colorPrimary"
         android:minHeight="?attr/actionBarSize"
+        android:layout_marginTop="0dp"
         app:titleTextColor="@android:color/white"
         />
 
-    <RelativeLayout
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/view_pager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="40dp"
-        android:layout_below="@+id/upper_toolbar"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
         >
 
-        <androidx.recyclerview.widget.RecyclerView
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/pager_title_strip"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/chatmessage_recycler_view"
-            />
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:background="@color/colorPrimary"
+            app:tabTextColor="@android:color/white" />
+    </androidx.viewpager.widget.ViewPager>
 
-    </RelativeLayout>
-
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_alignParentBottom="true"
-        android:background="@drawable/grey_border_top">
-
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:src="@drawable/ic_check_green_24dp"
-            android:id="@+id/checkmark"/>
-
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/input_message"
-            android:background="@null"
-            android:layout_toLeftOf="@+id/checkmark"
-            android:gravity="center_vertical"
-            android:textSize="14sp"
-            android:hint="new message..."
-            android:textColor="@color/Black"
-            android:layout_marginLeft="5dp"/>
-
-    </RelativeLayout>
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/user_list_container">
-
-    </FrameLayout>
-
-</RelativeLayout>
+</LinearLayout>
