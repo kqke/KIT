@@ -215,7 +215,7 @@ public class ChatroomActivity extends AppCompatActivity
                 case 1:
                     if (uChatroom.isGroup()) { return UserListFragment.newInstance(); }
                     else {
-                        // todo add single user map inflation
+                        return MapFragment.newInstance();
                     }
             }
             return null; // not reachable

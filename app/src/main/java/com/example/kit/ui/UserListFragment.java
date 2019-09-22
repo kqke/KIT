@@ -11,16 +11,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.kit.R;
-import com.example.kit.adapters.UserRecyclerAdapter;
-import com.example.kit.models.User;
+import com.example.kit.adapters.ContactRecyclerAdapter;
+import com.example.kit.models.Contact;
 import com.example.kit.models.UserLocation;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.firebase.auth.FirebaseAuth;
 
-import java.util.ArrayList;
+import static com.example.kit.Constants.MAPVIEW_BUNDLE_KEY;
 
 public class UserListFragment extends MapFragment
-        implements OnMapReadyCallback {
+        implements OnMapReadyCallback,
+        ContactRecyclerAdapter.ContactsRecyclerClickListener{
 
     private static final String TAG = "UserListFragment";
 
@@ -28,11 +29,8 @@ public class UserListFragment extends MapFragment
     private RecyclerView mUserListRecyclerView;
 
     //RecyclerView
-    private UserRecyclerAdapter mUserRecyclerAdapter;
+    private ContactRecyclerAdapter mUserRecyclerAdapter;
 
-    //vars
-    private ArrayList<User> mUserList = new ArrayList<>();
-    private ArrayList<UserLocation> mUserLocations = new ArrayList<>();
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -45,10 +43,10 @@ public class UserListFragment extends MapFragment
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (mUserLocations.size() == 0) {
+        if (mContactLocations.size() == 0) {
             if (getArguments() != null) {
-                mUserList = getArguments().getParcelableArrayList(getString(R.string.intent_user_list));
-                mUserLocations = getArguments().getParcelableArrayList(getString(R.string.intent_user_locations));
+                mContactList = getArguments().getParcelableArrayList(getString(R.string.intent_user_list));
+                mContactLocations = getArguments().getParcelableArrayList(getString(R.string.intent_user_locations));
             }
         }
     }
@@ -70,7 +68,7 @@ public class UserListFragment extends MapFragment
     */
 
     private void setUserPosition() {
-        for (UserLocation ul : mUserLocations) {
+        for (UserLocation ul : mContactLocations) {
             if (ul.getUser().getUser_id().equals(FirebaseAuth.getInstance().getUid())) {
                 mUserLocation = ul;
             }
@@ -78,8 +76,43 @@ public class UserListFragment extends MapFragment
     }
 
     private void initUserListRecyclerView() {
-        mUserRecyclerAdapter = new UserRecyclerAdapter(mUserList);
+        mUserRecyclerAdapter = new ContactRecyclerAdapter(mContactList, this);
         mUserListRecyclerView.setAdapter(mUserRecyclerAdapter);
         mUserListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+    }
+
+        /*
+    ----------------------------- nav ---------------------------------
+    */
+
+    private void navContactActivity(Contact contact){
+        //TODO
+        // ContactActivity is deprecated
+//        Intent intent = new Intent(mActivity, ContactActivity.class);
+//        intent.putExtra(getString(R.string.intent_contact), contact);
+//        startActivityForResult(intent, 0);
+    }
+
+    @Override
+    public void onContactSelected(int position) {
+        //TODO
+        // ContactActivity is deprecated
+        navContactActivity(mContactList.get(position));
+    }
+
+    /*
+    ----------------------------- Map ---------------------------------
+    */
+
+    protected void initGoogleMap(Bundle savedInstanceState) {
+        // *** IMPORTANT ***
+        // MapView requires that the Bundle you pass contain _ONLY_ MapView SDK
+        // objects or sub-Bundles.
+        Bundle mapViewBundle = null;
+        if (savedInstanceState != null) {
+            mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
+        }
+        mMapView.onCreate(mapViewBundle);
+        mMapView.getMapAsync(this);
     }
 }
