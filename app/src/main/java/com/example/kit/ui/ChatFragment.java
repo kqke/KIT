@@ -2,14 +2,11 @@ package com.example.kit.ui;
 
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -17,7 +14,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
 import com.example.kit.R;
@@ -31,10 +28,8 @@ import com.example.kit.util.FCM;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -47,8 +42,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-
-import static android.app.Activity.RESULT_OK;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -94,7 +87,7 @@ public class ChatFragment extends Fragment implements
     private ArrayList<String> mUserTokens = new ArrayList<>();
 
     //Callback
-    ChatroomCallback getChatroom;
+    ChatroomCallback getData;
 
      /*
     ----------------------------- Lifecycle ---------------------------------
@@ -132,8 +125,11 @@ public class ChatFragment extends Fragment implements
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        getChatroom =  (ChatroomCallback)context;
-        mChatroom = getChatroom.getChatroom();
+        getData =  (ChatroomCallback)context;
+        mChatroom = getData.getChatroom();
+        mUserList = getData.getUserList();
+        mUserLocations = getData.getUserLocations();
+        mUserTokens = getData.getUserTokens();
     }
 
     @Override
@@ -154,13 +150,14 @@ public class ChatFragment extends Fragment implements
     private void init(){
         mDb = FirebaseFirestore.getInstance();
         mChatroom = ((ChatroomActivity)getActivity()).getChatroom();
-        getChatroomUsers();
+//        getChatroomUsers();
     }
 
     private void initView(){
         mMessage = v.findViewById(R.id.input_message);
         v.findViewById(R.id.checkmark).setOnClickListener(this);
         mChatMessageRecyclerView = v.findViewById(R.id.chatmessage_recycler_view);
+        mChatMessageRecyclerView.setOnClickListener(this);
         initChatroomRecyclerView();
     }
 
@@ -204,6 +201,8 @@ public class ChatFragment extends Fragment implements
             case R.id.checkmark:{
                 insertNewMessage();
             }
+            case R.id.chatmessage_recycler_view:
+                hideSoftKeyboard();
         }
     }
 
@@ -246,54 +245,54 @@ public class ChatFragment extends Fragment implements
                 });
     }
 
-    private void getChatroomUsers(){
-        CollectionReference usersRef = mDb
-                .collection(getString(R.string.collection_chatrooms))
-                .document(mChatroom.getChatroom_id())
-                .collection(getString(R.string.collection_chatroom_user_list));
-
-        mUserListEventListener = usersRef
-                .addSnapshotListener(new EventListener<QuerySnapshot>() {
-                    @Override
-                    public void onEvent(@javax.annotation.Nullable QuerySnapshot queryDocumentSnapshots, @javax.annotation.Nullable FirebaseFirestoreException e) {
-                        if (e != null) {
-                            Log.e(TAG, "onEvent: Listen failed.", e);
-                            return;
-                        }
-
-                        if(queryDocumentSnapshots != null){
-
-                            // Clear the list and add all the users again
-                            mUserList.clear();
-                            mUserList = new ArrayList<>();
-
-                            for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                                User user = doc.toObject(User.class);
-                                mUserList.add(user);
-                                mUserTokens.add(user.getToken());
-                                System.out.println(user.getUser_id());
-                                getUserLocation(user);
-                            }
-
-                            Log.d(TAG, "onEvent: user list size: " + mUserList.size());
-                        }
-                    }
-                });
-    }
-
-    private void getUserLocation(User user){
-        DocumentReference locRef = mDb.collection(getString(R.string.collection_user_locations)).document(user.getUser_id());
-        locRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()){
-                    if (task.getResult().toObject(UserLocation.class) != null){
-                        mUserLocations.add(task.getResult().toObject(UserLocation.class));
-                    }
-                }
-            }
-        });
-    }
+//    private void getChatroomUsers(){
+//        CollectionReference usersRef = mDb
+//                .collection(getString(R.string.collection_chatrooms))
+//                .document(mChatroom.getChatroom_id())
+//                .collection(getString(R.string.collection_chatroom_user_list));
+//
+//        mUserListEventListener = usersRef
+//                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+//                    @Override
+//                    public void onEvent(@javax.annotation.Nullable QuerySnapshot queryDocumentSnapshots, @javax.annotation.Nullable FirebaseFirestoreException e) {
+//                        if (e != null) {
+//                            Log.e(TAG, "onEvent: Listen failed.", e);
+//                            return;
+//                        }
+//
+//                        if(queryDocumentSnapshots != null){
+//
+//                            // Clear the list and add all the users again
+//                            mUserList.clear();
+//                            mUserList = new ArrayList<>();
+//
+//                            for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+//                                User user = doc.toObject(User.class);
+//                                mUserList.add(user);
+//                                mUserTokens.add(user.getToken());
+//                                System.out.println(user.getUser_id());
+//                                getUserLocation(user);
+//                            }
+//
+//                            Log.d(TAG, "onEvent: user list size: " + mUserList.size());
+//                        }
+//                    }
+//                });
+//    }
+//
+//    private void getUserLocation(User user){
+//        DocumentReference locRef = mDb.collection(getString(R.string.collection_user_locations)).document(user.getUser_id());
+//        locRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+//            @Override
+//            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+//                if (task.isSuccessful()){
+//                    if (task.getResult().toObject(UserLocation.class) != null){
+//                        mUserLocations.add(task.getResult().toObject(UserLocation.class));
+//                    }
+//                }
+//            }
+//        });
+//    }
 
 
     private void insertNewMessage(){
@@ -343,8 +342,16 @@ public class ChatFragment extends Fragment implements
         mMessage.setText("");
     }
 
+    private void hideSoftKeyboard(){
+        final InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
+    }
+
     public interface ChatroomCallback {
-        public UChatroom getChatroom();
+        UChatroom getChatroom();
+        ArrayList<User> getUserList();
+        ArrayList<UserLocation>getUserLocations();
+        ArrayList<String>getUserTokens();
     }
 
 }

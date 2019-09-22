@@ -122,6 +122,7 @@ public class ChatsFragment extends DBGeoFragment implements
     */
 
     private void initView(View v){
+        v.findViewById(R.id.fab).setOnClickListener(this);
         mChatroomRecyclerView = v.findViewById(R.id.chatrooms_recycler_view);
         mChatroomRecyclerAdapter = new ChatroomRecyclerAdapter(mChatrooms, this);
         mChatroomRecyclerView.setAdapter(mChatroomRecyclerAdapter);
@@ -142,12 +143,18 @@ public class ChatsFragment extends DBGeoFragment implements
         if(v.getId() == R.id.fab){
             //TODO
             // build a new chat/chat room (Fragment?)
+            navContactMessageActivity();
         }
     }
 
     /*
     ----------------------------- nav ---------------------------------
     */
+
+    private void navContactMessageActivity(){
+        Intent intent = new Intent(mActivity, ContactMessageActivity.class);
+        startActivity(intent);
+    }
 
     private void navChatroomActivity(UChatroom chatroom){
         Intent intent = new Intent(mActivity, ChatroomActivity.class);
