@@ -49,8 +49,6 @@ public class MainActivity extends AppCompatActivity
     //TODO
     //  transitions between activities
     //TODO
-    // different activities for group and private chats
-    //TODO
     // top right button on map not working
 
     //Tag
