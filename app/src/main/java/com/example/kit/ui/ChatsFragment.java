@@ -1,6 +1,7 @@
 package com.example.kit.ui;
 
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -16,6 +17,7 @@ import android.view.ViewGroup;
 
 import com.example.kit.R;
 import com.example.kit.adapters.ChatroomRecyclerAdapter;
+import com.example.kit.models.Contact;
 import com.example.kit.models.UChatroom;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
@@ -27,12 +29,15 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.Nullable;
 
 import static android.app.Activity.RESULT_OK;
+import static com.example.kit.Constants.CHATROOM;
+import static com.example.kit.Constants.CONTACTS_HASH_MAP;
 import static com.example.kit.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 import static com.example.kit.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 
@@ -52,6 +57,12 @@ public class ChatsFragment extends DBGeoFragment implements
     //Chat rooms
     private ArrayList<UChatroom> mChatrooms = new ArrayList<>();
     private Set<String> mChatroomIds = new HashSet<>();
+
+    //Contacts
+    private HashMap<String, Contact> mId2Contact = new HashMap<>();
+
+    //Callback
+    ContactsFragment.ContactsCallback getData;
 
     //TODO
     // what is the purpose of this?
@@ -74,6 +85,13 @@ public class ChatsFragment extends DBGeoFragment implements
 
     public static ChatsFragment newInstance() {
         return new ChatsFragment();
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        getData =  (ContactsFragment.ContactsCallback)context;
+        mId2Contact = getData.getId2Contact();
     }
 
     @Override
@@ -158,7 +176,8 @@ public class ChatsFragment extends DBGeoFragment implements
 
     private void navChatroomActivity(UChatroom chatroom){
         Intent intent = new Intent(mActivity, ChatroomActivity.class);
-        intent.putExtra(getString(R.string.intent_uchatroom), chatroom);
+        intent.putExtra(CHATROOM, chatroom);
+        intent.putExtra(CONTACTS_HASH_MAP, mId2Contact);
         startActivityForResult(intent, 0);
     }
 

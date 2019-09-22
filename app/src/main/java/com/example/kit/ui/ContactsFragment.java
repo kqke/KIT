@@ -1,6 +1,7 @@
 package com.example.kit.ui;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -39,6 +40,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -65,9 +67,9 @@ public class ContactsFragment extends DBGeoFragment implements
     private ArrayList<Contact> mContacts = new ArrayList<>();
     private Set<String> mContactIds = new HashSet<>();
 
-    //TODO
-    // what is this
-    private ListenerRegistration mContactEventListener;
+    //Callback
+    ContactsCallback getData;
+
     private String m_Text;
 
     /*
@@ -83,23 +85,23 @@ public class ContactsFragment extends DBGeoFragment implements
     }
 
     @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        getData = (ContactsCallback)context;
+        mContacts = getData.getContacts();
+        mContactIds = getData.getContactIds();
+    }
+
+    @Override
     public void onCreate(@androidx.annotation.Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        getContacts();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if(mContactEventListener != null){
-            mContactEventListener.remove();
-        }
-    }
+//    @Override
+//    public void onResume() {
+//        super.onResume();
+//        getContacts();
+//    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -211,42 +213,6 @@ public class ContactsFragment extends DBGeoFragment implements
     ----------------------------- DB ---------------------------------
     */
 
-    private void getContacts(){
-
-        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().build();
-        mDb.setFirestoreSettings(settings);
-
-        CollectionReference contactsCollection = mDb
-                .collection(getString(R.string.collection_users))
-                .document(FirebaseAuth.getInstance().getUid())
-                .collection(getString(R.string.collection_contacts));
-
-        mContactEventListener = contactsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
-                Log.d(TAG, "onEvent: called.");
-
-                if (e != null) {
-                    Log.e(TAG, "onEvent: Listen failed.", e);
-                    return;
-                }
-
-                if(queryDocumentSnapshots != null){
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-
-                        Contact contact = doc.toObject(Contact.class);
-                        if(!mContactIds.contains(contact.getCid())){
-                            mContactIds.add(contact.getCid());
-                            mContacts.add(contact);
-                        }
-                    }
-                    Log.d(TAG, "onEvent: number of contacts: " + mContacts.size());
-                    mContactRecyclerAdapter.notifyDataSetChanged();
-                }
-            }
-        });
-    }
-
     protected void search(final String username){
         CollectionReference usersRef = mDb.collection("Users");
         Query query = usersRef.whereEqualTo("username", username);
@@ -357,4 +323,9 @@ public class ContactsFragment extends DBGeoFragment implements
         builder.show();
     }
 
+    public interface ContactsCallback {
+        ArrayList<Contact> getContacts();
+        Set<String> getContactIds();
+        HashMap<String, Contact> getId2Contact();
+    }
 }

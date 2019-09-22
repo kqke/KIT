@@ -21,6 +21,7 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.example.kit.R;
 import com.example.kit.UserClient;
+import com.example.kit.models.Contact;
 import com.example.kit.models.UChatroom;
 import com.example.kit.models.User;
 import com.example.kit.models.UserLocation;
@@ -38,6 +39,10 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+
+import static com.example.kit.Constants.CHATROOM;
+import static com.example.kit.Constants.CONTACTS_HASH_MAP;
 
 
 public class ChatroomActivity extends AppCompatActivity
@@ -54,6 +59,7 @@ public class ChatroomActivity extends AppCompatActivity
     //vars
     private ListenerRegistration mUserListEventListener;
     public UChatroom mChatroom;
+    private HashMap<String, Contact> mContacts = new HashMap<>();
     private ArrayList<User> mUserList = new ArrayList<>();
     private ArrayList<UserLocation> mUserLocations = new ArrayList<>();
     private ArrayList<String> mUserTokens = new ArrayList<>();
@@ -102,9 +108,12 @@ public class ChatroomActivity extends AppCompatActivity
     private void getIncomingIntent(){
         //TODO
         // this is entered upon orientation change
-        if(getIntent().hasExtra(getString(R.string.intent_uchatroom))){
+        if(getIntent().hasExtra(CHATROOM)){
             mChatroom = getIntent().getParcelableExtra(getString(R.string.intent_uchatroom));
             joinChatroom();
+        }
+        if(getIntent().hasExtra(CONTACTS_HASH_MAP)){
+            mContacts = (HashMap<String, Contact>)getIntent().getSerializableExtra(CONTACTS_HASH_MAP);
         }
     }
 
