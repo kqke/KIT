@@ -359,30 +359,18 @@ public class ContactMessageActivity extends AppCompatActivity implements
         final Chatroom chatroom;
         final String first, second;
         final String chatroom_id;
-        if (isGroup) { //todo change to match group chat currently implements normal chat
-            if (stringCompare(cid1, cid2) > 0) {
-                first = cid2;
-                second = cid1;
-            } else {
-                first = cid1;
-                second = cid2;
-            }
-            chatroom_id = first + second;
-
-            chatroom = new Chatroom(first, second, chatroom_id);
+        if (stringCompare(cid1, cid2) > 0) {
+            first = cid2;
+            second = cid1;
+        } else {
+            first = cid1;
+            second = cid2;
         }
-        else {
-            if (stringCompare(cid1, cid2) > 0) {
-                first = cid2;
-                second = cid1;
-            } else {
-                first = cid1;
-                second = cid2;
-            }
-            chatroom_id = first + second;
+        chatroom_id = first + second;
 
-            chatroom = new Chatroom(first, second, chatroom_id);
-        }
+        chatroom = new Chatroom(first, second, chatroom_id);
+
+
 
         DocumentReference newChatroomRef = mDb
                 .collection(getString(R.string.collection_chatrooms))
@@ -398,7 +386,7 @@ public class ContactMessageActivity extends AppCompatActivity implements
                 if(task.isSuccessful()){
                     addUserToChatroom(chatroom_id, first, second, isGroup);
                     addUserToChatroom(chatroom_id, second, first, isGroup);
-                    UChatroom uchat = new UChatroom(display_name, first + second, isGroup);
+                    UChatroom uchat = new UChatroom(display_name, first + second, isGroup, 2);
                     navChatActivity(uchat);
                 }else{
                     View parentLayout = findViewById(android.R.id.content);
