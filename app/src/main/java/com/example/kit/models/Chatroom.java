@@ -36,8 +36,11 @@ public class Chatroom implements Parcelable {
     }
 
     protected Chatroom(Parcel in) {
+        user1 = in.readString();
+        user2 = in.readString();
         chatroom_id = in.readString();
         group_name = in.readString();
+        isGroup = in.readInt() == 1;
     }
 
     public static final Creator<Chatroom> CREATOR = new Creator<Chatroom>() {
@@ -89,6 +92,7 @@ public class Chatroom implements Parcelable {
         return isGroup;
     }
 
+
     @Override
     public String toString() {
         return "Chatroom{" +
@@ -109,6 +113,8 @@ public class Chatroom implements Parcelable {
         dest.writeString(user1);
         dest.writeString(user2);
         dest.writeString(chatroom_id);
+        dest.writeString(group_name);
+        dest.writeInt(isGroup ? 1:0);
     }
 
 }
