@@ -80,23 +80,24 @@ public class ChatsFragment extends DBGeoFragment implements
     public void onCreate(@androidx.annotation.Nullable Bundle savedInstanceState) {
         Log.d(TAG, "onCreate: ");
         super.onCreate(savedInstanceState);
+        getChatrooms();
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        if(checkMapServices()){
-            if(isLocationPermissionGranted()){
-                getChatrooms();
-                getUserDetails();
-            }
-            else{
-                if(getLocationPermission()){
-                    getChatrooms();
-                }
-            }
-        }
-    }
+//    @Override
+//    public void onResume() {
+//        super.onResume();
+//        if(checkMapServices()){
+//            if(isLocationPermissionGranted()){
+//                getChatrooms();
+//                getUserDetails();
+//            }
+//            else{
+//                if(getLocationPermission()){
+//                    getChatrooms();
+//                }
+//            }
+//        }
+//    }
 
     @Override
     public void onDestroy() {
@@ -154,49 +155,49 @@ public class ChatsFragment extends DBGeoFragment implements
         startActivityForResult(intent, 0);
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String permissions[],
-                                           @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    setLocationPermissionGranted(true);
-                }
-            }
-        }
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        Log.d(TAG, "onActivityResult: called.");
-        switch (requestCode) {
-            case PERMISSIONS_REQUEST_ENABLE_GPS: {
-                if(isLocationPermissionGranted()){
-                    getChatrooms();
-                    getUserDetails();
-                }
-                else{
-                    getLocationPermission();
-                }
-                break;
-            }
-            //TODO
-            // use better codes than "0"
-            case 0: {
-                if (resultCode == RESULT_OK){
-                    if ((boolean)data.getExtras().get("left")){
-                        mChatroomRecyclerAdapter
-                                .notifyItemRangeChanged(0,
-                                        mChatroomRecyclerAdapter.getItemCount());
-                    }
-                }
-            }
-        }
-    }
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode,
+//                                           @NonNull String permissions[],
+//                                           @NonNull int[] grantResults) {
+//        switch (requestCode) {
+//            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+//                // If request is cancelled, the result arrays are empty.
+//                if (grantResults.length > 0
+//                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                    setLocationPermissionGranted(true);
+//                }
+//            }
+//        }
+//    }
+//
+//    @Override
+//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        Log.d(TAG, "onActivityResult: called.");
+//        switch (requestCode) {
+//            case PERMISSIONS_REQUEST_ENABLE_GPS: {
+//                if(isLocationPermissionGranted()){
+//                    getChatrooms();
+//                    getUserDetails();
+//                }
+//                else{
+//                    getLocationPermission();
+//                }
+//                break;
+//            }
+//            //TODO
+//            // use better codes than "0"
+//            case 0: {
+//                if (resultCode == RESULT_OK){
+//                    if ((boolean)data.getExtras().get("left")){
+//                        mChatroomRecyclerAdapter
+//                                .notifyItemRangeChanged(0,
+//                                        mChatroomRecyclerAdapter.getItemCount());
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     /*
     ----------------------------- DB ---------------------------------
