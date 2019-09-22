@@ -16,10 +16,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager.widget.ViewPager;
 
 import com.example.kit.R;
 import com.example.kit.UserClient;
+import com.example.kit.models.Chatroom;
 import com.example.kit.models.UChatroom;
 import com.example.kit.models.User;
 import com.google.firebase.auth.FirebaseAuth;
@@ -72,7 +74,7 @@ public class ChatroomActivity extends AppCompatActivity
         setSupportActionBar((Toolbar)findViewById(R.id.toolbar));
         setChatroomName();
         FragmentManager t = getSupportFragmentManager();
-        ChatMapViewPagerAdapter mAdapter = new ChatMapViewPagerAdapter(t);
+        ChatMapViewPagerAdapter mAdapter = new ChatMapViewPagerAdapter(t, mChatroom);
         ViewPager mPager = findViewById(R.id.view_pager);
         mPager.setAdapter(mAdapter);
     }
@@ -197,8 +199,11 @@ public class ChatroomActivity extends AppCompatActivity
                 "Map"
         };
 
-        private ChatMapViewPagerAdapter(FragmentManager manager) {
+        private UChatroom uChatroom;
+
+        private ChatMapViewPagerAdapter(FragmentManager manager, UChatroom uChatroom) {
             super(manager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
+            this.uChatroom = uChatroom;
         }
 
         @Override
@@ -208,7 +213,10 @@ public class ChatroomActivity extends AppCompatActivity
                 case 0:
                     return ChatFragment.newInstance();
                 case 1:
-                    return UserListFragment.newInstance();
+                    if (uChatroom.isGroup()) { return UserListFragment.newInstance(); }
+                    else {
+                        // todo add single user map inflation
+                    }
             }
             return null; // not reachable
         }

@@ -350,23 +350,39 @@ public class ContactMessageActivity extends AppCompatActivity implements
         });
     }
 
-    private void buildNewChatroom(String cid1, String cid2, final String display_name){
+    private void buildNewChatroom(String cid1, String cid2, final String display_name, final boolean isGroup){
 
 //        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
 //                .setTimestampsInSnapshotsEnabled(true)
 //                .build();
 //        mDb.setFirestoreSettings(settings);
+        final Chatroom chatroom;
         final String first, second;
-        if (stringCompare(cid1, cid2) > 0){
-            first = cid2;
-            second = cid1;
-        } else {
-            first = cid1;
-            second = cid2;
-        }
-        final String chatroom_id = first + second;
+        final String chatroom_id;
+        if (isGroup) { //todo change to match group chat currently implements normal chat
+            if (stringCompare(cid1, cid2) > 0) {
+                first = cid2;
+                second = cid1;
+            } else {
+                first = cid1;
+                second = cid2;
+            }
+            chatroom_id = first + second;
 
-        final Chatroom chatroom = new Chatroom(first, second, chatroom_id);
+            chatroom = new Chatroom(first, second, chatroom_id);
+        }
+        else {
+            if (stringCompare(cid1, cid2) > 0) {
+                first = cid2;
+                second = cid1;
+            } else {
+                first = cid1;
+                second = cid2;
+            }
+            chatroom_id = first + second;
+
+            chatroom = new Chatroom(first, second, chatroom_id);
+        }
 
         DocumentReference newChatroomRef = mDb
                 .collection(getString(R.string.collection_chatrooms))
@@ -380,9 +396,9 @@ public class ContactMessageActivity extends AppCompatActivity implements
                 hideDialog();
 
                 if(task.isSuccessful()){
-                    addUserToChatroom(chatroom_id, first, second);
-                    addUserToChatroom(chatroom_id, second, first);
-                    UChatroom uchat = new UChatroom(display_name, first + second);
+                    addUserToChatroom(chatroom_id, first, second, isGroup);
+                    addUserToChatroom(chatroom_id, second, first, isGroup);
+                    UChatroom uchat = new UChatroom(display_name, first + second, isGroup);
                     navChatActivity(uchat);
                 }else{
                     View parentLayout = findViewById(android.R.id.content);
@@ -390,6 +406,7 @@ public class ContactMessageActivity extends AppCompatActivity implements
                 }
             }
         });
+
     }
 
     private void navChatActivity(UChatroom uchat){
@@ -494,7 +511,7 @@ public class ContactMessageActivity extends AppCompatActivity implements
                 }
 
                 if (task.getResult().isEmpty()){
-                    buildNewChatroom(first, second, mContacts.get(pos).getName());
+                    buildNewChatroom(first, second, mContacts.get(pos).getName(), false);
                 }
             }
         });
@@ -573,7 +590,7 @@ public class ContactMessageActivity extends AppCompatActivity implements
         }
     }
 
-    private void addUserToChatroom(final String cid, final String uid, final String contact_id){
+    private void addUserToChatroom(final String cid, final String uid, final String contact_id, final boolean isGroup){
 
         mDb.collection(getString(R.string.collection_users)).document(uid).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
@@ -598,7 +615,7 @@ public class ContactMessageActivity extends AppCompatActivity implements
                         }
                         Contact contact = task.getResult().toObject(Contact.class);
                         String display_name = contact.getName();
-                        UChatroom uchat = new UChatroom(display_name, cid);
+                        UChatroom uchat = new UChatroom(display_name, cid, isGroup);
                         DocumentReference userChatRef = mDb
                                 .collection(getString(R.string.collection_users))
                                 .document(uid)
