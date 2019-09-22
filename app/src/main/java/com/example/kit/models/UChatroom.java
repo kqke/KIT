@@ -6,11 +6,13 @@ import android.os.Parcelable;
 public class UChatroom implements Parcelable {
     private String display_name;
     private String chatroom_id;
+    private boolean isGroup;
 
 
-    public UChatroom(String display_name, String chatroom_id) {
+    public UChatroom(String display_name, String chatroom_id, boolean isGroup) {
         this.display_name = display_name;
         this.chatroom_id = chatroom_id;
+        this.isGroup = isGroup;
         }
 
 
@@ -20,6 +22,7 @@ public class UChatroom implements Parcelable {
     protected UChatroom(Parcel in) {
         display_name = in.readString();
         chatroom_id = in.readString();
+        isGroup = in.readInt() == 1;
         }
 
     public static final Creator<UChatroom> CREATOR = new Creator<UChatroom>() {
@@ -51,12 +54,16 @@ public class UChatroom implements Parcelable {
         this.chatroom_id = chatroom_id;
     }
 
+    public boolean isGroup() {
+        return isGroup;
+    }
 
     @Override
     public String toString() {
         return "Chatroom{" +
                 "display_name='" + display_name + '\'' +
                 ", chatroom_id='" + chatroom_id + '\'' +
+                ", isGroup='" + isGroup + '\'' +
                 '}';
     }
 
@@ -69,6 +76,7 @@ public class UChatroom implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(display_name);
         dest.writeString(chatroom_id);
+        dest.writeInt(isGroup ? 1:0);
     }
 
 }
