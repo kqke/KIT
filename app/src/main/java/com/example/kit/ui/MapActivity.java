@@ -72,7 +72,7 @@
 //        super.onCreate(savedInstanceState);
 //        mMapView = findViewById(R.id.user_list_map);
 //        mDb = FirebaseFirestore.getInstance();
-//        setContentView(R.layout.activity_map);
+////        setContentView(R.layout.activity_map);
 //        getContacts();
 //        Log.d(TAG, "before: ");
 //        setUserPosition();

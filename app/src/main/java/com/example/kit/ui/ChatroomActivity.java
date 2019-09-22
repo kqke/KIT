@@ -239,6 +239,9 @@ public class ChatroomActivity extends AppCompatActivity
 
                             for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                                 User user = doc.toObject(User.class);
+                                if (mContacts.containsKey(user.getUser_id())){
+                                    user.setUsername(mContacts.get(user.getUser_id()).getName());
+                                }
                                 mUserList.add(user);
                                 mUserTokens.add(user.getToken());
                                 System.out.println(user.getUser_id());
@@ -251,14 +254,16 @@ public class ChatroomActivity extends AppCompatActivity
                 });
     }
 
-    private void getUserLocation(User user){
+    private void getUserLocation(final User user){
         DocumentReference locRef = mDb.collection(getString(R.string.collection_user_locations)).document(user.getUser_id());
         locRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if (task.isSuccessful()){
-                    if (task.getResult().toObject(UserLocation.class) != null){
-                        mUserLocations.add(task.getResult().toObject(UserLocation.class));
+                    UserLocation userLocation = task.getResult().toObject(UserLocation.class);
+                    if (userLocation != null){
+                        userLocation.getUser().setUsername(user.getUsername());
+                        mUserLocations.add(userLocation);
                     }
                 }
             }
