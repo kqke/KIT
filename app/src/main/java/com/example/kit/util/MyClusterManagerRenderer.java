@@ -61,4 +61,6 @@ public class MyClusterManagerRenderer extends DefaultClusterRenderer<ClusterMark
       marker.setPosition(clusterMarker.getPosition());
     }
   }
+
+
 }
