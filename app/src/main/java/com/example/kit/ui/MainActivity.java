@@ -26,6 +26,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.kit.R;
+import com.example.kit.models.Contact;
 import com.example.kit.models.User;
 import com.example.kit.models.UserLocation;
 import com.google.android.gms.common.ConnectionResult;
@@ -37,16 +38,31 @@ import com.google.android.gms.tasks.Task;
 import com.example.kit.services.LocationService;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import static com.example.kit.Constants.ERROR_DIALOG_REQUEST;
 import static com.example.kit.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 import static com.example.kit.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements
+        ContactsFragment.ContactsCallback {
 
     //TODO
     // chat crashes on orientation change and locations are not updated properly
@@ -106,6 +122,13 @@ public class MainActivity extends AppCompatActivity {
     private FusedLocationProviderClient mFusedLocationClient;
     protected UserLocation mUserLocation;
 
+    //Contacts
+    private ArrayList<Contact> mContacts = new ArrayList<>();
+    private HashMap<String, Contact> mId2Contact = new HashMap<>();
+    private Set<String> mContactIds = new HashSet<>();
+
+    private ListenerRegistration mContactEventListener;
+
     /*
     ----------------------------- Lifecycle ---------------------------------
     */
@@ -115,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         mDb = FirebaseFirestore.getInstance();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        fetchContacts();
         initView();
         initMessageService();
         getUserDetails();
@@ -130,33 +154,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void startLocationService(){
-        if(!isLocationServiceRunning()){
-            Intent serviceIntent = new Intent(this, LocationService.class);
-            Log.d(TAG, "startLocationService: ASASAS");
-//        this.startService(serviceIntent);
-
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O){
-                Log.d(TAG, "startLocationService: sasa26+");
-
-                MainActivity.this.startForegroundService(serviceIntent);
-            }else{
-                Log.d(TAG, "startLocationService: :'(");
-                startService(serviceIntent);
-            }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if(mContactEventListener != null){
+            mContactEventListener.remove();
         }
-    }
-
-    private boolean isLocationServiceRunning() {
-        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)){
-            if("com.codingwithmitch.googledirectionstest.services.LocationService".equals(service.service.getClassName())) {
-                Log.d(TAG, "isLocationServiceRunning: location service is already running.");
-                return true;
-            }
-        }
-        Log.d(TAG, "isLocationServiceRunning: location service is not running.");
-        return false;
     }
 
     @Override
@@ -224,11 +227,33 @@ public class MainActivity extends AppCompatActivity {
             this.startService(intent);
         }
 
-        private void initLocationService(){
-            Intent intent = new Intent("com.example.kit.services.LocationService");
-            intent.setPackage("com.example.kit");
-            this.startService(intent);
+    private void startLocationService(){
+        if(!isLocationServiceRunning()){
+            Intent serviceIntent = new Intent(this, LocationService.class);
+            Log.d(TAG, "startLocationService: ASASAS");
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O){
+                Log.d(TAG, "startLocationService: sasa26+");
+
+                MainActivity.this.startForegroundService(serviceIntent);
+            }else{
+                Log.d(TAG, "startLocationService: :'(");
+                startService(serviceIntent);
+            }
         }
+    }
+
+    private boolean isLocationServiceRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)){
+            if("com.codingwithmitch.googledirectionstest.services.LocationService".equals(service.service.getClassName())) {
+                Log.d(TAG, "isLocationServiceRunning: location service is already running.");
+                return true;
+            }
+        }
+        Log.d(TAG, "isLocationServiceRunning: location service is not running.");
+        return false;
+    }
 
     /*
     ----------------------------- onClick ---------------------------------
@@ -246,6 +271,25 @@ public class MainActivity extends AppCompatActivity {
             }
             return super.onOptionsItemSelected(item);
         }
+
+    /*
+    ----------------------------- ContactsCallback ---------------------------------
+    */
+
+    @Override
+    public ArrayList<Contact> getContacts() {
+        return mContacts;
+    }
+
+    @Override
+    public Set<String> getContactIds() {
+        return mContactIds;
+    }
+
+    @Override
+    public HashMap<String, Contact> getId2Contact() {
+        return mId2Contact;
+    }
 
     /*
     ----------------------------- nav ---------------------------------
@@ -300,6 +344,39 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         }
+
+    private void fetchContacts(){
+        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().build();
+        mDb.setFirestoreSettings(settings);
+
+        CollectionReference contactsCollection = mDb
+                .collection(getString(R.string.collection_users))
+                .document(FirebaseAuth.getInstance().getUid())
+                .collection(getString(R.string.collection_contacts));
+        mContactEventListener = contactsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+                Log.d(TAG, "onEvent: called.");
+                if (e != null) {
+                    Log.e(TAG, "onEvent: Listen failed.", e);
+                    return;
+                }
+                if(queryDocumentSnapshots != null){
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+
+                        Contact contact = doc.toObject(Contact.class);
+                        if(!mContactIds.contains(contact.getCid())){
+                            mContactIds.add(contact.getCid());
+                            mContacts.add(contact);
+                            mId2Contact.put(contact.getCid(), contact);
+                        }
+                    }
+                    Log.d(TAG, "onEvent: number of contacts: " + mContacts.size());
+                }
+            }
+        });
+    }
+
 
        /*
     ----------------------------- Location ---------------------------------

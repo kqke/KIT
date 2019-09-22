@@ -201,8 +201,14 @@ public class ChatFragment extends Fragment implements
             case R.id.checkmark:{
                 insertNewMessage();
             }
-            case R.id.chatmessage_recycler_view:
-                hideSoftKeyboard();
+//            case R.id.chatmessage_recycler_view:
+//                String message = mMessage.getText().toString();
+//                if(!message.equals("")) {
+//                    hideSoftKeyboard();
+//                }
+//                else{
+//                    insertNewMessage();
+//                }
         }
     }
 
