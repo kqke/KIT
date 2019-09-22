@@ -27,9 +27,15 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.maps.android.clustering.ClusterManager;
 
 import java.util.ArrayList;
@@ -58,8 +64,9 @@ public class MapFragment extends DBGeoFragment
     private static final int LOCATION_UPDATE_INTERVAL = 3000;
 
     //Vars
-    private ArrayList<Contact> mContactList = new ArrayList<>();
-    private ArrayList<UserLocation> mContactLocations = new ArrayList<>();
+    protected ListenerRegistration mContactListEventListener;
+    protected ArrayList<Contact> mContactList = new ArrayList<>();
+    protected ArrayList<UserLocation> mContactLocations = new ArrayList<>();
 
     //Widgets
     protected MapView mMapView;
@@ -80,13 +87,10 @@ public class MapFragment extends DBGeoFragment
     public void onCreate(@Nullable Bundle savedInstanceState) {
         Log.d(TAG, "onCreate: ");
         super.onCreate(savedInstanceState);
-        if (mContactLocations.size() == 0) {
-            if (getArguments() != null) {
-                mUserLocation = getArguments().getParcelable("userPos");
-                mContactList = getArguments().getParcelableArrayList(getString(R.string.intent_user_list));
-                mContactLocations = getArguments().getParcelableArrayList(getString(R.string.intent_user_locations));
-            }
-        }
+        getContacts();
+        Log.d(TAG, "before: ");
+        setUserPosition();
+        Log.d(TAG, "after: ");
     }
 
     @Nullable
@@ -127,8 +131,11 @@ public class MapFragment extends DBGeoFragment
 
     @Override
     public void onDestroy() {
-        mMapView.onDestroy();
         super.onDestroy();
+        mMapView.onDestroy();
+        if(mContactListEventListener != null){
+            mContactListEventListener.remove();
+        }
         stopLocationUpdates();
     }
 
@@ -161,6 +168,55 @@ public class MapFragment extends DBGeoFragment
     /*
     ----------------------------- DB ---------------------------------
     */
+
+    private void getContacts() {
+        CollectionReference contactsRef = mDb
+                .collection(getString(R.string.collection_users))
+                .document(FirebaseAuth.getInstance().getUid())
+                .collection(getString(R.string.collection_contacts));
+
+        mContactListEventListener = contactsRef
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(@javax.annotation.Nullable QuerySnapshot queryDocumentSnapshots, @javax.annotation.Nullable FirebaseFirestoreException e) {
+                        if (e != null) {
+                            Log.e(TAG, "onEvent: Listen failed.", e);
+                            return;
+                        }
+
+                        if (queryDocumentSnapshots != null) {
+
+                            // Clear the list and add all the users again
+                            mContactList.clear();
+                            mContactList = new ArrayList<>();
+
+                            for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                                Contact contact = doc.toObject(Contact.class);
+                                mContactList.add(contact);
+                                System.out.println(contact.getCid());
+                                getContactLocation(contact);
+                            }
+
+                            Log.d(TAG, "onEvent: user list size: " + mContactList.size());
+                        }
+                    }
+                });
+    }
+
+    private void getContactLocation(Contact contact) {
+        DocumentReference locRef = mDb.collection(getString(R.string.collection_user_locations)).document(contact.getCid());
+
+        locRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    if (task.getResult().toObject(UserLocation.class) != null) {
+                        mContactLocations.add(task.getResult().toObject(UserLocation.class));
+                    }
+                }
+            }
+        });
+    }
 
     private void setUserPosition() {
         DocumentReference userLocRef =
