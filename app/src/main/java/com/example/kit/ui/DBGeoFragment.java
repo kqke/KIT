@@ -29,6 +29,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -66,7 +67,7 @@ public abstract class DBGeoFragment extends Fragment {
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         if (context instanceof Activity){
-            mActivity = (FragmentActivity) context;
+            mActivity = (AppCompatActivity) context;
             mFusedLocationClient = LocationServices.getFusedLocationProviderClient(mActivity);
         }
     }

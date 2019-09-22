@@ -37,7 +37,6 @@ public class ProfileActivity extends AppCompatActivity implements
 
     private static final String TAG = "ProfileActivity";
 
-
     //widgets
     private CircleImageView mAvatarImage;
     private TextView mProfileName, mProfileStatus;
@@ -48,87 +47,18 @@ public class ProfileActivity extends AppCompatActivity implements
     private ImageListFragment mImageListFragment;
     private String mCurrent_state;
 
+    /*
+    ----------------------------- Lifecycle ---------------------------------
+    */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_profile);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
-
-        mAvatarImage = findViewById(R.id.image_choose_avatar);
-        mProfileName = (TextView) findViewById(R.id.profile_displayName);
-        mProfileStatus = (TextView) findViewById(R.id.profile_status);
-        mProfileSendReqBtn = (Button) findViewById(R.id.profile_send_req_btn);
-        mDeclineBtn = (Button) findViewById(R.id.profile_decline_btn);
-
-        mCurrent_state = "not_friends";
-
-        findViewById(R.id.image_choose_avatar).setOnClickListener(this);
-        findViewById(R.id.text_choose_avatar).setOnClickListener(this);
-
-        retrieveProfileImage();
-
-        mDeclineBtn.setVisibility(View.INVISIBLE);
-        mDeclineBtn.setEnabled(false);
+        init();
 
 //        progressDialog();
 
 //        listen();
-    }
-
-    private void retrieveProfileImage(){
-        RequestOptions requestOptions = new RequestOptions()
-                .error(R.drawable.cartman_cop)
-                .placeholder(R.drawable.cartman_cop);
-
-        int avatar = 0;
-        try{
-            avatar = Integer.parseInt(((UserClient)getApplicationContext()).getUser().getAvatar());
-        }catch (NumberFormatException e){
-            Log.e(TAG, "retrieveProfileImage: no avatar image. Setting default. " + e.getMessage() );
-        }
-
-        Glide.with(ProfileActivity.this)
-                .setDefaultRequestOptions(requestOptions)
-                .load(avatar)
-                .into(mAvatarImage);
-    }
-
-    private void progressDialog(){
-        mProgressDialog = new ProgressDialog(this);
-        mProgressDialog.setTitle("Loading User Data");
-        mProgressDialog.setMessage("Please wait while we load the user data.");
-        mProgressDialog.setCanceledOnTouchOutside(false);
-        mProgressDialog.show();
-    }
-
-    @Override
-    public void onClick(View v) {
-        mImageListFragment = new ImageListFragment();
-        getSupportFragmentManager().beginTransaction()
-                .setCustomAnimations(R.anim.slide_in_up, R.anim.slide_in_down, R.anim.slide_out_down, R.anim.slide_out_up)
-                .replace(R.id.fragment_container, mImageListFragment, getString(R.string.fragment_image_list))
-                .commit();
-    }
-
-    private void signOut(){
-        FirebaseAuth.getInstance().signOut();
-        Intent intent = new Intent(this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        switch (item.getItemId()){
-            case android.R.id.home:{
-                finish();
-            }
-        }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -163,6 +93,93 @@ public class ProfileActivity extends AppCompatActivity implements
                 .collection(getString(R.string.collection_users))
                 .document(FirebaseAuth.getInstance().getUid())
                 .set(user);
+    }
+
+    /*
+    ----------------------------- init ---------------------------------
+    */
+
+    private void init(){
+        mCurrent_state = "not_friends";
+        initView();
+        retrieveProfileImage();
+    }
+
+    private void initView(){
+        setContentView(R.layout.activity_profile);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+
+        mAvatarImage = findViewById(R.id.image_choose_avatar);
+        mProfileName = findViewById(R.id.profile_displayName);
+        mProfileStatus = findViewById(R.id.profile_status);
+        mProfileSendReqBtn = findViewById(R.id.profile_send_req_btn);
+        mDeclineBtn = findViewById(R.id.profile_decline_btn);
+
+        findViewById(R.id.image_choose_avatar).setOnClickListener(this);
+        findViewById(R.id.text_choose_avatar).setOnClickListener(this);
+
+        mDeclineBtn.setVisibility(View.INVISIBLE);
+        mDeclineBtn.setEnabled(false);
+    }
+
+    private void retrieveProfileImage(){
+        RequestOptions requestOptions = new RequestOptions()
+                .error(R.drawable.cartman_cop)
+                .placeholder(R.drawable.cartman_cop);
+
+        int avatar = 0;
+        try{
+            avatar = Integer.parseInt(((UserClient)getApplicationContext()).getUser().getAvatar());
+        }catch (NumberFormatException e){
+            Log.e(TAG, "retrieveProfileImage: no avatar image. Setting default. " + e.getMessage() );
+        }
+
+        Glide.with(ProfileActivity.this)
+                .setDefaultRequestOptions(requestOptions)
+                .load(avatar)
+                .into(mAvatarImage);
+    }
+
+    /*
+    ----------------------------- onClick ---------------------------------
+    */
+
+    @Override
+    public void onClick(View v)
+    {
+        mImageListFragment = new ImageListFragment();
+        getSupportFragmentManager().beginTransaction()
+                .setCustomAnimations(R.anim.slide_in_up, R.anim.slide_in_down, R.anim.slide_out_down, R.anim.slide_out_up)
+                .replace(R.id.fragment_container, mImageListFragment, getString(R.string.fragment_image_list))
+                .commit();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case android.R.id.home:{
+                finish();
+            }
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void progressDialog(){
+        mProgressDialog = new ProgressDialog(this);
+        mProgressDialog.setTitle("Loading User Data");
+        mProgressDialog.setMessage("Please wait while we load the user data.");
+        mProgressDialog.setCanceledOnTouchOutside(false);
+        mProgressDialog.show();
+    }
+
+    private void signOut(){
+        FirebaseAuth.getInstance().signOut();
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
 //    private void listen(){
