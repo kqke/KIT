@@ -90,17 +90,7 @@ public class ContactsFragment extends DBGeoFragment implements
     @Override
     public void onResume() {
         super.onResume();
-        if(checkMapServices()){
-            if(isLocationPermissionGranted()){
-                getContacts();
-                getUserDetails();
-            }
-            else{
-                if(getLocationPermission()){
-                    getContacts();
-                }
-            }
-        }
+        getContacts();
     }
 
     @Override
@@ -169,53 +159,53 @@ public class ContactsFragment extends DBGeoFragment implements
         startActivityForResult(intent, 0);
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String permissions[],
-                                           @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    setLocationPermissionGranted(true);
-                }
-            }
-        }
-    }
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode,
+//                                           @NonNull String permissions[],
+//                                           @NonNull int[] grantResults) {
+//        switch (requestCode) {
+//            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+//                // If request is cancelled, the result arrays are empty.
+//                if (grantResults.length > 0
+//                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                    setLocationPermissionGranted(true);
+//                }
+//            }
+//        }
+//    }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        Log.d(TAG, "onActivityResult: called.");
-        switch (requestCode) {
-            case PERMISSIONS_REQUEST_ENABLE_GPS: {
-                if(isLocationPermissionGranted()){
-                    getContacts();
-                    getUserDetails();
-                }
-                else{
-                    getLocationPermission();
-                }
-                break;
-            }
-            //TODO
-            // better result codes
-            case 1: {
-                if (data.getBooleanExtra(getString(R.string.intent_contact), true)) {
-                    mContactRecyclerAdapter.notifyDataSetChanged();
-                }
-                break;
-            }
-            case 0: {
-                if (resultCode == RESULT_OK){
-                    if ((boolean)data.getExtras().get("left")){
-                        mContactRecyclerAdapter.notifyItemRangeChanged(0, mContactRecyclerAdapter.getItemCount());
-                    }
-                }
-            }
-        }
-    }
+//    @Override
+//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        Log.d(TAG, "onActivityResult: called.");
+//        switch (requestCode) {
+//            case PERMISSIONS_REQUEST_ENABLE_GPS: {
+//                if(isLocationPermissionGranted()){
+//                    getContacts();
+//                    getUserDetails();
+//                }
+//                else{
+//                    getLocationPermission();
+//                }
+//                break;
+//            }
+//            //TODO
+//            // better result codes
+//            case 1: {
+//                if (data.getBooleanExtra(getString(R.string.intent_contact), true)) {
+//                    mContactRecyclerAdapter.notifyDataSetChanged();
+//                }
+//                break;
+//            }
+//            case 0: {
+//                if (resultCode == RESULT_OK){
+//                    if ((boolean)data.getExtras().get("left")){
+//                        mContactRecyclerAdapter.notifyItemRangeChanged(0, mContactRecyclerAdapter.getItemCount());
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     /*
     ----------------------------- DB ---------------------------------
