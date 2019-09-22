@@ -1,5 +1,6 @@
 package com.example.kit.ui;
 
+import android.app.ActivityManager;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -33,6 +34,7 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.example.kit.services.LocationService;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
@@ -115,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         initView();
         initMessageService();
-        initLocationService();
+        getUserDetails();
     }
 
     @Override
@@ -128,12 +130,42 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-        @Override
-        public boolean onCreateOptionsMenu(Menu menu){
-            // Inflate the menu; this adds items to the action bar if it is present.
-            getMenuInflater().inflate(R.menu.action_bar, menu);
-            return true;
+    private void startLocationService(){
+        if(!isLocationServiceRunning()){
+            Intent serviceIntent = new Intent(this, LocationService.class);
+            Log.d(TAG, "startLocationService: ASASAS");
+//        this.startService(serviceIntent);
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O){
+                Log.d(TAG, "startLocationService: sasa26+");
+
+                MainActivity.this.startForegroundService(serviceIntent);
+            }else{
+                Log.d(TAG, "startLocationService: :'(");
+                startService(serviceIntent);
+            }
         }
+    }
+
+    private boolean isLocationServiceRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)){
+            if("com.codingwithmitch.googledirectionstest.services.LocationService".equals(service.service.getClassName())) {
+                Log.d(TAG, "isLocationServiceRunning: location service is already running.");
+                return true;
+            }
+        }
+        Log.d(TAG, "isLocationServiceRunning: location service is not running.");
+        return false;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.action_bar, menu);
+        return true;
+    }
+
 
     /*
     ----------------------------- init ---------------------------------
@@ -318,6 +350,7 @@ public class MainActivity extends AppCompatActivity {
                             mUserLocation.setGeo_point(geoPoint);
                             mUserLocation.setTimestamp(null);
                             saveUserLocation();
+                            startLocationService();
                         }
                     }
                 }
