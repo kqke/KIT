@@ -3,6 +3,8 @@ package com.example.kit.ui;
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
+
+import android.view.Menu;
 import android.view.MenuItem;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,6 +21,8 @@ public class MainActivity extends AppCompatActivity
     //TODO
     // chat crashes on orientation change and locations are not updated properly
     //TODO
+    // 'fragment not attached to context' error upon rapid switches of fragments
+    //TODO
     // launch different fragments for private chats (no user list)
     // and for group chats (with user list)
     //TODO
@@ -28,9 +32,13 @@ public class MainActivity extends AppCompatActivity
     //TODO
     // should we make this the launcher activity that redirects to login if necessary?
     //TODO
-    // settings fragment
+    // settings Activity
     //TODO
-    // profile fragment
+    // profile fragment - discussion on how it should look/implementation.
+    // should we have different activities for viewing others profile and self profile?
+    //TODO
+    // what happens when someone is added to a group chat and not everyone have approved
+    // everyones requests.
     //TODO
     // search fragment?
     //TODO
@@ -59,7 +67,6 @@ public class MainActivity extends AppCompatActivity
     private static final String CHATS_FRAG = "CHATS_FRAG";
     private static final String CONATCTS_FRAG = "CONTACTS_FRAG";
     private static final String PROFLE_FRAG = "PROFILE_FRAG";
-    private static final String SETTINGS_FRAG = "SETTINGS_FRAG";
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -70,6 +77,13 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         initView();
         initMessageService();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.action_bar, menu);
+        return true;
     }
 
     /*
@@ -93,16 +107,11 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                         switch (item.getItemId()) {
-                            //TODO
-                            // maybe add map to navi_bar
 //                            case R.id.action_search:{
 //                                replaceFragment(SearchFragment.newInstance(), SEARCH_FRAG);
 //                                return true;
 //                            }
                             case R.id.action_chats:{
-                                //TODO
-                                // highlight chats action on navibar
-                                // basically do nothing
                                 replaceFragment(ChatsFragment.newInstance(), CHATS_FRAG);
                                 setTitle(R.string.fragment_chats);
                                 return true;
@@ -115,11 +124,6 @@ public class MainActivity extends AppCompatActivity
                             case R.id.action_profile:{
                                 replaceFragment(ProfileFragment.newInstance(), PROFLE_FRAG);
                                 setTitle(R.string.fragment_profile);
-                                return true;
-                            }
-                            case R.id.action_settings:{
-                                replaceFragment(SettingsFragment.newInstance(), SETTINGS_FRAG);
-                                setTitle(R.string.fragment_settings);
                                 return true;
                             }
                         }
@@ -137,5 +141,31 @@ public class MainActivity extends AppCompatActivity
         Intent intent = new Intent("com.example.kit.services.MyFirebaseMessagingService");
         intent.setPackage("com.example.kit");
         this.startService(intent);
+    }
+
+    /*
+    ----------------------------- onClick ---------------------------------
+    */
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+        if (id == R.id.action_settings) {
+            navSettingsActivity();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    /*
+    ----------------------------- nav ---------------------------------
+    */
+
+    private void navSettingsActivity(){
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivityForResult(intent, 0);
     }
 }
