@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.WindowManager;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,18 +23,26 @@ import com.example.kit.R;
 import com.example.kit.UserClient;
 import com.example.kit.models.UChatroom;
 import com.example.kit.models.User;
+import com.example.kit.models.UserLocation;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.util.ArrayList;
+
 
 public class ChatroomActivity extends AppCompatActivity
-    implements ChatFragment.ChatroomCallback
+    implements ChatFragment.ChatroomCallback,
+    View.OnClickListener
 {
 
     //Tag
@@ -43,7 +52,11 @@ public class ChatroomActivity extends AppCompatActivity
     private FirebaseFirestore mDb;
 
     //vars
+    private ListenerRegistration mUserListEventListener;
     public UChatroom mChatroom;
+    private ArrayList<User> mUserList = new ArrayList<>();
+    private ArrayList<UserLocation> mUserLocations = new ArrayList<>();
+    private ArrayList<String> mUserTokens = new ArrayList<>();
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -54,7 +67,16 @@ public class ChatroomActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         mDb = FirebaseFirestore.getInstance();
         getIncomingIntent();
+        getChatroomUsers();
         initView();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if(mUserListEventListener != null){
+            mUserListEventListener.remove();
+        }
     }
 
     @Override
@@ -95,6 +117,16 @@ public class ChatroomActivity extends AppCompatActivity
     /*
     ----------------------------- onClick ---------------------------------
     */
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.view_pager:{
+                hideSoftKeyboard();
+            }
+        }
+
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -175,6 +207,55 @@ public class ChatroomActivity extends AppCompatActivity
         finish();
     }
 
+    private void getChatroomUsers(){
+        CollectionReference usersRef = mDb
+                .collection(getString(R.string.collection_chatrooms))
+                .document(mChatroom.getChatroom_id())
+                .collection(getString(R.string.collection_chatroom_user_list));
+
+        mUserListEventListener = usersRef
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(@javax.annotation.Nullable QuerySnapshot queryDocumentSnapshots, @javax.annotation.Nullable FirebaseFirestoreException e) {
+                        if (e != null) {
+                            Log.e(TAG, "onEvent: Listen failed.", e);
+                            return;
+                        }
+
+                        if(queryDocumentSnapshots != null){
+
+                            // Clear the list and add all the users again
+                            mUserList.clear();
+                            mUserList = new ArrayList<>();
+
+                            for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                                User user = doc.toObject(User.class);
+                                mUserList.add(user);
+                                mUserTokens.add(user.getToken());
+                                System.out.println(user.getUser_id());
+                                getUserLocation(user);
+                            }
+
+                            Log.d(TAG, "onEvent: user list size: " + mUserList.size());
+                        }
+                    }
+                });
+    }
+
+    private void getUserLocation(User user){
+        DocumentReference locRef = mDb.collection(getString(R.string.collection_user_locations)).document(user.getUser_id());
+        locRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()){
+                    if (task.getResult().toObject(UserLocation.class) != null){
+                        mUserLocations.add(task.getResult().toObject(UserLocation.class));
+                    }
+                }
+            }
+        });
+    }
+
     /*
     ----------------------------- utils ---------------------------------
     */
@@ -183,13 +264,29 @@ public class ChatroomActivity extends AppCompatActivity
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
 
+    @Override
     public UChatroom getChatroom(){
         return mChatroom;
     }
 
+    @Override
+    public ArrayList<User> getUserList() {
+        return mUserList;
+    }
+
+    @Override
+    public ArrayList<UserLocation> getUserLocations() {
+        return mUserLocations;
+    }
+
+    @Override
+    public ArrayList<String> getUserTokens() {
+        return mUserTokens;
+    }
+
     /*
-   ----------------------------- ViewPagerAdapter ---------------------------------
-   */
+       ----------------------------- ViewPagerAdapter ---------------------------------
+       */
     public static class ChatMapViewPagerAdapter extends FragmentPagerAdapter {
 
         private String[] mTitles = new String[] {
