@@ -11,6 +11,7 @@ public class Chatroom implements Parcelable {
     private String chatroom_id;
     private String group_name;
     private boolean isGroup;
+    private int numUsers;
 
 
     public Chatroom(String user1, String user2, String chatroom_id) {
@@ -19,15 +20,17 @@ public class Chatroom implements Parcelable {
         this.chatroom_id = chatroom_id;
         this.group_name = "default";
         this.isGroup = false;
+        this.numUsers = 2;
 
     }
 
-    public Chatroom(String chatroom_id, String group_name) {
+    public Chatroom(String chatroom_id, String group_name, int numUsers) {
         this.user1 = "";
         this.user2 = "";
         this.chatroom_id = chatroom_id;
         this.group_name = group_name;
         this.isGroup = true;
+        this.numUsers = numUsers;
 
     }
 
@@ -41,6 +44,7 @@ public class Chatroom implements Parcelable {
         chatroom_id = in.readString();
         group_name = in.readString();
         isGroup = in.readInt() == 1;
+        numUsers = in.readInt();
     }
 
     public static final Creator<Chatroom> CREATOR = new Creator<Chatroom>() {
@@ -92,6 +96,13 @@ public class Chatroom implements Parcelable {
         return isGroup;
     }
 
+    public int getNumUsers() {
+        return numUsers;
+    }
+
+    public void setNumUsers(int numUsers) {
+        this.numUsers = numUsers;
+    }
 
     @Override
     public String toString() {
@@ -100,6 +111,7 @@ public class Chatroom implements Parcelable {
                 ", user2='" + user2 + '\'' +
                 ", chatroom_id='" + chatroom_id + '\'' +
                 ", group_name='" + group_name + '\'' +
+                ", numUsers='" + numUsers + '\'' +
                 '}';
     }
 
@@ -115,6 +127,7 @@ public class Chatroom implements Parcelable {
         dest.writeString(chatroom_id);
         dest.writeString(group_name);
         dest.writeInt(isGroup ? 1:0);
+        dest.writeInt(numUsers);
     }
 
 }
