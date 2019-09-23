@@ -78,7 +78,7 @@ public class UChatroom implements Parcelable {
 
     @Override
     public String toString() {
-        return "Chatroom{" +
+        return "UChatroom{" +
                 "display_name='" + display_name + '\'' +
                 ", chatroom_id='" + chatroom_id + '\'' +
                 ", isGroup='" + isGroup + '\'' +

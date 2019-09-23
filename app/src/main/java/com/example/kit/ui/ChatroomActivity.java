@@ -47,6 +47,7 @@ import static com.example.kit.Constants.CONTACTS_HASH_MAP;
 
 public class ChatroomActivity extends AppCompatActivity
     implements ChatFragment.ChatroomCallback,
+    MapFragment.MapCallBack,
     View.OnClickListener
 {
 
@@ -58,6 +59,7 @@ public class ChatroomActivity extends AppCompatActivity
 
     //vars
     private ListenerRegistration mUserListEventListener;
+    private UserLocation userPos;
     public UChatroom mChatroom;
     private HashMap<String, Contact> mContacts = new HashMap<>();
     private ArrayList<User> mUserList = new ArrayList<>();
@@ -72,9 +74,18 @@ public class ChatroomActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mDb = FirebaseFirestore.getInstance();
-        getIncomingIntent();
+        Intent intent = getIntent();
+        Bundle bundle = intent.getExtras();
+//        if(intent.hasExtra(CHATROOM)){
+        mChatroom = bundle.getParcelable(CHATROOM);
+//        }
+//        if(intent.hasExtra(CONTACTS_HASH_MAP)){
+        mContacts = (HashMap<String, Contact>)bundle.getSerializable(CONTACTS_HASH_MAP);
+//        }
+        joinChatroom();
+//        getIncomingIntent();
         getChatroomUsers();
-        initView();
+
     }
 
     @Override
@@ -108,13 +119,14 @@ public class ChatroomActivity extends AppCompatActivity
     private void getIncomingIntent(){
         //TODO
         // this is entered upon orientation change
-        if(getIntent().hasExtra(CHATROOM)){
-            mChatroom = getIntent().getParcelableExtra(getString(R.string.intent_uchatroom));
-            joinChatroom();
+        Intent intent = getIntent();
+        if(intent.hasExtra(CHATROOM)){
+            mChatroom = getIntent().getParcelableExtra(CHATROOM);
         }
-        if(getIntent().hasExtra(CONTACTS_HASH_MAP)){
+        if(intent.hasExtra(CONTACTS_HASH_MAP)){
             mContacts = (HashMap<String, Contact>)getIntent().getSerializableExtra(CONTACTS_HASH_MAP);
         }
+        joinChatroom();
     }
 
     private void setChatroomName(){
@@ -194,7 +206,6 @@ public class ChatroomActivity extends AppCompatActivity
     }
 
     private void joinChatroom(){
-        String cid = mChatroom.getChatroom_id();
         String uid = FirebaseAuth.getInstance().getUid();
         DocumentReference joinChatroomRef = mDb
                 .collection(getString(R.string.collection_chatrooms))
@@ -255,6 +266,7 @@ public class ChatroomActivity extends AppCompatActivity
     }
 
     private void getUserLocation(final User user){
+
         DocumentReference locRef = mDb.collection(getString(R.string.collection_user_locations)).document(user.getUser_id());
         locRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
@@ -262,8 +274,14 @@ public class ChatroomActivity extends AppCompatActivity
                 if (task.isSuccessful()){
                     UserLocation userLocation = task.getResult().toObject(UserLocation.class);
                     if (userLocation != null){
+                        if(user.getUser_id() == FirebaseAuth.getInstance().getUid()){
+                            userPos = userLocation;
+                        }
                         userLocation.getUser().setUsername(user.getUsername());
                         mUserLocations.add(userLocation);
+                        if (mUserLocations.size() == mChatroom.getNumUsers()){
+
+                        }
                     }
                 }
             }
@@ -297,6 +315,12 @@ public class ChatroomActivity extends AppCompatActivity
     public ArrayList<String> getUserTokens() {
         return mUserTokens;
     }
+
+    @Override
+    public UserLocation getUserPos() {
+        return userPos;
+    }
+
 
     /*
        ----------------------------- ViewPagerAdapter ---------------------------------
@@ -339,5 +363,6 @@ public class ChatroomActivity extends AppCompatActivity
         public CharSequence getPageTitle(int position) {
             return mTitles[position];
         }
+
     }
 }
