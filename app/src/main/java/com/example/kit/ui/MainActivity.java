@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,6 +26,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.example.kit.LoadingFragment;
 import com.example.kit.R;
 import com.example.kit.models.Contact;
 import com.example.kit.models.User;
@@ -105,14 +107,18 @@ public class MainActivity extends AppCompatActivity implements
     //TODO
     // top right button on map not working
 
+    //TODO
+    // should we hold referencesto all active recyclerViews here?
+
     //Tag
     private static final String TAG = "MainActivity";
 
     //Fragments
-//    private static final String SEARCH_FRAG = "SEARCH_FRAG";
+    private static final String LOADING_FRAG = "LOADING_FRAG";
     private static final String CHATS_FRAG = "CHATS_FRAG";
     private static final String CONATCTS_FRAG = "CONTACTS_FRAG";
     private static final String PROFLE_FRAG = "PROFILE_FRAG";
+    private FragmentTransaction ft;
 
     //Firebase
     protected FirebaseFirestore mDb;
@@ -121,11 +127,13 @@ public class MainActivity extends AppCompatActivity implements
     private static boolean mLocationPermissionGranted = false;
     private FusedLocationProviderClient mFusedLocationClient;
     protected UserLocation mUserLocation;
+    private boolean mLocationFetched;
 
     //Contacts
     private ArrayList<Contact> mContacts = new ArrayList<>();
     private HashMap<String, Contact> mId2Contact = new HashMap<>();
     private Set<String> mContactIds = new HashSet<>();
+    private boolean mCotactsFetched;
 
     private ListenerRegistration mContactEventListener;
 
@@ -140,7 +148,8 @@ public class MainActivity extends AppCompatActivity implements
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         getLocationPermission();
 //        fetchContacts();
-        initView();
+        initLoadingView();
+//        initView();
         initMessageService();
 //        getUserDetails();
     }
@@ -175,18 +184,23 @@ public class MainActivity extends AppCompatActivity implements
     ----------------------------- init ---------------------------------
     */
 
-        private void initView () {
+        private void initLoadingView(){
             setContentView(R.layout.activity_main);
             setSupportActionBar((Toolbar) findViewById(R.id.upper_toolbar));
             setTitle(R.string.fragment_chats);
+            ft = getSupportFragmentManager().beginTransaction();
+            ft.add(R.id.fragment_container, LoadingFragment.newInstance(), LOADING_FRAG)
+                    .commit();
+        }
+
+        private void initView () {
             initNavigationBar();
         }
 
         private void initNavigationBar () {
             BottomNavigationView bottomNav = findViewById(R.id.bottom_navi_bar);
-            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            ft.add(R.id.fragment_container, ChatsFragment.newInstance(), CHATS_FRAG)
-                    .commit();
+            bottomNav.setVisibility(View.VISIBLE);
+            replaceFragment(ChatsFragment.newInstance(), CHATS_FRAG);
             bottomNav.setOnNavigationItemSelectedListener
                     (new BottomNavigationView.OnNavigationItemSelectedListener() {
                         @Override
@@ -256,6 +270,12 @@ public class MainActivity extends AppCompatActivity implements
         return false;
     }
 
+    private void checkReady(){
+            if(mCotactsFetched && mLocationFetched){
+                initView();
+            }
+    }
+
     /*
     ----------------------------- onClick ---------------------------------
     */
@@ -298,7 +318,7 @@ public class MainActivity extends AppCompatActivity implements
 
         private void navSettingsActivity () {
             Intent intent = new Intent(this, SettingsActivity.class);
-            startActivityForResult(intent, 0);
+            startActivity(intent);
         }
 
     /*
@@ -340,6 +360,8 @@ public class MainActivity extends AppCompatActivity implements
                             Log.d(TAG, "saveUserLocation: \ninserted user location into database." +
                                     "\n latitude: " + mUserLocation.getGeo_point().getLatitude() +
                                     "\n longitude: " + mUserLocation.getGeo_point().getLongitude());
+                            mLocationFetched = true;
+                            checkReady();
                         }
                     }
                 });
@@ -373,6 +395,8 @@ public class MainActivity extends AppCompatActivity implements
                         }
                     }
                     Log.d(TAG, "onEvent: number of contacts: " + mContacts.size());
+                    mCotactsFetched = true;
+                    checkReady();
                 }
             }
         });
