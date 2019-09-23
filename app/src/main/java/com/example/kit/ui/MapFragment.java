@@ -395,7 +395,7 @@ public class MapFragment extends DBGeoFragment
     }
 
     @Override
-    public void onInfoWindowClick(Marker marker) {
+    public void onInfoWindowClick(final Marker marker) {
         if(marker.getSnippet().equals("This is you")){
             marker.hideInfoWindow();
         }
@@ -405,6 +405,7 @@ public class MapFragment extends DBGeoFragment
                     .setCancelable(true)
                     .setPositiveButton("Navigate", new DialogInterface.OnClickListener() {
                         public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                            calculateDirections(marker);
                             dialog.dismiss();
                         }
                     })
@@ -446,6 +447,7 @@ public class MapFragment extends DBGeoFragment
                 Log.d(TAG, "calculateDirections: distance: " + result.routes[0].legs[0].distance);
                 Log.d(TAG, "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[0].toString());
                 addPolylinesToMap(result);
+                Log.d(TAG, "onResult: SUCCESSSSSS");
             }
             @Override
             public void onFailure(Throwable e) {
