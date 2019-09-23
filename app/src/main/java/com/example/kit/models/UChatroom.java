@@ -28,7 +28,7 @@ public class UChatroom implements Parcelable {
 
     public UChatroom() {}
 
-    protected UChatroom(Parcel in) {
+    public UChatroom(Parcel in) {
         display_name = in.readString();
         chatroom_id = in.readString();
         isGroup = in.readInt() == 1;

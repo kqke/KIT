@@ -74,16 +74,7 @@ public class ChatroomActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mDb = FirebaseFirestore.getInstance();
-        Intent intent = getIntent();
-        Bundle bundle = intent.getExtras();
-//        if(intent.hasExtra(CHATROOM)){
-        mChatroom = bundle.getParcelable(CHATROOM);
-//        }
-//        if(intent.hasExtra(CONTACTS_HASH_MAP)){
-        mContacts = (HashMap<String, Contact>)bundle.getSerializable(CONTACTS_HASH_MAP);
-//        }
-        joinChatroom();
-//        getIncomingIntent();
+        getIncomingIntent();
         getChatroomUsers();
         initView();
     }
@@ -127,7 +118,7 @@ public class ChatroomActivity extends AppCompatActivity
         if(intent.hasExtra(CONTACTS_HASH_MAP)){
             mContacts = (HashMap<String, Contact>)getIntent().getSerializableExtra(CONTACTS_HASH_MAP);
         }
-//        joinChatroom();
+        joinChatroom();
     }
 
     private void setChatroomName(){

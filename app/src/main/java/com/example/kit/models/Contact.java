@@ -24,21 +24,22 @@ public class Contact implements Parcelable
 
     }
 
-    protected Contact(Parcel in) {
+    public Contact(Parcel in) {
         name = in.readString();
         username = in.readString();
         avatar = in.readString();
+        cid = in.readString();
     }
 
-    public static final Creator<Chatroom> CREATOR = new Creator<Chatroom>() {
+    public static final Creator<Contact> CREATOR = new Creator<Contact>() {
         @Override
-        public Chatroom createFromParcel(Parcel in) {
-            return new Chatroom(in);
+        public Contact createFromParcel(Parcel in) {
+            return new Contact(in);
         }
 
         @Override
-        public Chatroom[] newArray(int size) {
-            return new Chatroom[size];
+        public Contact[] newArray(int size) {
+            return new Contact[size];
         }
     };
 
