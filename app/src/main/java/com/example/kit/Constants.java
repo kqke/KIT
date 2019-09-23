@@ -14,4 +14,6 @@ public class Constants {
     public static final int RC_SIGN_IN = 900;
     public static final String CONTACTS_HASH_MAP = "map";
     public static final String CHATROOM = "chatroom";
+    public static final String USER_LOCATION = "user_location";
+    public static final String CONTACTS_LIST = "contacts_list";
 }

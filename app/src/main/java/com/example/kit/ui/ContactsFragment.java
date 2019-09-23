@@ -4,10 +4,10 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -30,25 +30,14 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.FirebaseFirestoreSettings;
-import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-
-import javax.annotation.Nullable;
-
-import static android.app.Activity.RESULT_OK;
-import static com.example.kit.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
-import static com.example.kit.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 
 
 public class ContactsFragment extends DBGeoFragment implements
@@ -121,6 +110,24 @@ public class ContactsFragment extends DBGeoFragment implements
         mContactRecyclerAdapter = new ContactRecyclerAdapter(mContacts, this);
         mContactRecyclerView.setAdapter(mContactRecyclerAdapter);
         mContactRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
+        initSearchView(v);
+    }
+
+    private void initSearchView(View v){
+        SearchView searchView = v.findViewById(R.id.search_view);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String queryString) {
+                mContactRecyclerAdapter.getFilter().filter(queryString);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String queryString) {
+                mContactRecyclerAdapter.getFilter().filter(queryString);
+                return false;
+            }
+        });
     }
 
     /*
@@ -160,54 +167,6 @@ public class ContactsFragment extends DBGeoFragment implements
         intent.putExtra(getString(R.string.intent_contact), user);
         startActivityForResult(intent, 0);
     }
-
-//    @Override
-//    public void onRequestPermissionsResult(int requestCode,
-//                                           @NonNull String permissions[],
-//                                           @NonNull int[] grantResults) {
-//        switch (requestCode) {
-//            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-//                // If request is cancelled, the result arrays are empty.
-//                if (grantResults.length > 0
-//                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                    setLocationPermissionGranted(true);
-//                }
-//            }
-//        }
-//    }
-
-//    @Override
-//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//        Log.d(TAG, "onActivityResult: called.");
-//        switch (requestCode) {
-//            case PERMISSIONS_REQUEST_ENABLE_GPS: {
-//                if(isLocationPermissionGranted()){
-//                    getContacts();
-//                    getUserDetails();
-//                }
-//                else{
-//                    getLocationPermission();
-//                }
-//                break;
-//            }
-//            //TODO
-//            // better result codes
-//            case 1: {
-//                if (data.getBooleanExtra(getString(R.string.intent_contact), true)) {
-//                    mContactRecyclerAdapter.notifyDataSetChanged();
-//                }
-//                break;
-//            }
-//            case 0: {
-//                if (resultCode == RESULT_OK){
-//                    if ((boolean)data.getExtras().get("left")){
-//                        mContactRecyclerAdapter.notifyItemRangeChanged(0, mContactRecyclerAdapter.getItemCount());
-//                    }
-//                }
-//            }
-//        }
-//    }
 
     /*
     ----------------------------- DB ---------------------------------

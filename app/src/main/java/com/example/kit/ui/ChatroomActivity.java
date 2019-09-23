@@ -12,13 +12,16 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ProgressBar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager.widget.ViewPager;
 
+import com.example.kit.LoadingFragment;
 import com.example.kit.R;
 import com.example.kit.UserClient;
 import com.example.kit.models.Contact;
@@ -43,6 +46,7 @@ import java.util.HashMap;
 
 import static com.example.kit.Constants.CHATROOM;
 import static com.example.kit.Constants.CONTACTS_HASH_MAP;
+import static com.example.kit.Constants.USER_LOCATION;
 
 
 public class ChatroomActivity extends AppCompatActivity
@@ -66,6 +70,9 @@ public class ChatroomActivity extends AppCompatActivity
     private ArrayList<UserLocation> mUserLocations = new ArrayList<>();
     private ArrayList<String> mUserTokens = new ArrayList<>();
 
+    private FragmentTransaction ft;
+    private static final String LOADING_FRAG = "LOADING_FRAG";
+
     /*
     ----------------------------- Lifecycle ---------------------------------
     */
@@ -76,7 +83,7 @@ public class ChatroomActivity extends AppCompatActivity
         mDb = FirebaseFirestore.getInstance();
         getIncomingIntent();
         getChatroomUsers();
-
+        initLoadingView();
     }
 
     @Override
@@ -97,13 +104,18 @@ public class ChatroomActivity extends AppCompatActivity
     ----------------------------- init ---------------------------------
     */
 
-    private void initView(){
+    private void initLoadingView(){
         setContentView(R.layout.activity_chatroom);
         setSupportActionBar((Toolbar)findViewById(R.id.toolbar));
         setChatroomName();
-        FragmentManager t = getSupportFragmentManager();
-        ChatMapViewPagerAdapter mAdapter = new ChatMapViewPagerAdapter(t, mChatroom);
+
+    }
+
+    private void initView(){
+        ChatMapViewPagerAdapter mAdapter = new ChatMapViewPagerAdapter(getSupportFragmentManager(), mChatroom);
         ViewPager mPager = findViewById(R.id.view_pager);
+        findViewById(R.id.progressBar).setVisibility(View.GONE);
+        mPager.setVisibility(View.VISIBLE);
         mPager.setAdapter(mAdapter);
     }
 
@@ -111,12 +123,14 @@ public class ChatroomActivity extends AppCompatActivity
         //TODO
         // this is entered upon orientation change
         Intent intent = getIntent();
-        if(intent.hasExtra(CHATROOM)){
-            mChatroom = (UChatroom) getIntent().getParcelableExtra(CHATROOM);
-            joinChatroom();
-        }
         if(intent.hasExtra(CONTACTS_HASH_MAP)){
             mContacts = (HashMap<String, Contact>)getIntent().getSerializableExtra(CONTACTS_HASH_MAP);
+        }
+        if(intent.hasExtra(USER_LOCATION)){
+            userPos = (UserLocation) getIntent().getParcelableExtra(USER_LOCATION);
+        }
+        if(intent.hasExtra(CHATROOM)){
+            mChatroom = (UChatroom) getIntent().getParcelableExtra(CHATROOM);
         }
         joinChatroom();
     }

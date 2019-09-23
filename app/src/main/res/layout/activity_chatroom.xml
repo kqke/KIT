@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -17,11 +17,19 @@
         app:titleTextColor="@android:color/white"
         />
 
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBar"
+        android:layout_centerInParent="true"/>
+
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/view_pager"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
+        android:layout_below="@+id/toolbar"
+        android:visibility="gone"
         >
 
         <com.google.android.material.tabs.TabLayout
@@ -33,4 +41,4 @@
             app:tabTextColor="@android:color/white" />
     </androidx.viewpager.widget.ViewPager>
 
-</LinearLayout>
+</RelativeLayout>

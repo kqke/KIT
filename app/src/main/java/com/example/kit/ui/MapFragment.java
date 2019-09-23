@@ -103,6 +103,14 @@ public class MapFragment extends DBGeoFragment
     }
 
     @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        getData =  (MapCallBack)context;
+        mUserLocation = getData.getUserPos();
+        mContactLocations = getData.getUserLocations();
+    }
+
+    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         Log.d(TAG, "onCreate: ");
         super.onCreate(savedInstanceState);
@@ -235,15 +243,6 @@ public class MapFragment extends DBGeoFragment
     }
 
 
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        getData =  (MapCallBack)context;
-        mUserLocation = getData.getUserPos();
-        mContactLocations = getData.getUserLocations();
-    }
-
-
     private void startUserLocationsRunnable() {
         Log.d(TAG, "startUserLocationsRunnable: starting runnable for retrieving updated locations.");
         mHandler.postDelayed(mRunnable = new Runnable() {
@@ -325,7 +324,6 @@ public class MapFragment extends DBGeoFragment
         }
         map.setMyLocationEnabled(true);
         mGoogleMap = map;
-        mGoogleMap.setOnInfoWindowClickListener(this);
         addMapMarkers();
     }
 
