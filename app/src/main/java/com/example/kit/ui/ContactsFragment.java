@@ -266,62 +266,138 @@ public class ContactsFragment extends DBGeoFragment implements
         builder.show();
     }
 
-    //TODO
-    // should be probably in the requests fragment
-    private void acceptRequest(final Contact contact){
+
+    private void handleRequest(final Contact contact, boolean accepted){
         final FirebaseFirestore fs = FirebaseFirestore.getInstance();
         final String uid = FirebaseAuth.getInstance().getUid();
         final DocumentReference userRef = fs.collection(getString(R.string.collection_users)).document(uid);
         final User user = ((UserClient)mActivity.getApplicationContext()).getUser();
-        android.app.AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
-        builder.setTitle("Enter a display name");
+        if (accepted){
+            android.app.AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
+            builder.setTitle("Enter a display name");
 
-        final EditText input = new EditText(mActivity);
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-        builder.setView(input);
+            final EditText input = new EditText(mActivity);
+            input.setInputType(InputType.TYPE_CLASS_TEXT);
+            builder.setView(input);
 
-        builder.setPositiveButton("CREATE", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (!input.getText().toString().equals("")) {
-                    m_Text = input.getText().toString();
-                    userRef.collection(getString(R.string.collection_contacts)).document(contact.getCid()).set(new Contact(m_Text,
-                            contact.getUsername(), contact.getAvatar(), contact.getCid())).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            userRef.collection(getString(R.string.collection_requests)).document(contact.getCid()).delete();
-                            final DocumentReference contactRef =
-                                    fs.collection(getString(R.string.collection_users)).document(contact.getCid());
-                            contactRef.collection(getString(R.string.collection_pending)).document(user.getUser_id()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                @Override
-                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                    if (!task.isSuccessful()){return;}
-                                    final Contact ucontact = task.getResult().toObject(Contact.class);
-                                    contactRef.collection(getString(R.string.collection_contacts)).document(ucontact.getCid()).set(ucontact).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-                                            if (!task.isSuccessful()) {return;}
-                                            contactRef.collection(getString(R.string.collection_pending)).document(ucontact.getCid()).delete();
-                                        }
-                                    });
-                                }
-                            });
-                        }
-                    });
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    if (!input.getText().toString().equals("")) {
+                        m_Text = input.getText().toString();
+                        userRef.collection(getString(R.string.collection_contacts)).document(contact.getCid()).set(new Contact(m_Text,
+                                contact.getUsername(), contact.getAvatar(), contact.getCid())).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                userRef.collection(getString(R.string.collection_requests)).document(contact.getCid()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        //todo notify recyclerview
+                                    }
+                                });
+                                final DocumentReference contactRef =
+                                        fs.collection(getString(R.string.collection_users)).document(contact.getCid());
+                                contactRef.collection(getString(R.string.collection_pending)).document(user.getUser_id()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                        if (!task.isSuccessful()){return;}
+                                        final Contact ucontact = task.getResult().toObject(Contact.class);
+                                        contactRef.collection(getString(R.string.collection_contacts)).document(ucontact.getCid()).set(ucontact).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                if (!task.isSuccessful()) {return;}
+                                                contactRef.collection(getString(R.string.collection_pending)).document(ucontact.getCid()).delete();
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                    else {
+                        Toast.makeText(mActivity, "Enter a chatroom name", Toast.LENGTH_SHORT).show();
+                    }
                 }
-                else {
-                    Toast.makeText(mActivity, "Enter a chatroom name", Toast.LENGTH_SHORT).show();
+            });
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
                 }
-            }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-        builder.show();
+            });
+            builder.show();
+        }
+
+        else {
+            userRef.collection(getString(R.string.collection_requests)).document(contact.getCid()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    //todo notify recyclerview
+                }
+            });
+            fs.collection(getString(R.string.collection_users)).document(contact.getCid()).collection(getString(R.string.collection_pending)).document(uid).delete();
+
+        }
     }
+
+
+
+//    //TODO
+//    // should be probably in the requests fragment
+//    private void acceptRequest(final Contact contact){
+//        final FirebaseFirestore fs = FirebaseFirestore.getInstance();
+//        final String uid = FirebaseAuth.getInstance().getUid();
+//        final DocumentReference userRef = fs.collection(getString(R.string.collection_users)).document(uid);
+//        final User user = ((UserClient)mActivity.getApplicationContext()).getUser();
+//        android.app.AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
+//        builder.setTitle("Enter a display name");
+//
+//        final EditText input = new EditText(mActivity);
+//        input.setInputType(InputType.TYPE_CLASS_TEXT);
+//        builder.setView(input);
+//
+//        builder.setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                if (!input.getText().toString().equals("")) {
+//                    m_Text = input.getText().toString();
+//                    userRef.collection(getString(R.string.collection_contacts)).document(contact.getCid()).set(new Contact(m_Text,
+//                            contact.getUsername(), contact.getAvatar(), contact.getCid())).addOnCompleteListener(new OnCompleteListener<Void>() {
+//                        @Override
+//                        public void onComplete(@NonNull Task<Void> task) {
+//                            userRef.collection(getString(R.string.collection_requests)).document(contact.getCid()).delete();
+//                            final DocumentReference contactRef =
+//                                    fs.collection(getString(R.string.collection_users)).document(contact.getCid());
+//                            contactRef.collection(getString(R.string.collection_pending)).document(user.getUser_id()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+//                                @Override
+//                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+//                                    if (!task.isSuccessful()){return;}
+//                                    final Contact ucontact = task.getResult().toObject(Contact.class);
+//                                    contactRef.collection(getString(R.string.collection_contacts)).document(ucontact.getCid()).set(ucontact).addOnCompleteListener(new OnCompleteListener<Void>() {
+//                                        @Override
+//                                        public void onComplete(@NonNull Task<Void> task) {
+//                                            if (!task.isSuccessful()) {return;}
+//                                            contactRef.collection(getString(R.string.collection_pending)).document(ucontact.getCid()).delete();
+//                                        }
+//                                    });
+//                                }
+//                            });
+//                        }
+//                    });
+//                }
+//                else {
+//                    Toast.makeText(mActivity, "Enter a chatroom name", Toast.LENGTH_SHORT).show();
+//                }
+//            }
+//        });
+//        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                dialog.cancel();
+//            }
+//        });
+//        builder.show();
+//    }
 
     public interface ContactsCallback {
         ArrayList<Contact> getContacts();
