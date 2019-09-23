@@ -108,8 +108,9 @@ public class ChatroomActivity extends AppCompatActivity
     private void getIncomingIntent(){
         //TODO
         // this is entered upon orientation change
+        Intent intent = getIntent();
         if(getIntent().hasExtra(CHATROOM)){
-            mChatroom = getIntent().getParcelableExtra(getString(R.string.intent_uchatroom));
+            mChatroom = (UChatroom) getIntent().getParcelableExtra(CHATROOM);
             joinChatroom();
         }
         if(getIntent().hasExtra(CONTACTS_HASH_MAP)){

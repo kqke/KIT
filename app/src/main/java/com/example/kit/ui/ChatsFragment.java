@@ -178,7 +178,7 @@ public class ChatsFragment extends DBGeoFragment implements
         Intent intent = new Intent(mActivity, ChatroomActivity.class);
         intent.putExtra(CHATROOM, chatroom);
         intent.putExtra(CONTACTS_HASH_MAP, mId2Contact);
-        startActivityForResult(intent, 0);
+        startActivity(intent);
     }
 
 //    @Override
