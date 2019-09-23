@@ -76,7 +76,7 @@ public class Contact implements Parcelable
 
         @Override
     public String toString() {
-        return "Chatroom{" +
+        return "Contact{" +
                 "name='" + name + '\'' +
                 ", username='" + username + '\'' +
                 ", avatar='" + avatar + '\'' +

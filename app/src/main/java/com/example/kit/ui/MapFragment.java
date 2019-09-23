@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -71,6 +72,9 @@ public class MapFragment extends DBGeoFragment
     //Widgets
     protected MapView mMapView;
 
+    //Callbacks
+    MapCallBack getData;
+
     /*
     ----------------------------- Lifecycle ---------------------------------
     */
@@ -87,9 +91,7 @@ public class MapFragment extends DBGeoFragment
     public void onCreate(@Nullable Bundle savedInstanceState) {
         Log.d(TAG, "onCreate: ");
         super.onCreate(savedInstanceState);
-        getContacts();
         Log.d(TAG, "before: ");
-        setUserPosition();
         Log.d(TAG, "after: ");
     }
 
@@ -99,7 +101,6 @@ public class MapFragment extends DBGeoFragment
         Log.d(TAG, "onCreateView: ");
         View view = inflater.inflate(R.layout.fragment_map, container, false);
         init(view);
-        setUserPosition();
         initGoogleMap(savedInstanceState);
         return view;
     }
@@ -218,18 +219,16 @@ public class MapFragment extends DBGeoFragment
         });
     }
 
-    private void setUserPosition() {
-        DocumentReference userLocRef =
-                FirebaseFirestore.getInstance().collection(getString(R.string.collection_user_locations)).document(FirebaseAuth.getInstance().getUid());
-        userLocRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (!task.isSuccessful()){return;}
-                mUserLocation = task.getResult().toObject(UserLocation.class);
-                mContactLocations.add(mUserLocation);
-            }
-        });
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        getData =  (MapCallBack)context;
+        mUserLocation = getData.getUserPos();
+        mContactLocations = getData.getUserLocations();
+        setCameraView();
     }
+
 
     private void startUserLocationsRunnable() {
         Log.d(TAG, "startUserLocationsRunnable: starting runnable for retrieving updated locations.");
@@ -375,6 +374,11 @@ public class MapFragment extends DBGeoFragment
             mMapBoundary = new LatLngBounds(new LatLng(bb, lb), new LatLng(tb, rb));
             mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary, width, height, padding));
         }
+    }
+
+    public interface MapCallBack {
+        UserLocation getUserPos();
+        ArrayList<UserLocation> getUserLocations();
     }
 }
 

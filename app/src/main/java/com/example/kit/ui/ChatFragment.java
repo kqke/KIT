@@ -358,6 +358,7 @@ public class ChatFragment extends Fragment implements
         ArrayList<User> getUserList();
         ArrayList<UserLocation>getUserLocations();
         ArrayList<String>getUserTokens();
+        UserLocation getUserPos();
     }
 
 }
