@@ -138,10 +138,11 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         mDb = FirebaseFirestore.getInstance();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        fetchContacts();
+        getLocationPermission();
+//        fetchContacts();
         initView();
         initMessageService();
-        getUserDetails();
+//        getUserDetails();
     }
 
     @Override
@@ -390,7 +391,7 @@ public class MainActivity extends AppCompatActivity implements
             mLocationPermissionGranted = permissionGranted;
         }
 
-        protected boolean getLocationPermission () {
+        protected void getLocationPermission() {
             /*
              * Request location permission, so that we can get the location of the
              * device. The result of the permission request is handled by a callback,
@@ -400,13 +401,12 @@ public class MainActivity extends AppCompatActivity implements
                     android.Manifest.permission.ACCESS_FINE_LOCATION)
                     == PackageManager.PERMISSION_GRANTED) {
                 mLocationPermissionGranted = true;
+                fetchContacts();
                 getUserDetails();
-                return true;
             } else {
                 ActivityCompat.requestPermissions(this,
                         new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                         PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-                return false;
             }
         }
 
@@ -490,7 +490,7 @@ public class MainActivity extends AppCompatActivity implements
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ENABLE_GPS: {
                 if(isLocationPermissionGranted()){
-//                    getContacts();
+                    fetchContacts();
                     getUserDetails();
                 }
                 else{
