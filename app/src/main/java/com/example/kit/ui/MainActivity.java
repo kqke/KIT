@@ -29,6 +29,7 @@ import androidx.fragment.app.FragmentTransaction;
 import com.example.kit.LoadingFragment;
 import com.example.kit.R;
 import com.example.kit.models.Contact;
+import com.example.kit.models.UChatroom;
 import com.example.kit.models.User;
 import com.example.kit.models.UserLocation;
 import com.google.android.gms.common.ConnectionResult;
@@ -64,7 +65,8 @@ import static com.example.kit.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION
 import static com.example.kit.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 
 public class MainActivity extends AppCompatActivity implements
-        ContactsFragment.ContactsCallback {
+        ContactsFragment.ContactsCallback,
+        ChatsFragment.ChatroomsCallback{
 
     //TODO
     // chat crashes on orientation change and locations are not updated properly
@@ -135,7 +137,13 @@ public class MainActivity extends AppCompatActivity implements
     private Set<String> mContactIds = new HashSet<>();
     private boolean mCotactsFetched;
 
+    //Chatrooms
+    private ArrayList<UChatroom> mChatrooms = new ArrayList<>();
+    private Set<String> mChatroomIds = new HashSet<>();
+    private boolean mChatroomsFetched;
+
     private ListenerRegistration mContactEventListener;
+    private ListenerRegistration mChatroomEventListener;
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -169,6 +177,9 @@ public class MainActivity extends AppCompatActivity implements
         super.onDestroy();
         if(mContactEventListener != null){
             mContactEventListener.remove();
+        }
+        if(mChatroomEventListener != null){
+            mChatroomEventListener.remove();
         }
     }
 
@@ -271,7 +282,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void checkReady(){
-            if(mCotactsFetched && mLocationFetched){
+            if(mCotactsFetched && mLocationFetched && mChatroomsFetched){
                 initView();
             }
     }
@@ -310,6 +321,24 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public HashMap<String, Contact> getId2Contact() {
         return mId2Contact;
+    }
+
+    /*
+    ----------------------------- Chatrooms Callback ---------------------------------
+    */
+
+    @Override
+    public Set<String> getChatroomIds() {
+        return mChatroomIds;
+    }
+
+    @Override
+    public ArrayList<UChatroom> getChatrooms() {
+        return mChatrooms;
+    }
+
+    public UserLocation getUserLocation(){
+        return mUserLocation;
     }
 
     /*
@@ -371,7 +400,6 @@ public class MainActivity extends AppCompatActivity implements
     private void fetchContacts(){
         FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().build();
         mDb.setFirestoreSettings(settings);
-
         CollectionReference contactsCollection = mDb
                 .collection(getString(R.string.collection_users))
                 .document(FirebaseAuth.getInstance().getUid())
@@ -402,6 +430,38 @@ public class MainActivity extends AppCompatActivity implements
         });
     }
 
+    private void fetchChatrooms(){
+        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().build();
+        mDb.setFirestoreSettings(settings);
+        CollectionReference chatroomsCollection = mDb
+                .collection(getString(R.string.collection_users))
+                .document(FirebaseAuth.getInstance().getUid())
+                .collection(getString(R.string.collection_user_chatrooms));
+        mChatroomEventListener = chatroomsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+                Log.d(TAG, "onEvent: called.");
+                if (e != null) {
+                    Log.e(TAG, "onEvent: Listen failed.", e);
+                    return;
+                }
+                if(queryDocumentSnapshots != null){
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+
+                        UChatroom chatroom = doc.toObject(UChatroom.class);
+                        if(!mChatroomIds.contains(chatroom.getChatroom_id())){
+                            mChatroomIds.add(chatroom.getChatroom_id());
+                            mChatrooms.add(chatroom);
+                        }
+                    }
+                    Log.d(TAG, "onEvent: number of chatrooms: " + mChatrooms.size());
+//                    mChatroomRecyclerAdapter.notifyDataSetChanged();
+                    mChatroomsFetched = true;
+                    checkReady();
+                }
+            }
+        });
+    }
 
        /*
     ----------------------------- Location ---------------------------------
@@ -424,9 +484,10 @@ public class MainActivity extends AppCompatActivity implements
             if (ContextCompat.checkSelfPermission(getApplicationContext(),
                     android.Manifest.permission.ACCESS_FINE_LOCATION)
                     == PackageManager.PERMISSION_GRANTED) {
-                mLocationPermissionGranted = true;
-                fetchContacts();
+                setLocationPermissionGranted(true);
                 getUserDetails();
+                fetchContacts();
+                fetchChatrooms();
             } else {
                 ActivityCompat.requestPermissions(this,
                         new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
@@ -514,8 +575,9 @@ public class MainActivity extends AppCompatActivity implements
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ENABLE_GPS: {
                 if(isLocationPermissionGranted()){
-                    fetchContacts();
                     getUserDetails();
+                    fetchContacts();
+                    fetchChatrooms();
                 }
                 else{
                     getLocationPermission();

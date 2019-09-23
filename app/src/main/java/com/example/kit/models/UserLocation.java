@@ -17,6 +17,7 @@ public class UserLocation implements Parcelable{
 
     private User user;
     private GeoPoint geo_point;
+    private double latitude, longitude;
     private @ServerTimestamp Date timestamp;
 
     public UserLocation(User user, GeoPoint geo_point, Date timestamp) {
@@ -30,16 +31,9 @@ public class UserLocation implements Parcelable{
 
     protected UserLocation(Parcel in) {
         user = in.readParcelable(User.class.getClassLoader());
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeParcelable(user, flags);
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
+        latitude = in.readDouble();
+        longitude = in.readDouble();
+        geo_point = new GeoPoint(latitude, longitude);
     }
 
     public static final Creator<UserLocation> CREATOR = new Creator<UserLocation>() {
@@ -53,6 +47,20 @@ public class UserLocation implements Parcelable{
             return new UserLocation[size];
         }
     };
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeParcelable(user, flags);
+        latitude = geo_point.getLatitude();
+        longitude = geo_point.getLongitude();
+        dest.writeDouble(latitude);
+        dest.writeDouble(longitude);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
 
     public User getUser() {
         return user;
