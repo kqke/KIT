@@ -226,7 +226,6 @@ public class MapFragment extends DBGeoFragment
         getData =  (MapCallBack)context;
         mUserLocation = getData.getUserPos();
         mContactLocations = getData.getUserLocations();
-        setCameraView();
     }
 
 

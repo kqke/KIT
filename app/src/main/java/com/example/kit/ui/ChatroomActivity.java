@@ -76,7 +76,7 @@ public class ChatroomActivity extends AppCompatActivity
         mDb = FirebaseFirestore.getInstance();
         getIncomingIntent();
         getChatroomUsers();
-        initView();
+
     }
 
     @Override
@@ -266,13 +266,13 @@ public class ChatroomActivity extends AppCompatActivity
                 if (task.isSuccessful()){
                     UserLocation userLocation = task.getResult().toObject(UserLocation.class);
                     if (userLocation != null){
-                        if(user.getUser_id() == FirebaseAuth.getInstance().getUid()){
+                        if(user.getUser_id().equals(FirebaseAuth.getInstance().getUid())){
                             userPos = userLocation;
                         }
                         userLocation.getUser().setUsername(user.getUsername());
                         mUserLocations.add(userLocation);
                         if (mUserLocations.size() == mChatroom.getNumUsers()){
-
+                            initView();
                         }
                     }
                 }
