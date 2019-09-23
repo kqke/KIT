@@ -85,7 +85,7 @@ public class ChatroomActivity extends AppCompatActivity
         joinChatroom();
 //        getIncomingIntent();
         getChatroomUsers();
-
+        initView();
     }
 
     @Override
@@ -121,12 +121,13 @@ public class ChatroomActivity extends AppCompatActivity
         // this is entered upon orientation change
         Intent intent = getIntent();
         if(intent.hasExtra(CHATROOM)){
-            mChatroom = getIntent().getParcelableExtra(CHATROOM);
+            mChatroom = (UChatroom) getIntent().getParcelableExtra(CHATROOM);
+            joinChatroom();
         }
         if(intent.hasExtra(CONTACTS_HASH_MAP)){
             mContacts = (HashMap<String, Contact>)getIntent().getSerializableExtra(CONTACTS_HASH_MAP);
         }
-        joinChatroom();
+//        joinChatroom();
     }
 
     private void setChatroomName(){
@@ -206,6 +207,7 @@ public class ChatroomActivity extends AppCompatActivity
     }
 
     private void joinChatroom(){
+        String cid = mChatroom.getChatroom_id();
         String uid = FirebaseAuth.getInstance().getUid();
         DocumentReference joinChatroomRef = mDb
                 .collection(getString(R.string.collection_chatrooms))
@@ -266,7 +268,6 @@ public class ChatroomActivity extends AppCompatActivity
     }
 
     private void getUserLocation(final User user){
-
         DocumentReference locRef = mDb.collection(getString(R.string.collection_user_locations)).document(user.getUser_id());
         locRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
@@ -363,6 +364,5 @@ public class ChatroomActivity extends AppCompatActivity
         public CharSequence getPageTitle(int position) {
             return mTitles[position];
         }
-
     }
 }
