@@ -175,11 +175,11 @@ public class ChatsFragment extends DBGeoFragment implements
     }
 
     private void navChatroomActivity(UChatroom chatroom){
-        Bundle bundle =
+        Bundle bundle = new Bundle();
         Intent intent = new Intent(getActivity(), ChatroomActivity.class);
         intent.putExtra(CHATROOM, chatroom);
         intent.putExtra(CONTACTS_HASH_MAP, mId2Contact);
-        startActivity(intent);
+        startActivityForResult(intent, 1);
     }
 
 //    @Override
