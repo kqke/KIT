@@ -2,10 +2,12 @@ package com.example.kit.ui;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -25,6 +27,7 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -37,6 +40,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.maps.GeoApiContext;
 import com.google.maps.android.clustering.ClusterManager;
 
 import java.util.ArrayList;
@@ -44,7 +48,7 @@ import java.util.ArrayList;
 import static com.example.kit.Constants.MAPVIEW_BUNDLE_KEY;
 
 public class MapFragment extends DBGeoFragment
-        implements OnMapReadyCallback {
+        implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener{
 
     //TODO
     // navigate to Profile bubble when user is clicked
@@ -68,6 +72,7 @@ public class MapFragment extends DBGeoFragment
     protected ListenerRegistration mContactListEventListener;
     protected ArrayList<Contact> mContactList = new ArrayList<>();
     protected ArrayList<UserLocation> mContactLocations = new ArrayList<>();
+    private GeoApiContext mGeoApiContext = null;
 
     //Widgets
     protected MapView mMapView;
@@ -307,6 +312,7 @@ public class MapFragment extends DBGeoFragment
         }
         map.setMyLocationEnabled(true);
         mGoogleMap = map;
+        mGoogleMap.setOnInfoWindowClickListener(this);
         addMapMarkers();
     }
 
@@ -372,6 +378,30 @@ public class MapFragment extends DBGeoFragment
             int padding = 4;
             mMapBoundary = new LatLngBounds(new LatLng(bb, lb), new LatLng(tb, rb));
             mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary, width, height, padding));
+        }
+    }
+
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+        if(marker.getSnippet().equals("This is you")){
+            marker.hideInfoWindow();
+        }
+        else{
+            final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setMessage("Navigate or Go to Profile?")
+                    .setCancelable(true)
+                    .setPositiveButton("Navigate", new DialogInterface.OnClickListener() {
+                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .setNegativeButton("Profile", new DialogInterface.OnClickListener() {
+                        public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                            dialog.cancel();
+                        }
+                    });
+            final AlertDialog alert = builder.create();
+            alert.show();
         }
     }
 

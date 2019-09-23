@@ -69,5 +69,9 @@ dependencies {
 
     // Circle ImageView
     implementation 'de.hdodenhof:circleimageview:2.2.0'
+
+    // Google Map API
+    implementation 'com.google.maps:google-maps-services:0.10.0'
+    implementation 'org.slf4j:slf4j-simple:1.7.25'
 }
 apply plugin: 'com.google.gms.google-services'
