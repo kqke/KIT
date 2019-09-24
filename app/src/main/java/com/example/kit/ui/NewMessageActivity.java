@@ -3,20 +3,12 @@ package com.example.kit.ui;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.Manifest;
 import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
@@ -28,17 +20,12 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.kit.R;
-import com.example.kit.UserClient;
 import com.example.kit.adapters.ContactRecyclerAdapter;
 import com.example.kit.models.Chatroom;
 import com.example.kit.models.Contact;
 import com.example.kit.models.UChatroom;
 import com.example.kit.models.User;
-import com.example.kit.models.UserLocation;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
+import com.example.kit.util.UsernameValidator;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
@@ -46,38 +33,19 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.FirebaseFirestoreSettings;
-import com.google.firebase.firestore.GeoPoint;
-import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
-import javax.annotation.Nullable;
-
-import static com.example.kit.Constants.CHATROOM;
-import static com.example.kit.Constants.CONTACTS_HASH_MAP;
 import static com.example.kit.Constants.CONTACTS_LIST;
-import static com.example.kit.Constants.ERROR_DIALOG_REQUEST;
-import static com.example.kit.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
-import static com.example.kit.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
-import static com.example.kit.Constants.USER_LOCATION;
 
-public class ContactMessageActivity extends AppCompatActivity implements
+public class NewMessageActivity extends AppCompatActivity implements
         View.OnClickListener,
         ContactRecyclerAdapter.ContactsRecyclerClickListener {
 
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "NewMessageActivity";
 
     //Firebase
     protected FirebaseFirestore mDb;
@@ -87,7 +55,7 @@ public class ContactMessageActivity extends AppCompatActivity implements
 
     //vars
     private ArrayList<Contact> mContacts = new ArrayList<>();
-    private Set<String> mContactIds = new HashSet<>();
+    private ArrayList<Contact> mCheckedContacts = new ArrayList<>();
     private ContactRecyclerAdapter mContactRecyclerAdapter;
     private RecyclerView mContactRecyclerView;
 
@@ -119,12 +87,18 @@ public class ContactMessageActivity extends AppCompatActivity implements
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
     /*
     ----------------------------- init ---------------------------------
     */
 
     private void initContactRecyclerView() {
-        mContactRecyclerAdapter = new ContactRecyclerAdapter(mContacts, this);
+        mContactRecyclerAdapter = new ContactRecyclerAdapter(mContacts);
         mContactRecyclerView.setAdapter(mContactRecyclerAdapter);
         mContactRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         initSearchView();
@@ -158,8 +132,114 @@ public class ContactMessageActivity extends AppCompatActivity implements
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.fab_group_message:
-//                startGroupChat();
+                startChat();
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()){
+//            case R.id.action_sign_out:{
+//                signOut();
+//                return true;
+//            }
+            case R.id.action_profile:{
+                startActivity(new Intent(this, ProfileActivity.class));
+                return true;
+            }
+            default:{
+                return super.onOptionsItemSelected(item);
+            }
+        }
+    }
+
+    @Override
+    public void onContactSelected(int position) {
+        if(!mContactRecyclerAdapter.getCheckedContacts().isEmpty()){
+            //TODO
+            // enable the send message/start chat button
+            // and set its visibility or change its color
+        }
+    }
+
+    /*
+    ----------------------------- nav ---------------------------------
+    */
+
+    private void startChat(){
+        ArrayList<Contact> checkedContacts = mContactRecyclerAdapter.getCheckedContacts();
+        if(checkedContacts.size() == 1){
+            //TODO
+            // check if a chat with this contact exists and if so navigate there
+            if(chatExists(checkedContacts.get(0)))
+            {
+                // navigate to the existing chat
+            }
+            else{
+                // start new chat
+            }
+        }
+        else{
+            startGroupChat(checkedContacts);
+        }
+    }
+
+    private void navChatActivity(UChatroom uchat){
+        Intent intent = new Intent(NewMessageActivity.this, ChatroomActivity.class);
+        intent.putExtra(getString(R.string.intent_uchatroom), uchat);
+        startActivityForResult(intent, 0);
+    }
+
+    private void navNewGroupActivity(String cid, String groupname){
+        Intent intent = new Intent(NewMessageActivity.this, AddContactsActivity.class);
+        intent.putExtra(getString(R.string.intent_contact), cid);
+        intent.putExtra("gn", groupname);
+        startActivityForResult(intent, 0);
+    }
+
+    /*
+    ----------------------------- DB ---------------------------------
+    */
+
+    public void DEPRECATEDonContactSelected(int position) {
+        final int pos = position;
+        String uid1 = FirebaseAuth.getInstance().getUid();
+        String uid2 = mContacts.get(position).getCid();
+        final String first, second;
+        if (stringCompare(uid1, uid2) > 0){
+            first = uid2;
+            second = uid1;
+        } else {
+            first = uid1;
+            second = uid2;
+        }
+        CollectionReference chatroomsRef =
+                mDb.collection(getString(R.string.collection_users)).document(uid1).collection(getString(R.string.collection_contacts));
+        Query query = chatroomsRef.whereEqualTo("chatroom_id", first + second);
+        query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    for (DocumentSnapshot documentSnapshot : task.getResult()) {
+                        String cid = documentSnapshot.getString("chatroom_id");
+                        if (cid.equals(first + second)) {
+                            UChatroom uchat = documentSnapshot.toObject(UChatroom.class);
+                            Log.d(TAG, "User Exists");
+                            User user = documentSnapshot.toObject(User.class);
+                            Log.d(TAG, "onComplete: Barak contact id" + user.getUser_id());
+                            navChatActivity(uchat);
+                        }
+                    }
+                }
+                if (task.getResult().isEmpty()){
+                    buildNewChatroom(first, second, mContacts.get(pos).getName(), false);
+                }
+            }
+        });
+    }
+
+    private boolean chatExists(Contact contact){
+        return true;
     }
 
     private void buildNewChatroom(String cid1, String cid2, final String display_name, final boolean isGroup){
@@ -204,21 +284,7 @@ public class ContactMessageActivity extends AppCompatActivity implements
 
     }
 
-    private void navChatActivity(UChatroom uchat){
-        Intent intent = new Intent(ContactMessageActivity.this, ChatroomActivity.class);
-        intent.putExtra(getString(R.string.intent_uchatroom), uchat);
-        startActivityForResult(intent, 0);
-    }
-
-    private void navNewGroupActivity(String cid, String groupname){
-        Intent intent = new Intent(ContactMessageActivity.this, AddContactsActivity.class);
-        intent.putExtra(getString(R.string.intent_contact), cid);
-        intent.putExtra("gn", groupname);
-        startActivityForResult(intent, 0);
-    }
-
-    private void newGroupChat(){
-
+    private void startGroupChat(ArrayList<Contact> chatContacts){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Enter a group name");
 
@@ -230,9 +296,16 @@ public class ContactMessageActivity extends AppCompatActivity implements
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if(!input.getText().toString().equals("")){
+                    UsernameValidator validator = new UsernameValidator();
+                    if(validator.validate(input.getText().toString())){
+                        // can start a new group chat
+                    }
+                    else{
+                        Toast.makeText(NewMessageActivity.this, "Enter a valid group name", Toast.LENGTH_SHORT).show();
+                    }
                 }
                 else {
-                    Toast.makeText(ContactMessageActivity.this, "Enter a group name", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(NewMessageActivity.this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -242,79 +315,7 @@ public class ContactMessageActivity extends AppCompatActivity implements
                 dialog.cancel();
             }
         });
-
         builder.show();
-    }
-
-    @Override
-    public void onContactSelected(int position) {
-        final int pos = position;
-        String uid1 = FirebaseAuth.getInstance().getUid();
-        String uid2 = mContacts.get(position).getCid();
-        final String first, second;
-        if (stringCompare(uid1, uid2) > 0){
-            first = uid2;
-            second = uid1;
-        } else {
-            first = uid1;
-            second = uid2;
-        }
-        CollectionReference chatroomsRef =
-                mDb.collection(getString(R.string.collection_users)).document(uid1).collection(getString(R.string.collection_contacts));
-        Query query = chatroomsRef.whereEqualTo("chatroom_id", first + second);
-        query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()) {
-                    for (DocumentSnapshot documentSnapshot : task.getResult()) {
-                        String cid = documentSnapshot.getString("chatroom_id");
-
-                        if (cid.equals(first + second)) {
-                            UChatroom uchat = documentSnapshot.toObject(UChatroom.class);
-                            Log.d(TAG, "User Exists");
-                            User user = documentSnapshot.toObject(User.class);
-                            Log.d(TAG, "onComplete: Barak contact id" + user.getUser_id());
-                            navChatActivity(uchat);
-                        }
-                    }
-                }
-                if (task.getResult().isEmpty()){
-                    buildNewChatroom(first, second, mContacts.get(pos).getName(), false);
-                }
-            }
-        });
-    }
-
-    private void signOut(){
-        FirebaseAuth.getInstance().signOut();
-        Intent intent = new Intent(this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()){
-//            case R.id.action_sign_out:{
-//                signOut();
-//                return true;
-//            }
-            case R.id.action_profile:{
-                startActivity(new Intent(this, ProfileActivity.class));
-                return true;
-            }
-            default:{
-                return super.onOptionsItemSelected(item);
-            }
-        }
-
     }
 
     private void showDialog(){
@@ -337,7 +338,6 @@ public class ContactMessageActivity extends AppCompatActivity implements
         for (int i = 0; i < lmin; i++) {
             int str1_ch = (int)str1.charAt(i);
             int str2_ch = (int)str2.charAt(i);
-
             if (str1_ch != str2_ch) {
                 return str1_ch - str2_ch;
             }
@@ -384,15 +384,10 @@ public class ContactMessageActivity extends AppCompatActivity implements
                                 .document(uid)
                                 .collection(getString(R.string.collection_user_chatrooms))
                                 .document(cid);
-
                         userChatRef.set(uchat);
                     }
                 });
-
             }
         });
-
-            }
-
-
+    }
 }

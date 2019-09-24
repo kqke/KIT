@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements
     // does the AddContactsActivity only contain an AlertDialog?
     // if so, why is it an Activity? should be more than a dialog, fragment probably
     //TODO
-    // what is ContactMessageActivity?
+    // what is NewMessageActivity?
     // TODO
     //  merge activity_login.xml & activity_username.xml
     //TODO
@@ -573,21 +573,8 @@ public class MainActivity extends AppCompatActivity implements
             case PERMISSIONS_REQUEST_ENABLE_GPS:
                 {
                     getLocationPermission();
+                    break;
                 }
-                break;
-            }
-//            case 1: {
-//                if (data.getBooleanExtra(getString(R.string.intent_contact), true)) {
-//                    mContactRecyclerAdapter.notifyDataSetChanged();
-//                }
-//                break;
-//            }
-//            case 0: {
-//                if (resultCode == RESULT_OK){
-//                    if ((boolean)data.getExtras().get("left")){
-//                        mContactRecyclerAdapter.notifyItemRangeChanged(0, mContactRecyclerAdapter.getItemCount());
-//                    }
-//                }
-//            }
         }
+    }
 }
