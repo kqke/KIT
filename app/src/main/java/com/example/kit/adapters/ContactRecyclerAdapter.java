@@ -43,6 +43,10 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
         return mCheckedContacts;
     }
 
+    public boolean isWithCheckBoxes() {
+        return withCheckBoxes;
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
