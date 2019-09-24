@@ -3,11 +3,10 @@ package com.example.kit.ui;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
+import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -21,28 +20,15 @@ import com.example.kit.adapters.ChatroomRecyclerAdapter;
 import com.example.kit.models.Contact;
 import com.example.kit.models.UChatroom;
 import com.example.kit.models.UserLocation;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.EventListener;
-import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.FirebaseFirestoreSettings;
-import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.annotation.Nullable;
-
-import static android.app.Activity.RESULT_OK;
 import static com.example.kit.Constants.CHATROOM;
 import static com.example.kit.Constants.CONTACTS_HASH_MAP;
 import static com.example.kit.Constants.CONTACTS_LIST;
-import static com.example.kit.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
-import static com.example.kit.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 import static com.example.kit.Constants.USER_LOCATION;
 
 
@@ -132,6 +118,24 @@ public class ChatsFragment extends DBGeoFragment implements
         mChatroomRecyclerAdapter = new ChatroomRecyclerAdapter(mChatrooms, this);
         mChatroomRecyclerView.setAdapter(mChatroomRecyclerAdapter);
         mChatroomRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
+        initSearchView(v);
+    }
+
+    private void initSearchView(View v){
+        SearchView searchView = v.findViewById(R.id.search_view);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String queryString) {
+                mChatroomRecyclerAdapter.getFilter().filter(queryString);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String queryString) {
+                mChatroomRecyclerAdapter.getFilter().filter(queryString);
+                return false;
+            }
+        });
     }
 
      /*
@@ -157,7 +161,7 @@ public class ChatsFragment extends DBGeoFragment implements
     */
 
     private void navContactMessageActivity(){
-        Intent intent = new Intent(getActivity(), ContactMessageActivity.class);
+        Intent intent = new Intent(getActivity(), NewMessageActivity.class);
         intent.putExtra(CONTACTS_LIST, mContacts);
         startActivityForResult(intent, 1);
     }

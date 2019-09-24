@@ -4,27 +4,24 @@ import androidx.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
 
 
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.kit.R;
-import com.example.kit.models.Chatroom;
-import com.example.kit.models.Contact;
 import com.example.kit.models.UChatroom;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 
-public class ChatroomRecyclerAdapter extends RecyclerView.Adapter<ChatroomRecyclerAdapter.ViewHolder>{
+public class ChatroomRecyclerAdapter extends RecyclerView.Adapter<ChatroomRecyclerAdapter.ViewHolder>
+        implements Filterable
+{
 
     private ArrayList<UChatroom> mChatrooms = new ArrayList<>();
+    private ArrayList<UChatroom> mFilteredChatrooms = new ArrayList<>();
     private ChatroomRecyclerClickListener mChatroomRecyclerClickListener;
 
     public ChatroomRecyclerAdapter(ArrayList<UChatroom> chatrooms, ChatroomRecyclerClickListener chatroomRecyclerClickListener) {
@@ -67,6 +64,35 @@ public class ChatroomRecyclerAdapter extends RecyclerView.Adapter<ChatroomRecycl
         public void onClick(View v) {
             clickListener.onChatroomSelected(getAdapterPosition());
         }
+    }
+
+    @Override
+    public Filter getFilter() {
+        return new Filter() {
+            @Override
+            protected FilterResults performFiltering(CharSequence constraint) {
+                String charSequenceString = constraint.toString();
+                if (charSequenceString.isEmpty()) {
+                    mFilteredChatrooms = mChatrooms;
+                } else {
+                    ArrayList<UChatroom> mFiltered = new ArrayList<>();
+                    for (UChatroom chatroom : mChatrooms) {
+                        if (chatroom.getDisplay_name().toLowerCase().contains(charSequenceString.toLowerCase())) {
+                            mFiltered.add(chatroom);
+                        }
+                    }
+                    mFilteredChatrooms = mFiltered;
+                }
+                FilterResults results = new FilterResults();
+                results.values = mFilteredChatrooms;
+                return results;
+            }
+            @Override
+            protected void publishResults(CharSequence constraint, FilterResults results) {
+                mFilteredChatrooms = (ArrayList<UChatroom>)results.values;
+                notifyDataSetChanged();
+            }
+        };
     }
 
     public interface ChatroomRecyclerClickListener {

@@ -31,7 +31,7 @@
         <activity android:name=".ui.ChatroomActivity" />
         <activity android:name=".ui.ProfileActivity" />
         <activity android:name=".ui.AddContactsActivity" />
-        <activity android:name=".ui.ContactMessageActivity" />
+        <activity android:name=".ui.NewMessageActivity" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_api_key" />

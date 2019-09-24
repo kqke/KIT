@@ -210,7 +210,6 @@ public class ChatroomActivity extends AppCompatActivity
     }
 
     private void joinChatroom(){
-        String cid = mChatroom.getChatroom_id();
         String uid = FirebaseAuth.getInstance().getUid();
         DocumentReference joinChatroomRef = mDb
                 .collection(getString(R.string.collection_chatrooms))
@@ -327,8 +326,8 @@ public class ChatroomActivity extends AppCompatActivity
 
 
     /*
-       ----------------------------- ViewPagerAdapter ---------------------------------
-       */
+    ----------------------------- ViewPagerAdapter ---------------------------------
+    */
     public static class ChatMapViewPagerAdapter extends FragmentPagerAdapter {
 
         private String[] mTitles = new String[] {

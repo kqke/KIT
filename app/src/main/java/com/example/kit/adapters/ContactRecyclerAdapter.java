@@ -2,9 +2,11 @@ package com.example.kit.adapters;
 
 import androidx.annotation.NonNull;
 
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
@@ -23,18 +25,36 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
 
     private ArrayList<Contact> mContacts = new ArrayList<>();
     private ArrayList<Contact> mFilteredContacts = new ArrayList<>();
+    private ArrayList<Contact> mCheckedContacts = new ArrayList<>();
     private ContactsRecyclerClickListener mContactRecyclerClickListener;
+    private int itemLayout;
+    private boolean withCheckBoxes;
 
-    public ContactRecyclerAdapter(ArrayList<Contact> contacts, ContactsRecyclerClickListener contactRecyclerClickListener) {
-        this.mContacts = contacts;
-        this.mFilteredContacts = contacts;
+    public ContactRecyclerAdapter(ArrayList<Contact> contacts,
+                                  ContactsRecyclerClickListener contactRecyclerClickListener)
+    {
+        mContacts = contacts;
+        mFilteredContacts = contacts;
+        withCheckBoxes = false;
+        itemLayout = R.layout.layout_contact_list_item;
         mContactRecyclerClickListener = contactRecyclerClickListener;
+    }
+
+    public ContactRecyclerAdapter(ArrayList<Contact> contacts){
+        mContacts = contacts;
+        mFilteredContacts = contacts;
+        withCheckBoxes = true;
+        itemLayout = R.layout.layout_contact_list_checkbox_item;
+    }
+
+    public ArrayList<Contact> getCheckedContacts() {
+        return mCheckedContacts;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_contact_list_item, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(itemLayout, parent, false);
         final ViewHolder holder = new ViewHolder(view, mContactRecyclerClickListener);
         return holder;
     }
@@ -42,8 +62,12 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ((ViewHolder)holder).contactName.setText(mFilteredContacts.get(position).getName());
-        ((ViewHolder)holder).contactUsername.setText(mFilteredContacts.get(position).getUsername());
-//        ((ViewHolder)holder).contactAvatar.setImage;
+        if(withCheckBoxes){
+            ((ViewHolder)holder).checkBox
+                    .setChecked(mCheckedContacts.contains(mFilteredContacts.get(position)));
+        }
+//        ((ViewHolder)holder).contactUsername.setText(mFilteredContacts.get(position).getUsername());
+//        ((ViewHolder)holder).contactAvatar.setImage();
     }
 
     @Override
@@ -55,21 +79,34 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
             View.OnClickListener
     {
         TextView contactName;
-        TextView contactUsername;
+//        TextView contactUsername;
         ImageView contactAvatar;
+        CheckBox checkBox;
         ContactsRecyclerClickListener clickListener;
 
         public ViewHolder(View itemView, ContactsRecyclerClickListener clickListener) {
             super(itemView);
             contactName = itemView.findViewById(R.id.contact_name);
-            contactUsername = itemView.findViewById(R.id.contact_username);
+//            contactUsername = itemView.findViewById(R.id.contact_username);
             contactAvatar = itemView.findViewById(R.id.contact_avatar);
+            checkBox = itemView.findViewById(R.id.check);
             this.clickListener = clickListener;
             itemView.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
+            if(withCheckBoxes){
+                CheckBox checkBox = v.findViewById(R.id.check);
+                int adapterPosition = getAdapterPosition();
+                checkBox.setChecked(!checkBox.isChecked());
+                if(checkBox.isChecked()){
+                    mCheckedContacts.add(mContacts.get(adapterPosition));
+                }
+                else{
+                    mCheckedContacts.remove(mContacts.get(adapterPosition));
+                }
+            }
             clickListener.onContactSelected(getAdapterPosition());
         }
     }
