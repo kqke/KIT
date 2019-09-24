@@ -137,6 +137,10 @@ public class MainActivity extends AppCompatActivity implements
     private Set<String> mContactIds = new HashSet<>();
     private boolean mCotactsFetched;
 
+    //Requests
+    private ArrayList<Contact> mRequests = new ArrayList<>();
+    private boolean mRequestsFetched;
+
     //Chatrooms
     private ArrayList<UChatroom> mChatrooms = new ArrayList<>();
     private Set<String> mChatroomIds = new HashSet<>();
@@ -267,7 +271,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void checkReady(){
-        if(mCotactsFetched && mLocationFetched && mChatroomsFetched){
+        if(mCotactsFetched && mLocationFetched && mChatroomsFetched && mRequestsFetched){
             initView();
         }
     }
@@ -296,6 +300,11 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public ArrayList<Contact> getContacts() {
         return mContacts;
+    }
+
+    @Override
+    public ArrayList<Contact> getRequests() {
+        return mRequests;
     }
 
     @Override
@@ -416,6 +425,34 @@ public class MainActivity extends AppCompatActivity implements
         });
     }
 
+    private void fetchRequests(){
+        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().build();
+        mDb.setFirestoreSettings(settings);
+        CollectionReference contactsCollection = mDb
+                .collection(getString(R.string.collection_users))
+                .document(FirebaseAuth.getInstance().getUid())
+                .collection(getString(R.string.collection_requests));
+        mContactEventListener = contactsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+                Log.d(TAG, "onEvent: called.");
+                if (e != null) {
+                    Log.e(TAG, "onEvent: Listen failed.", e);
+                    return;
+                }
+                if(queryDocumentSnapshots != null){
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        Contact contact = doc.toObject(Contact.class);
+                        mRequests.add(contact);
+                    }
+                    Log.d(TAG, "onEvent: number of contacts: " + mContacts.size());
+                }
+                mRequestsFetched = true;
+                checkReady();
+            }
+        });
+    }
+
     private void fetchChatrooms(){
         FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().build();
         mDb.setFirestoreSettings(settings);
@@ -486,6 +523,7 @@ public class MainActivity extends AppCompatActivity implements
             startLocationService();
             getUserDetails();
             fetchContacts();
+            fetchRequests();
             fetchChatrooms();
         } else {
             ActivityCompat.requestPermissions(this,

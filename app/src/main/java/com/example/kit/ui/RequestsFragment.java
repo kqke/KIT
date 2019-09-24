@@ -7,7 +7,10 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.text.InputType;
 import android.view.LayoutInflater;
@@ -34,7 +37,9 @@ import java.util.ArrayList;
 public class RequestsFragment extends Fragment implements ContactRecyclerAdapter.ContactsRecyclerClickListener {
     private String m_Text;
     private RequestsCallback getData;
-    private ArrayList<Contact> mContacts;
+    private ArrayList<Contact> mRequests;
+    private ContactRecyclerAdapter mContactRecyclerAdapter;
+    private RecyclerView mRequestsRecyclerView;
 
 
     public RequestsFragment() {
@@ -51,14 +56,41 @@ public class RequestsFragment extends Fragment implements ContactRecyclerAdapter
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         View rootView = inflater.inflate(R.layout.fragment_requests, container, false);
+        initView(rootView);
         return rootView;
     }
+
+    private void initView(View v){
+        mRequestsRecyclerView = v.findViewById(R.id.requests_recycler_view);
+        mContactRecyclerAdapter = new ContactRecyclerAdapter(mRequests, this);
+        mRequestsRecyclerView.setAdapter(mContactRecyclerAdapter);
+        mRequestsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        initSearchView(v);
+    }
+
+    private void initSearchView(View v){
+        SearchView searchView = v.findViewById(R.id.requests_search_view);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String queryString) {
+                mContactRecyclerAdapter.getFilter().filter(queryString);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String queryString) {
+                mContactRecyclerAdapter.getFilter().filter(queryString);
+                return false;
+            }
+        });
+    }
+
 
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         getData = (RequestsCallback)context;
-        mContacts = getData.getContacts();
+        mRequests = getData.getRequests();
     }
 
     private void handleRequest(final Contact contact, boolean accepted){
@@ -86,7 +118,7 @@ public class RequestsFragment extends Fragment implements ContactRecyclerAdapter
                                 userRef.collection(getString(R.string.collection_requests)).document(contact.getCid()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
                                     @Override
                                     public void onComplete(@NonNull Task<Void> task) {
-                                        //todo notify recyclerview
+                                        mContactRecyclerAdapter.notifyDataSetChanged();
                                     }
                                 });
                                 final DocumentReference contactRef =
@@ -145,7 +177,7 @@ public class RequestsFragment extends Fragment implements ContactRecyclerAdapter
         builder.setPositiveButton("ACCEPT", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                handleRequest(mContacts.get(position), true);
+                handleRequest(mRequests.get(position), true);
             }
         });
         builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
@@ -164,7 +196,7 @@ public class RequestsFragment extends Fragment implements ContactRecyclerAdapter
         builder.setPositiveButton("DELETE", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                handleRequest(mContacts.get(position), true);
+                handleRequest(mRequests.get(position), false);
             }
         });
         builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
@@ -177,7 +209,7 @@ public class RequestsFragment extends Fragment implements ContactRecyclerAdapter
     }
 
     public interface RequestsCallback {
-        ArrayList<Contact> getContacts();
+        ArrayList<Contact> getRequests();
     }
 }
 
