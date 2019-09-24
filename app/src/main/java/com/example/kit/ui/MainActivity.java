@@ -65,10 +65,11 @@ import static com.example.kit.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 
 public class MainActivity extends AppCompatActivity implements
         ContactsFragment.ContactsCallback,
-        ChatsFragment.ChatroomsCallback{
+        ChatsFragment.ChatroomsCallback,
+        RequestsFragment.RequestsCallback{
 
     //TODO
-    // chat crashes on orientation change and locations are not updated properly
+    // chat crashes on orientation change
     //TODO
     // 'fragment not attached to context' error upon rapid switches of fragments
     //TODO
