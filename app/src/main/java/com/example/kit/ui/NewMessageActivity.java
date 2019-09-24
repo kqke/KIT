@@ -39,6 +39,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 
+import static com.example.kit.Constants.CHATROOM;
 import static com.example.kit.Constants.CONTACTS_LIST;
 
 public class NewMessageActivity extends AppCompatActivity implements
@@ -131,7 +132,7 @@ public class NewMessageActivity extends AppCompatActivity implements
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.fab_group_message:
-                startChat();
+                startGroupChat(mContactRecyclerAdapter.getCheckedContacts());
         }
     }
 
@@ -154,10 +155,8 @@ public class NewMessageActivity extends AppCompatActivity implements
 
     @Override
     public void onContactSelected(int position) {
-        if(!mContactRecyclerAdapter.getCheckedContacts().isEmpty()){
-            //TODO
-            // enable the send message/start chat button
-            // and set its visibility or change its color
+        if(!mContactRecyclerAdapter.isWithCheckBoxes()){
+            startPrivateChat(position);
         }
     }
 
@@ -170,27 +169,9 @@ public class NewMessageActivity extends AppCompatActivity implements
     ----------------------------- nav ---------------------------------
     */
 
-    private void startChat(){
-        ArrayList<Contact> checkedContacts = mContactRecyclerAdapter.getCheckedContacts();
-        if(checkedContacts.size() == 1){
-            //TODO
-            // check if a chat with this contact exists and if so navigate there
-            if(chatExists(checkedContacts.get(0)))
-            {
-                // navigate to the existing chat
-            }
-            else{
-                // start new chat
-            }
-        }
-        else{
-            startGroupChat(checkedContacts);
-        }
-    }
-
     private void navChatActivity(UChatroom uchat){
         Intent intent = new Intent(NewMessageActivity.this, ChatroomActivity.class);
-        intent.putExtra(getString(R.string.intent_uchatroom), uchat);
+        intent.putExtra(CHATROOM, uchat);
         startActivityForResult(intent, 0);
     }
 
@@ -205,7 +186,7 @@ public class NewMessageActivity extends AppCompatActivity implements
     ----------------------------- DB ---------------------------------
     */
 
-    public void DEPRECATEDonContactSelected(int position) {
+    public void startPrivateChat(int position) {
         final int pos = position;
         String uid1 = FirebaseAuth.getInstance().getUid();
         String uid2 = mContacts.get(position).getCid();
@@ -236,17 +217,13 @@ public class NewMessageActivity extends AppCompatActivity implements
                     }
                 }
                 if (task.getResult().isEmpty()){
-                    buildNewChatroom(first, second, mContacts.get(pos).getName(), false);
+                    buildPrivateChatroom(first, second, mContacts.get(pos).getName());
                 }
             }
         });
     }
 
-    private boolean chatExists(Contact contact){
-        return true;
-    }
-
-    private void buildNewChatroom(String cid1, String cid2, final String display_name, final boolean isGroup){
+    private void buildPrivateChatroom(String cid1, String cid2, final String display_name){
 //        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
 //                .setTimestampsInSnapshotsEnabled(true)
 //                .build();
@@ -275,9 +252,43 @@ public class NewMessageActivity extends AppCompatActivity implements
                 hideDialog();
 
                 if(task.isSuccessful()){
-                    addUserToChatroom(chatroom_id, first, second);
-                    addUserToChatroom(chatroom_id, second, first);
-                    UChatroom uchat = new UChatroom(display_name, first + second, isGroup, 2);
+                    addUserToPrivateChatroom(chatroom_id, first, second);
+                    addUserToPrivateChatroom(chatroom_id, second, first);
+                    UChatroom uchat = new UChatroom(display_name, first + second, false, 2);
+                    navChatActivity(uchat);
+                }else{
+                    View parentLayout = findViewById(android.R.id.content);
+                    Snackbar.make(parentLayout, "Something went wrong.", Snackbar.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void buildGroupChatroom(final String display_name, final ArrayList<Contact> members){
+        final Chatroom chatroom;
+        final String chatroom_id;
+
+        chatroom = new Chatroom();
+        chatroom.setGroup_name(display_name);
+        chatroom.setGroup(true);
+        chatroom.setNumUsers(members.size() + 1);
+
+        DocumentReference newChatroomRef = mDb
+                .collection(getString(R.string.collection_chatrooms))
+                .document();
+
+        chatroom_id = newChatroomRef.getId();
+
+        newChatroomRef.set(chatroom).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                hideDialog();
+                if(task.isSuccessful()){
+                    addUserToGroupChatroom(chatroom_id, FirebaseAuth.getInstance().getUid(), FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
+                    for(Contact member : members){
+                        addUserToGroupChatroom(chatroom_id, FirebaseAuth.getInstance().getUid(), member.getName());
+                    }
+                    UChatroom uchat = new UChatroom(display_name, chatroom_id, false, chatroom.getNumUsers());
                     navChatActivity(uchat);
                 }else{
                     View parentLayout = findViewById(android.R.id.content);
@@ -288,7 +299,7 @@ public class NewMessageActivity extends AppCompatActivity implements
 
     }
 
-    private void startGroupChat(ArrayList<Contact> chatContacts){
+    private void startGroupChat(final ArrayList<Contact> chatContacts){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Enter a group name");
 
@@ -299,17 +310,21 @@ public class NewMessageActivity extends AppCompatActivity implements
         builder.setPositiveButton("CREATE", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if(!input.getText().toString().equals("")){
+                String groupName = input.getText().toString();
+                if(!groupName.equals("")){
                     UsernameValidator validator = new UsernameValidator();
-                    if(validator.validate(input.getText().toString())){
-                        // can start a new group chat
+                    if(validator.validate(groupName))
+                    {
+                        buildGroupChatroom(groupName, chatContacts);
                     }
                     else{
-                        Toast.makeText(NewMessageActivity.this, "Enter a valid group name", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(NewMessageActivity.this,
+                                "Enter a valid group name", Toast.LENGTH_SHORT).show();
                     }
                 }
                 else {
-                    Toast.makeText(NewMessageActivity.this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(NewMessageActivity.this,
+                            "Name cannot be empty", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -358,7 +373,8 @@ public class NewMessageActivity extends AppCompatActivity implements
         }
     }
 
-    private void addUserToChatroom(final String cid, final String uid, final String contact_id){
+
+    private void addUserToPrivateChatroom(final String cid, final String uid, final String contact_id){
         mDb.collection(getString(R.string.collection_users)).document(uid).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {

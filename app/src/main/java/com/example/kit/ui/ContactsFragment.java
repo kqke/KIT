@@ -106,6 +106,7 @@ public class ContactsFragment extends DBGeoFragment implements
     */
 
     private void initView(View v){
+        v.findViewById(R.id.fab).setOnClickListener(this);
         mContactRecyclerView = v.findViewById(R.id.contact_recycler_view);
         mContactRecyclerAdapter = new ContactRecyclerAdapter(mContacts, this);
         mContactRecyclerView.setAdapter(mContactRecyclerAdapter);

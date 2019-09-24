@@ -198,7 +198,6 @@ public class ChatroomActivity extends AppCompatActivity
 
                         count[0] += 1;
                     }
-
                 }
                 if (count[0] == 0){
                     System.out.println("check34");
