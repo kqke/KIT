@@ -26,7 +26,6 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.example.kit.LoadingFragment;
 import com.example.kit.R;
 import com.example.kit.models.Contact;
 import com.example.kit.models.UChatroom;
@@ -110,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements
     // top right button on map not working
 
     //TODO
-    // should we hold referencesto all active recyclerViews here?
+    // should we hold references to all active recyclerViews here?
 
     //Tag
     private static final String TAG = "MainActivity";
@@ -155,11 +154,8 @@ public class MainActivity extends AppCompatActivity implements
         mDb = FirebaseFirestore.getInstance();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         getLocationPermission();
-//        fetchContacts();
         initLoadingView();
-//        initView();
         initMessageService();
-//        getUserDetails();
     }
 
     @Override
@@ -195,63 +191,63 @@ public class MainActivity extends AppCompatActivity implements
     ----------------------------- init ---------------------------------
     */
 
-        private void initLoadingView(){
-            setContentView(R.layout.activity_main);
-            setSupportActionBar((Toolbar) findViewById(R.id.upper_toolbar));
-            setTitle(R.string.fragment_chats);
-            ft = getSupportFragmentManager().beginTransaction();
-            ft.add(R.id.fragment_container, LoadingFragment.newInstance(), LOADING_FRAG)
-                    .commit();
-        }
+    private void initLoadingView(){
+        setContentView(R.layout.activity_main);
+        setSupportActionBar((Toolbar) findViewById(R.id.upper_toolbar));
+        setTitle(R.string.fragment_chats);
+        ft = getSupportFragmentManager().beginTransaction();
+        ft.add(R.id.fragment_container, LoadingFragment.newInstance(), LOADING_FRAG)
+                .commit();
+    }
 
-        private void initView () {
-            initNavigationBar();
-        }
+    private void initView () {
+        initNavigationBar();
+    }
 
-        private void initNavigationBar () {
-            BottomNavigationView bottomNav = findViewById(R.id.bottom_navi_bar);
-            bottomNav.setVisibility(View.VISIBLE);
-            replaceFragment(ChatsFragment.newInstance(), CHATS_FRAG);
-            bottomNav.setOnNavigationItemSelectedListener
-                    (new BottomNavigationView.OnNavigationItemSelectedListener() {
-                        @Override
-                        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                            switch (item.getItemId()) {
+    private void initNavigationBar () {
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navi_bar);
+        bottomNav.setVisibility(View.VISIBLE);
+        replaceFragment(ChatsFragment.newInstance(), CHATS_FRAG);
+        bottomNav.setOnNavigationItemSelectedListener
+                (new BottomNavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                        switch (item.getItemId()) {
 //                            case R.id.action_search:{
 //                                replaceFragment(SearchFragment.newInstance(), SEARCH_FRAG);
 //                                return true;
 //                            }
-                                case R.id.action_chats: {
-                                    replaceFragment(ChatsFragment.newInstance(), CHATS_FRAG);
-                                    setTitle(R.string.fragment_chats);
-                                    return true;
-                                }
-                                case R.id.action_contacts: {
-                                    replaceFragment(ContactsRequestsPendingFragment.newInstance(), CONATCTS_FRAG);
-                                    setTitle(R.string.fragment_contacts);
-                                    return true;
-                                }
-                                case R.id.action_profile: {
-                                    replaceFragment(ProfileFragment.newInstance(), PROFLE_FRAG);
-                                    setTitle(R.string.fragment_profile);
-                                    return true;
-                                }
+                            case R.id.action_chats: {
+                                replaceFragment(ChatsFragment.newInstance(), CHATS_FRAG);
+                                setTitle(R.string.fragment_chats);
+                                return true;
                             }
-                            return false;
+                            case R.id.action_contacts: {
+                                replaceFragment(ContactsRequestsPendingFragment.newInstance(), CONATCTS_FRAG);
+                                setTitle(R.string.fragment_contacts);
+                                return true;
+                            }
+                            case R.id.action_profile: {
+                                replaceFragment(ProfileFragment.newInstance(), PROFLE_FRAG);
+                                setTitle(R.string.fragment_profile);
+                                return true;
+                            }
                         }
-                    });
-        }
+                        return false;
+                    }
+                });
+    }
 
-        private void replaceFragment (Fragment newFragment, String tag){
-            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            ft.replace(R.id.fragment_container, newFragment, tag).commit();
-        }
+    private void replaceFragment (Fragment newFragment, String tag){
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.fragment_container, newFragment, tag).commit();
+    }
 
-        private void initMessageService () {
-            Intent intent = new Intent("com.example.kit.services.MyFirebaseMessagingService");
-            intent.setPackage("com.example.kit");
-            this.startService(intent);
-        }
+    private void initMessageService () {
+        Intent intent = new Intent("com.example.kit.services.MyFirebaseMessagingService");
+        intent.setPackage("com.example.kit");
+        this.startService(intent);
+    }
 
     private void startLocationService(){
         if(!isLocationServiceRunning()){
@@ -269,22 +265,10 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    private boolean isLocationServiceRunning() {
-        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)){
-            if("com.codingwithmitch.googledirectionstest.services.LocationService".equals(service.service.getClassName())) {
-                Log.d(TAG, "isLocationServiceRunning: location service is already running.");
-                return true;
-            }
-        }
-        Log.d(TAG, "isLocationServiceRunning: location service is not running.");
-        return false;
-    }
-
     private void checkReady(){
-            if(mCotactsFetched && mLocationFetched && mChatroomsFetched){
-                initView();
-            }
+        if(mCotactsFetched && mLocationFetched && mChatroomsFetched){
+            initView();
+        }
     }
 
     /*
@@ -337,6 +321,7 @@ public class MainActivity extends AppCompatActivity implements
         return mChatrooms;
     }
 
+    @Override
     public UserLocation getUserLocation(){
         return mUserLocation;
     }
@@ -345,57 +330,57 @@ public class MainActivity extends AppCompatActivity implements
     ----------------------------- nav ---------------------------------
     */
 
-        private void navSettingsActivity () {
-            Intent intent = new Intent(this, SettingsActivity.class);
-            startActivity(intent);
-        }
+    private void navSettingsActivity () {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+    }
 
     /*
     ----------------------------- DB ---------------------------------
     */
 
-        protected void getUserDetails () {
-            if (mUserLocation == null) {
-                mUserLocation = new UserLocation();
-                DocumentReference userRef = mDb.collection(getString(R.string.collection_users))
-                        .document(FirebaseAuth.getInstance().getUid());
+    protected void getUserDetails () {
+        if (mUserLocation == null) {
+            mUserLocation = new UserLocation();
+            DocumentReference userRef = mDb.collection(getString(R.string.collection_users))
+                    .document(FirebaseAuth.getInstance().getUid());
 
-                userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            Log.d(TAG, "onComplete: successfully set the user client.");
-                            User user = task.getResult().toObject(User.class);
-                            mUserLocation.setUser(user);
-                            getLastKnownLocation();
-                        }
+            userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "onComplete: successfully set the user client.");
+                        User user = task.getResult().toObject(User.class);
+                        mUserLocation.setUser(user);
+                        getLastKnownLocation();
                     }
-                });
-            } else {
-                getLastKnownLocation();
-            }
+                }
+            });
+        } else {
+            getLastKnownLocation();
         }
+    }
 
-        private void saveUserLocation () {
-            if (mUserLocation != null) {
-                DocumentReference locationRef = mDb
-                        .collection(getString(R.string.collection_user_locations))
-                        .document(FirebaseAuth.getInstance().getUid());
+    private void saveUserLocation () {
+        if (mUserLocation != null) {
+            DocumentReference locationRef = mDb
+                    .collection(getString(R.string.collection_user_locations))
+                    .document(FirebaseAuth.getInstance().getUid());
 
-                locationRef.set(mUserLocation).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            Log.d(TAG, "saveUserLocation: \ninserted user location into database." +
-                                    "\n latitude: " + mUserLocation.getGeo_point().getLatitude() +
-                                    "\n longitude: " + mUserLocation.getGeo_point().getLongitude());
-                            mLocationFetched = true;
-                            checkReady();
-                        }
+            locationRef.set(mUserLocation).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "saveUserLocation: \ninserted user location into database." +
+                                "\n latitude: " + mUserLocation.getGeo_point().getLatitude() +
+                                "\n longitude: " + mUserLocation.getGeo_point().getLongitude());
+                        mLocationFetched = true;
+                        checkReady();
                     }
-                });
-            }
+                }
+            });
         }
+    }
 
     private void fetchContacts(){
         FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().build();
@@ -467,125 +452,130 @@ public class MainActivity extends AppCompatActivity implements
     ----------------------------- Location ---------------------------------
     */
 
-        protected boolean isLocationPermissionGranted () {
-            return mLocationPermissionGranted;
-        }
+    protected boolean isLocationPermissionGranted () {
+        return mLocationPermissionGranted;
+    }
 
-        protected void setLocationPermissionGranted ( boolean permissionGranted){
-            mLocationPermissionGranted = permissionGranted;
-        }
+    protected void setLocationPermissionGranted (boolean permissionGranted){
+        mLocationPermissionGranted = permissionGranted;
+    }
 
-        protected void getLocationPermission() {
-            /*
-             * Request location permission, so that we can get the location of the
-             * device. The result of the permission request is handled by a callback,
-             * onRequestPermissionsResult.
-             */
-            if (ContextCompat.checkSelfPermission(getApplicationContext(),
-                    android.Manifest.permission.ACCESS_FINE_LOCATION)
-                    == PackageManager.PERMISSION_GRANTED) {
-                setLocationPermissionGranted(true);
-                getUserDetails();
-                fetchContacts();
-                fetchChatrooms();
-            } else {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                        PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+    private boolean isLocationServiceRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)){
+            if("com.example.kit.services.LocationService".equals(service.service.getClassName())) {
+                Log.d(TAG, "isLocationServiceRunning: location service is already running.");
+                return true;
             }
         }
+        Log.d(TAG, "isLocationServiceRunning: location service is not running.");
+        return false;
+    }
 
-        private void getLastKnownLocation () {
-            Log.d(TAG, "getLastKnownLocation: called.");
+    protected void getLocationPermission() {
+        /*
+         * Request location permission, so that we can get the location of the
+         * device. The result of the permission request is handled by a callback,
+         * onRequestPermissionsResult.
+         */
+        if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            setLocationPermissionGranted(true);
+            startLocationService();
+            getUserDetails();
+            fetchContacts();
+            fetchChatrooms();
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+    }
 
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                    != PackageManager.PERMISSION_GRANTED) {
-                return;
-            }
-            mFusedLocationClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
-                @Override
-                public void onComplete(@NonNull Task<Location> task) {
-                    if (task.isSuccessful()) {
-                        Location location = task.getResult();
-                        if (location != null) {
-                            GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-                            mUserLocation.setGeo_point(geoPoint);
-                            mUserLocation.setTimestamp(null);
-                            saveUserLocation();
-                            startLocationService();
-                        }
+    private void getLastKnownLocation () {
+        Log.d(TAG, "getLastKnownLocation: called.");
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        mFusedLocationClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
+            @Override
+            public void onComplete(@NonNull Task<Location> task) {
+                if (task.isSuccessful()) {
+                    Location location = task.getResult();
+                    if (location != null) {
+                        GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+                        mUserLocation.setGeo_point(geoPoint);
+                        mUserLocation.setTimestamp(null);
+                        saveUserLocation();
                     }
                 }
-            });
-
-        }
-
-        protected boolean checkMapServices () {
-            return (isServicesOK() && isMapsEnabled());
-        }
-
-        private void buildAlertMessageNoGps () {
-            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage("This application requires GPS to work properly, do you want to enable it?")
-                    .setCancelable(false)
-                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                            Intent enableGpsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                            startActivityForResult(enableGpsIntent, PERMISSIONS_REQUEST_ENABLE_GPS);
-                        }
-                    });
-            final AlertDialog alert = builder.create();
-            alert.show();
-        }
-
-        private boolean isMapsEnabled () {
-            final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-            if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                buildAlertMessageNoGps();
-                return false;
             }
-            return true;
-        }
+        });
 
-        private boolean isServicesOK () {
-            Log.d(TAG, "isServicesOK: checking google services version");
+    }
 
-            int available = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this);
+    protected boolean checkMapServices () {
+        return (isServicesOK() && isMapsEnabled());
+    }
 
-            if (available == ConnectionResult.SUCCESS) {
-                //everything is fine and the user can make map requests
-                Log.d(TAG, "isServicesOK: Google Play Services is working");
-                return true;
-            } else if (GoogleApiAvailability.getInstance().isUserResolvableError(available)) {
-                //an error occured but we can resolve it
-                Log.d(TAG, "isServicesOK: an error occured but we can fix it");
-                Dialog dialog = GoogleApiAvailability.getInstance().getErrorDialog(this, available, ERROR_DIALOG_REQUEST);
-                dialog.show();
-            } else {
-                Toast.makeText(this, "You can't make map requests", Toast.LENGTH_SHORT).show();
-            }
+    private void buildAlertMessageNoGps () {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("This application requires GPS to work properly, do you want to enable it?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        Intent enableGpsIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        startActivityForResult(enableGpsIntent, PERMISSIONS_REQUEST_ENABLE_GPS);
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private boolean isMapsEnabled () {
+        final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            buildAlertMessageNoGps();
             return false;
         }
+        return true;
+    }
+
+    private boolean isServicesOK () {
+        Log.d(TAG, "isServicesOK: checking google services version");
+
+        int available = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this);
+
+        if (available == ConnectionResult.SUCCESS) {
+            //everything is fine and the user can make map requests
+            Log.d(TAG, "isServicesOK: Google Play Services is working");
+            return true;
+        } else if (GoogleApiAvailability.getInstance().isUserResolvableError(available)) {
+            //an error occured but we can resolve it
+            Log.d(TAG, "isServicesOK: an error occured but we can fix it");
+            Dialog dialog = GoogleApiAvailability.getInstance().getErrorDialog(this, available, ERROR_DIALOG_REQUEST);
+            dialog.show();
+        } else {
+            Toast.makeText(this, "You can't make map requests", Toast.LENGTH_SHORT).show();
+        }
+        return false;
+    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Log.d(TAG, "onActivityResult: called.");
         switch (requestCode) {
-            case PERMISSIONS_REQUEST_ENABLE_GPS: {
-                if(isLocationPermissionGranted()){
-                    getUserDetails();
-                    fetchContacts();
-                    fetchChatrooms();
-                }
-                else{
+            case PERMISSIONS_REQUEST_ENABLE_GPS:
+                {
                     getLocationPermission();
                 }
                 break;
             }
-            //TODO
-            // better result codes
 //            case 1: {
 //                if (data.getBooleanExtra(getString(R.string.intent_contact), true)) {
 //                    mContactRecyclerAdapter.notifyDataSetChanged();
@@ -600,6 +590,4 @@ public class MainActivity extends AppCompatActivity implements
 //                }
 //            }
         }
-    }
-
 }
