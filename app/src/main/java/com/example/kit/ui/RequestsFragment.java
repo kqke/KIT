@@ -1,5 +1,6 @@
 package com.example.kit.ui;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -7,6 +8,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -40,6 +42,7 @@ public class RequestsFragment extends Fragment implements ContactRecyclerAdapter
     private ArrayList<Contact> mRequests;
     private ContactRecyclerAdapter mContactRecyclerAdapter;
     private RecyclerView mRequestsRecyclerView;
+    private Activity mActivity;
 
 
     public RequestsFragment() {
@@ -64,7 +67,7 @@ public class RequestsFragment extends Fragment implements ContactRecyclerAdapter
         mRequestsRecyclerView = v.findViewById(R.id.requests_recycler_view);
         mContactRecyclerAdapter = new ContactRecyclerAdapter(mRequests, this);
         mRequestsRecyclerView.setAdapter(mContactRecyclerAdapter);
-        mRequestsRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        mRequestsRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
         initSearchView(v);
     }
 
@@ -89,6 +92,7 @@ public class RequestsFragment extends Fragment implements ContactRecyclerAdapter
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
+        mActivity = getActivity();
         getData = (RequestsCallback)context;
         mRequests = getData.getRequests();
     }
@@ -97,12 +101,12 @@ public class RequestsFragment extends Fragment implements ContactRecyclerAdapter
         final FirebaseFirestore fs = FirebaseFirestore.getInstance();
         final String uid = FirebaseAuth.getInstance().getUid();
         final DocumentReference userRef = fs.collection(getString(R.string.collection_users)).document(uid);
-        final User user = ((UserClient)getActivity().getApplicationContext()).getUser();
+        final User user = ((UserClient)mActivity.getApplicationContext()).getUser();
         if (accepted){
-            android.app.AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            android.app.AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
             builder.setTitle("Enter a display name");
 
-            final EditText input = new EditText(getActivity());
+            final EditText input = new EditText(mActivity);
             input.setInputType(InputType.TYPE_CLASS_TEXT);
             builder.setView(input);
 
@@ -115,12 +119,13 @@ public class RequestsFragment extends Fragment implements ContactRecyclerAdapter
                                 contact.getUsername(), contact.getAvatar(), contact.getCid())).addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
-                                userRef.collection(getString(R.string.collection_requests)).document(contact.getCid()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                        mContactRecyclerAdapter.notifyDataSetChanged();
-                                    }
-                                });
+                                userRef.collection(getString(R.string.collection_requests)).document(contact.getCid()).delete();
+//                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+//                                    @Override
+//                                    public void onComplete(@NonNull Task<Void> task) {
+//                                        mContactRecyclerAdapter.notifyDataSetChanged();
+//                                    }
+//                                });
                                 final DocumentReference contactRef =
                                         fs.collection(getString(R.string.collection_users)).document(contact.getCid());
                                 contactRef.collection(getString(R.string.collection_pending)).document(user.getUser_id()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -141,7 +146,7 @@ public class RequestsFragment extends Fragment implements ContactRecyclerAdapter
                         });
                     }
                     else {
-                        Toast.makeText(getActivity(), "Enter a chatroom name", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mActivity, "Enter a name", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -172,26 +177,29 @@ public class RequestsFragment extends Fragment implements ContactRecyclerAdapter
 
     @Override
     public void onContactSelected(final int position) {
-        android.app.AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle("Accept Friend Request?");
-        builder.setPositiveButton("ACCEPT", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                handleRequest(mRequests.get(position), true);
-            }
-        });
-        builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-        builder.show();
+        handleRequest(mRequests.get(position), true);
+//        final boolean[] bool = new boolean[1];
+//        bool[0] = false;
+//        android.app.AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
+//        builder.setTitle("Accept Friend Request?");
+//        builder.setPositiveButton("ACCEPT", new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                bool[0] = true;
+//            }
+//        });
+//        builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                dialog.cancel();
+//            }
+//        });
+//        builder.show();
     }
 
     @Override
     public void onContactLongClick(final int position) {
-        android.app.AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        android.app.AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
         builder.setTitle("Delete Friend Request?");
         builder.setPositiveButton("DELETE", new DialogInterface.OnClickListener() {
             @Override
