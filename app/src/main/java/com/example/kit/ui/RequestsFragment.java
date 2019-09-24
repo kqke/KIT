@@ -51,14 +51,6 @@ public class RequestsFragment extends Fragment implements ContactRecyclerAdapter
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         View rootView = inflater.inflate(R.layout.fragment_requests, container, false);
-        Button buttonInFragment1 = rootView.findViewById(R.id.button);
-        buttonInFragment1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(getContext(), "button in fragment 1", Toast.LENGTH_SHORT).show();
-            }
-        });
-
         return rootView;
     }
 
