@@ -374,9 +374,9 @@ public class MainActivity extends AppCompatActivity implements
                         Log.d(TAG, "saveUserLocation: \ninserted user location into database." +
                                 "\n latitude: " + mUserLocation.getGeo_point().getLatitude() +
                                 "\n longitude: " + mUserLocation.getGeo_point().getLongitude());
-                        mLocationFetched = true;
-                        checkReady();
                     }
+                    mLocationFetched = true;
+                    checkReady();
                 }
             });
         }
@@ -408,9 +408,9 @@ public class MainActivity extends AppCompatActivity implements
                         }
                     }
                     Log.d(TAG, "onEvent: number of contacts: " + mContacts.size());
-                    mCotactsFetched = true;
-                    checkReady();
                 }
+                mCotactsFetched = true;
+                checkReady();
             }
         });
     }
@@ -441,9 +441,9 @@ public class MainActivity extends AppCompatActivity implements
                     }
                     Log.d(TAG, "onEvent: number of chatrooms: " + mChatrooms.size());
 //                    mChatroomRecyclerAdapter.notifyDataSetChanged();
-                    mChatroomsFetched = true;
-                    checkReady();
                 }
+                mChatroomsFetched = true;
+                checkReady();
             }
         });
     }

@@ -55,7 +55,6 @@ public class NewMessageActivity extends AppCompatActivity implements
 
     //vars
     private ArrayList<Contact> mContacts = new ArrayList<>();
-    private ArrayList<Contact> mCheckedContacts = new ArrayList<>();
     private ContactRecyclerAdapter mContactRecyclerAdapter;
     private RecyclerView mContactRecyclerView;
 
@@ -76,6 +75,7 @@ public class NewMessageActivity extends AppCompatActivity implements
 
         initSupportActionBar();
         initContactRecyclerView();
+        initSearchView();
     }
 
     private void getIncomingIntent(){
@@ -98,10 +98,9 @@ public class NewMessageActivity extends AppCompatActivity implements
     */
 
     private void initContactRecyclerView() {
-        mContactRecyclerAdapter = new ContactRecyclerAdapter(mContacts);
+        mContactRecyclerAdapter = new ContactRecyclerAdapter(mContacts, this);
         mContactRecyclerView.setAdapter(mContactRecyclerAdapter);
         mContactRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        initSearchView();
     }
 
     private void initSearchView(){
@@ -160,6 +159,11 @@ public class NewMessageActivity extends AppCompatActivity implements
             // enable the send message/start chat button
             // and set its visibility or change its color
         }
+    }
+
+    @Override
+    public void onContactLongClick(int position) {
+
     }
 
     /*
