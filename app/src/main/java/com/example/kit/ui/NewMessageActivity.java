@@ -275,8 +275,8 @@ public class NewMessageActivity extends AppCompatActivity implements
                 hideDialog();
 
                 if(task.isSuccessful()){
-                    addUserToChatroom(chatroom_id, first, display_name, isGroup);
-                    addUserToChatroom(chatroom_id, second, display_name, isGroup);
+                    addUserToChatroom(chatroom_id, first, second);
+                    addUserToChatroom(chatroom_id, second, first);
                     UChatroom uchat = new UChatroom(display_name, first + second, isGroup, 2);
                     navChatActivity(uchat);
                 }else{
@@ -358,7 +358,7 @@ public class NewMessageActivity extends AppCompatActivity implements
         }
     }
 
-    private void addUserToChatroom(final String cid, final String uid, final String display_name, final boolean isGroup){
+    private void addUserToChatroom(final String cid, final String uid, final String contact_id){
         mDb.collection(getString(R.string.collection_users)).document(uid).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -371,7 +371,44 @@ public class NewMessageActivity extends AppCompatActivity implements
                         .document(uid);
                 joinChatroomRef.set(user); // Don't care about listening for completion.
 
-                UChatroom uchat = new UChatroom(display_name, cid, isGroup);
+                DocumentReference contactRef =
+                        mDb.collection(getString(R.string.collection_users)).document(uid).collection(getString(R.string.collection_contacts)).document(contact_id);
+
+                contactRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (!task.isSuccessful()){
+                            return;
+                        }
+                        Contact contact = task.getResult().toObject(Contact.class);
+                        String display_name = contact.getName();
+                        UChatroom uchat = new UChatroom(display_name, cid, false);
+                        DocumentReference userChatRef = mDb
+                                .collection(getString(R.string.collection_users))
+                                .document(uid)
+                                .collection(getString(R.string.collection_user_chatrooms))
+                                .document(cid);
+                        userChatRef.set(uchat);
+                    }
+                });
+            }
+        });
+    }
+
+    private void addUserToGroupChatroom(final String cid, final String uid, final String display_name){
+        mDb.collection(getString(R.string.collection_users)).document(uid).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (!task.isSuccessful()){return;}
+                User user = task.getResult().toObject(User.class);
+                DocumentReference joinChatroomRef = mDb
+                        .collection(getString(R.string.collection_chatrooms))
+                        .document(cid)
+                        .collection(getString(R.string.collection_chatroom_user_list))
+                        .document(uid);
+                joinChatroomRef.set(user); // Don't care about listening for completion.
+
+                UChatroom uchat = new UChatroom(display_name, cid, true);
                 DocumentReference userChatRef = mDb
                         .collection(getString(R.string.collection_users))
                         .document(uid)
