@@ -150,6 +150,11 @@ public class ContactsFragment extends DBGeoFragment implements
         }
     }
 
+    @Override
+    public void onContactLongClick(int position) {
+
+    }
+
     /*
     ----------------------------- nav ---------------------------------
     */

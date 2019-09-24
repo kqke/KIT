@@ -28,23 +28,15 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
     private ArrayList<Contact> mCheckedContacts = new ArrayList<>();
     private ContactsRecyclerClickListener mContactRecyclerClickListener;
     private int itemLayout;
-    private boolean withCheckBoxes;
+    private boolean withCheckBoxes = false;
 
     public ContactRecyclerAdapter(ArrayList<Contact> contacts,
                                   ContactsRecyclerClickListener contactRecyclerClickListener)
     {
         mContacts = contacts;
         mFilteredContacts = contacts;
-        withCheckBoxes = false;
         itemLayout = R.layout.layout_contact_list_item;
         mContactRecyclerClickListener = contactRecyclerClickListener;
-    }
-
-    public ContactRecyclerAdapter(ArrayList<Contact> contacts){
-        mContacts = contacts;
-        mFilteredContacts = contacts;
-        withCheckBoxes = true;
-        itemLayout = R.layout.layout_contact_list_checkbox_item;
     }
 
     public ArrayList<Contact> getCheckedContacts() {
@@ -76,10 +68,10 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements
-            View.OnClickListener
+            View.OnClickListener,
+            View.OnLongClickListener
     {
         TextView contactName;
-//        TextView contactUsername;
         ImageView contactAvatar;
         CheckBox checkBox;
         ContactsRecyclerClickListener clickListener;
@@ -87,11 +79,17 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
         public ViewHolder(View itemView, ContactsRecyclerClickListener clickListener) {
             super(itemView);
             contactName = itemView.findViewById(R.id.contact_name);
-//            contactUsername = itemView.findViewById(R.id.contact_username);
             contactAvatar = itemView.findViewById(R.id.contact_avatar);
             checkBox = itemView.findViewById(R.id.check);
+            if(withCheckBoxes){
+                checkBox.setVisibility(View.VISIBLE);
+            }
+            else{
+                checkBox.setVisibility(View.GONE);
+            }
             this.clickListener = clickListener;
             itemView.setOnClickListener(this);
+            itemView.setOnLongClickListener(this);
         }
 
         @Override
@@ -108,6 +106,20 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
                 }
             }
             clickListener.onContactSelected(getAdapterPosition());
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            if (withCheckBoxes){
+                checkBox.setVisibility(View.GONE);
+                withCheckBoxes = false;
+            }
+            else {
+                checkBox.setVisibility(View.VISIBLE);
+                withCheckBoxes = true;
+            }
+            clickListener.onContactLongClick(getAdapterPosition());
+            return false;
         }
     }
 
@@ -143,5 +155,6 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
 
     public interface ContactsRecyclerClickListener {
         void onContactSelected(int position);
+        void onContactLongClick(int position);
     }
 }

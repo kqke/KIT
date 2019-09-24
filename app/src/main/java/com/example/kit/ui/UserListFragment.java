@@ -112,6 +112,11 @@ public class UserListFragment extends MapFragment
         navContactActivity(mContactList.get(position));
     }
 
+    @Override
+    public void onContactLongClick(int position) {
+
+    }
+
     /*
     ----------------------------- Map ---------------------------------
     */
