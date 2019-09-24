@@ -92,6 +92,8 @@ public class Chatroom implements Parcelable {
         this.group_name = group_name;
     }
 
+    public void setGroup(boolean group) { isGroup = group; }
+
     public boolean isGroup() {
         return isGroup;
     }
