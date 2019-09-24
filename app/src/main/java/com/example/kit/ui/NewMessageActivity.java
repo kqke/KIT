@@ -358,7 +358,7 @@ public class NewMessageActivity extends AppCompatActivity implements
         }
     }
 
-    private void addUserToChatroom(final String cid, final String uid, final String contact_id, final boolean isGroup){
+    private void addUserToChatroom(final String cid, final String uid, final String display_name, final boolean isGroup){
         mDb.collection(getString(R.string.collection_users)).document(uid).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -371,26 +371,13 @@ public class NewMessageActivity extends AppCompatActivity implements
                         .document(uid);
                 joinChatroomRef.set(user); // Don't care about listening for completion.
 
-                DocumentReference contactRef =
-                        mDb.collection(getString(R.string.collection_users)).document(uid).collection(getString(R.string.collection_contacts)).document(contact_id);
-
-                contactRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (!task.isSuccessful()){
-                            return;
-                        }
-                        Contact contact = task.getResult().toObject(Contact.class);
-                        String display_name = contact.getName();
-                        UChatroom uchat = new UChatroom(display_name, cid, isGroup);
-                        DocumentReference userChatRef = mDb
-                                .collection(getString(R.string.collection_users))
-                                .document(uid)
-                                .collection(getString(R.string.collection_user_chatrooms))
-                                .document(cid);
-                        userChatRef.set(uchat);
-                    }
-                });
+                UChatroom uchat = new UChatroom(display_name, cid, isGroup);
+                DocumentReference userChatRef = mDb
+                        .collection(getString(R.string.collection_users))
+                        .document(uid)
+                        .collection(getString(R.string.collection_user_chatrooms))
+                        .document(cid);
+                userChatRef.set(uchat);
             }
         });
     }
