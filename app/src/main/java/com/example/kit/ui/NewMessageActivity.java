@@ -275,8 +275,8 @@ public class NewMessageActivity extends AppCompatActivity implements
                 hideDialog();
 
                 if(task.isSuccessful()){
-                    addUserToChatroom(chatroom_id, first, second, isGroup);
-                    addUserToChatroom(chatroom_id, second, first, isGroup);
+                    addUserToChatroom(chatroom_id, first, display_name, isGroup);
+                    addUserToChatroom(chatroom_id, second, display_name, isGroup);
                     UChatroom uchat = new UChatroom(display_name, first + second, isGroup, 2);
                     navChatActivity(uchat);
                 }else{
