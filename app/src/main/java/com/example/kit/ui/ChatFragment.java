@@ -47,7 +47,8 @@ import java.util.Set;
  * A simple {@link Fragment} subclass.
  */
 public class ChatFragment extends Fragment implements
-        View.OnClickListener
+        View.OnClickListener,
+        ChatMessageRecyclerAdapter.MessageRecyclerClickListener
 {
 
     //TODO
@@ -165,7 +166,7 @@ public class ChatFragment extends Fragment implements
     private void initChatroomRecyclerView(){
         User user = ((UserClient)(getActivity().getApplicationContext())).getUser();
         String userID = user.getUser_id();
-        mChatMessageRecyclerAdapter = new ChatMessageRecyclerAdapter(mMessages, new ArrayList<User>(), getActivity(), userID);
+        mChatMessageRecyclerAdapter = new ChatMessageRecyclerAdapter(mMessages, new ArrayList<User>(), getActivity(), userID, this);
         mChatMessageRecyclerView.setAdapter(mChatMessageRecyclerAdapter);
         mChatMessageRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
@@ -201,6 +202,10 @@ public class ChatFragment extends Fragment implements
             case R.id.checkmark:{
                 insertNewMessage();
             }
+            case R.id.lets_meet:{
+                insertMeetInvite();
+                mChatMessageRecyclerAdapter.notifyDataSetChanged();
+            }
 //            case R.id.chatmessage_recycler_view:
 //                String message = mMessage.getText().toString();
 //                if(!message.equals("")) {
@@ -212,7 +217,19 @@ public class ChatFragment extends Fragment implements
         }
     }
 
-     /*
+    @Override
+    public void onMessageSelected(int position) {
+        // TODO
+        // some navigation dialog
+    }
+
+    @Override
+    public void onMessageLongClicked(int position) {
+        // TODO
+        // some deletion dialog
+    }
+
+    /*
     ----------------------------- DB ---------------------------------
     */
 
@@ -245,7 +262,6 @@ public class ChatFragment extends Fragment implements
 
                             }
                             mChatMessageRecyclerAdapter.notifyDataSetChanged();
-
                         }
                     }
                 });
@@ -340,6 +356,39 @@ public class ChatFragment extends Fragment implements
         }
     }
 
+    private void insertMeetInvite(){
+
+        DocumentReference newMessageDoc = mDb
+                .collection(getString(R.string.collection_chatrooms))
+                .document(mChatroom.getChatroom_id())
+                .collection(getString(R.string.collection_chat_messages))
+                .document();
+
+        final ChatMessage newChatMessage = new ChatMessage();
+        newChatMessage.setMessage_id(newMessageDoc.getId());
+        newChatMessage.setInvite(true);
+
+        final User user = ((UserClient)(getActivity().getApplicationContext())).getUser();
+        Log.d(TAG, "insertNewMessage: retrieved user client: " + user.toString());
+        newChatMessage.setUser(user);
+        newChatMessage.setTimestamp(new Date());
+        newMessageDoc.set(newChatMessage).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(task.isSuccessful()){
+                    String uid = user.getUser_id();
+                    for (final User u: mUserList){
+                        if (u.getUser_id().equals(uid)) {continue;}
+                        FCM.send_FCM_Notification(u.getToken(), "message", "MEET INVITE");
+                    }
+                }else{
+                    Snackbar.make(getView(), "Something went wrong.", Snackbar.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+    }
+
     /*
     ----------------------------- utils ---------------------------------
     */
@@ -352,6 +401,8 @@ public class ChatFragment extends Fragment implements
         final InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
     }
+
+
 
     public interface ChatroomCallback {
         UChatroom getChatroom();

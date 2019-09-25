@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:backgroundTint="@color/darkGrey"
     tools:context=".ui.ChatFragment">
 
         <androidx.recyclerview.widget.RecyclerView
@@ -19,12 +20,23 @@
             android:background="@drawable/grey_border_top">
 
             <ImageView
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
-                android:src="@drawable/ic_check_green_24dp"
+                android:layout_margin="8dp"
+                android:src="@drawable/ic_send"
                 android:id="@+id/checkmark"/>
+
+            <ImageView
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_margin="8dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:src="@drawable/ic_loupe"
+                android:id="@+id/lets_meet"
+                />
 
             <EditText
                 android:layout_width="match_parent"
@@ -32,6 +44,7 @@
                 android:id="@+id/input_message"
                 android:background="@null"
                 android:layout_toStartOf="@+id/checkmark"
+                android:layout_toEndOf="@+id/lets_meet"
                 android:gravity="center_vertical"
                 android:textSize="14sp"
                 android:hint="new message..."

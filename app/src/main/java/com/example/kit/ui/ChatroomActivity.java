@@ -280,7 +280,9 @@ public class ChatroomActivity extends AppCompatActivity
                         }
                         userLocation.getUser().setUsername(user.getUsername());
                         mUserLocations.add(userLocation);
-                        if (mUserLocations.size() == mChatroom.getNumUsers()){
+                        //TODO
+                        // change the plus one
+                        if (mUserLocations.size() + 1 == mChatroom.getNumUsers()){
                             initView();
                         }
                     }

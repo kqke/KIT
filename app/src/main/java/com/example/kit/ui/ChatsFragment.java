@@ -174,6 +174,8 @@ public class ChatsFragment extends DBGeoFragment implements
         startActivityForResult(intent, 1);
     }
 
+
+
     public interface ChatroomsCallback{
         ArrayList<UChatroom> getChatrooms();
         Set<String> getChatroomIds();
