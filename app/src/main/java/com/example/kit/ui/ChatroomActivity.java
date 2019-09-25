@@ -129,7 +129,7 @@ public class ChatroomActivity extends AppCompatActivity
         if(intent.hasExtra(CHATROOM)){
             mChatroom = (UChatroom) getIntent().getParcelableExtra(CHATROOM);
         }
-        joinChatroom();
+//        joinChatroom();
     }
 
     private void setChatroomName(){
@@ -207,16 +207,16 @@ public class ChatroomActivity extends AppCompatActivity
         left();
     }
 
-    private void joinChatroom(){
-        String uid = FirebaseAuth.getInstance().getUid();
-        DocumentReference joinChatroomRef = mDb
-                .collection(getString(R.string.collection_chatrooms))
-                .document(mChatroom.getChatroom_id())
-                .collection(getString(R.string.collection_chatroom_user_list))
-                .document(uid);
-        User user = ((UserClient)(getApplicationContext())).getUser();
-        joinChatroomRef.set(user); // Don't care about listening for completion.
-    }
+//    private void joinChatroom(){
+//        String uid = FirebaseAuth.getInstance().getUid();
+//        DocumentReference joinChatroomRef = mDb
+//                .collection(getString(R.string.collection_chatrooms))
+//                .document(mChatroom.getChatroom_id())
+//                .collection(getString(R.string.collection_chatroom_user_list))
+//                .document(uid);
+//        User user = ((UserClient)(getApplicationContext())).getUser();
+//        joinChatroomRef.set(user); // Don't care about listening for completion.
+//    }
 
     /*
     ----------------------------- nav ---------------------------------

@@ -511,6 +511,7 @@ public class MapFragment extends DBGeoFragment
                     polyline.setColor(ContextCompat.getColor(getActivity(), R.color.darkGrey));
                     polyline.setClickable(true);
                     mPolyLinesData.add(new PolylineData(polyline, route.legs[0]));
+                    onPolylineClick(polyline);
                     mSelectedMarker.setVisible(false);
                 }
             }
