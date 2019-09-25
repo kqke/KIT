@@ -302,6 +302,5 @@ public class ContactsFragment extends DBGeoFragment implements
         ArrayList<Contact> getContacts();
         Set<String> getContactIds();
         HashMap<String, Contact> getId2Contact();
-        void addAdapter(RecyclerView.Adapter adapter);
     }
 }

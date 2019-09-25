@@ -158,7 +158,6 @@ public class RequestsFragment extends DBGeoFragment implements ContactRecyclerAd
 
     public interface RequestsCallback {
         ArrayList<Contact> getRequests();
-        void addAdapter(RecyclerView.Adapter adapter);
     }
 
     public Activity getA(){
