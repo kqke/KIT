@@ -2,28 +2,23 @@ package com.example.kit.adapters;
 
 import android.content.Context;
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
-import io.opencensus.internal.Utils;
 
 import com.example.kit.R;
-import com.example.kit.UserClient;
 import com.example.kit.models.ChatMessage;
 import com.example.kit.models.User;
-import com.google.firebase.auth.FirebaseAuth;
 
-import java.net.URL;
 import java.text.DateFormat;
 import java.util.ArrayList;
 
+import static com.example.kit.Constants.VIEW_TYPE_INVITE;
 import static com.example.kit.Constants.VIEW_TYPE_MESSAGE_SENT;
 import static com.example.kit.Constants.VIEW_TYPE_MESSAGE_RECEIVED;
 
@@ -63,6 +58,12 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
             final RecyclerView.ViewHolder holder = new ReceivedMessageHolder(view);
             return holder;
         }
+        else if(viewType == VIEW_TYPE_INVITE){
+            view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_invite, parent, false);
+            final RecyclerView.ViewHolder holder = new InviteHolder(view);
+            return holder;
+        }
 
         return null;
     }
@@ -73,7 +74,11 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
         if (message.getUser().getUser_id().equals(mUserID)) {
             // If the current user is the sender of the message
             return VIEW_TYPE_MESSAGE_SENT;
-        } else {
+        }
+        else if(message.isInvite()){
+            return VIEW_TYPE_INVITE;
+        }
+        else {
             // If some other user sent the message
             return VIEW_TYPE_MESSAGE_RECEIVED;
         }
@@ -90,6 +95,8 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
                 break;
             case VIEW_TYPE_MESSAGE_RECEIVED:
                 ((ReceivedMessageHolder) holder).bind(message);
+            case VIEW_TYPE_INVITE:
+                ((InviteHolder) holder).bind(message);
         }
     }
 
@@ -148,9 +155,18 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
 
         void bind(ChatMessage message) {
             messageText.setText(message.getMessage());
-
             // Format the stored timestamp into a readable String using method.
             timeText.setText(DateFormat.getTimeInstance(DateFormat.SHORT).format(message.getTimestamp()));
+        }
+    }
+
+    private class InviteHolder extends RecyclerView.ViewHolder{
+        InviteHolder(View itemview) {
+            super(itemview);
+        }
+
+        void bind(ChatMessage message) {
+
         }
     }
 

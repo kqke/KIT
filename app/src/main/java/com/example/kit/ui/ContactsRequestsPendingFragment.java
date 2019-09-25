@@ -45,7 +45,7 @@ public class ContactsRequestsPendingFragment extends Fragment {
     }
 
     /*
-    ----------------------------- init ---------------------------------
+    ----------------------------- iit ---------------------------------
     */
 
     private void initView(View v){

@@ -12,6 +12,11 @@
         android:title="Chats"/>
 
     <item
+        android:id="@+id/action_map"
+        android:icon="@drawable/ic_map"
+        android:title="Map"/>
+
+    <item
         android:id="@+id/action_contacts"
         android:icon="@drawable/ic_contacts"
         android:title="Contacts"/>
