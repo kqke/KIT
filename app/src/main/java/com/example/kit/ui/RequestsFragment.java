@@ -42,6 +42,7 @@ public class RequestsFragment extends DBGeoFragment implements ContactRecyclerAd
         RequestsDialogFragment.OnInputSelected {
 
     private static RequestHandler rHandler = new RequestHandler();
+    private static final String TAG = "RequestsFragment";
 
     private String m_Text;
     private RequestsCallback getData;
