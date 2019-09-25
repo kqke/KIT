@@ -149,7 +149,6 @@ public class MainActivity extends AppCompatActivity implements
     private Set<String> mChatroomIds = new HashSet<>();
     private boolean mChatroomsFetched;
 
-    private ArrayList<RecyclerView.Adapter> mAdapters = new ArrayList<>();
     private ListenerRegistration mContactEventListener;
     private ListenerRegistration mChatroomEventListener;
 
@@ -685,9 +684,6 @@ public class MainActivity extends AppCompatActivity implements
         handleRequest(contact, "", false);
     }
 
-    public void addAdapter(RecyclerView.Adapter adapter){
-        mAdapters.add(adapter);
-    }
 
 //    private void updateAdapters(){
 //        for (RecyclerView.Adapter adapter: mAdapters) {
