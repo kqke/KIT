@@ -16,4 +16,14 @@ public class Constants {
     public static final String CHATROOM = "chatroom";
     public static final String USER_LOCATION = "user_location";
     public static final String CONTACTS_LIST = "contacts_list";
+    public static final int GET_DISPLAY_NAME = 1;
+    public static final String DISPLAY_NAME = "Enter a Display Name";
+    public static final int GET_ACCEPT_REQUEST = 2;
+    public static final String ACCEPT_REQUEST = "Are You Sure You Want to Accept the Request?";
+    public static final int GET_REMOVE_REQUEST = 3;
+    public static final String REMOVE_REQUEST = "Are You Sure You Want to Remove the Request?";
+    public static final String COLLECTION_USERS = "Users";
+    public static final String COLLECTION_CONTACTS = "Contacts";
+    public static final String COLLECTION_REQUESTS = "Requests";
+    public static final String COLLECTION_PENDING = "Pending";
 }
