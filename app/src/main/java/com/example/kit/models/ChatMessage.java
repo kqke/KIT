@@ -9,6 +9,7 @@ public class ChatMessage {
     private User user;
     private String message;
     private String message_id;
+    private boolean invite;
     private @ServerTimestamp
     Date timestamp;
 
@@ -17,6 +18,7 @@ public class ChatMessage {
         this.message = message;
         this.message_id = message_id;
         this.timestamp = timestamp;
+        this.invite = false;
     }
 
     public ChatMessage() {
@@ -53,6 +55,14 @@ public class ChatMessage {
 
     public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public boolean isInvite() {
+        return invite;
+    }
+
+    public void setInvite(boolean invite) {
+        this.invite = invite;
     }
 
     @Override

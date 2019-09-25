@@ -106,7 +106,6 @@ public class ChatroomActivity extends AppCompatActivity
         setContentView(R.layout.activity_chatroom);
         setSupportActionBar((Toolbar)findViewById(R.id.toolbar));
         setChatroomName();
-
     }
 
     private void initView(){

@@ -1,5 +1,6 @@
 package com.example.kit.ui;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -157,7 +158,7 @@ public class ContactsFragment extends DBGeoFragment implements
     }
 
     @Override
-    public void onContactLongClick(int position) {
+    public void onContactLongClick(int pos) {
 
     }
 

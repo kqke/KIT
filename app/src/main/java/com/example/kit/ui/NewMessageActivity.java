@@ -3,6 +3,7 @@ package com.example.kit.ui;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -68,7 +69,9 @@ public class NewMessageActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         mDb = FirebaseFirestore.getInstance();
         getIncomingIntent();
-        setContentView(R.layout.activity_contact_message);
+        setContentView(R.layout.activity_new_message);
+        setSupportActionBar((Toolbar) findViewById(R.id.upper_toolbar));
+        ((Toolbar)findViewById(R.id.upper_toolbar)).setTitle("New Chat");
         mProgressBar = findViewById(R.id.progressBarCM);
         mContactRecyclerView = findViewById(R.id.contact_msg_recycler_view);
 
@@ -86,12 +89,6 @@ public class NewMessageActivity extends AppCompatActivity implements
         if(intent.hasExtra(CONTACTS_LIST)){
             mContacts = getIntent().getParcelableArrayListExtra(CONTACTS_LIST);
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return super.onCreateOptionsMenu(menu);
     }
 
     /*
@@ -137,32 +134,24 @@ public class NewMessageActivity extends AppCompatActivity implements
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()){
-//            case R.id.action_sign_out:{
-//                signOut();
-//                return true;
-//            }
-            case R.id.action_profile:{
-                startActivity(new Intent(this, ProfileActivity.class));
-                return true;
-            }
-            default:{
-                return super.onOptionsItemSelected(item);
-            }
-        }
-    }
-
-    @Override
     public void onContactSelected(int position) {
-        if(!mContactRecyclerAdapter.isWithCheckBoxes()){
-            startPrivateChat(position);
-        }
+        startPrivateChat(position);
     }
 
     @Override
-    public void onContactLongClick(int position) {
-
+    public void onContactLongClick(int pos) {
+        for (int childCount = mContactRecyclerView.getChildCount(), i = 0; i < childCount; ++i) {
+            final ContactRecyclerAdapter.ViewHolder holder =
+                    (ContactRecyclerAdapter.ViewHolder)mContactRecyclerView
+                            .getChildViewHolder(mContactRecyclerView.getChildAt(i));
+            if(mContactRecyclerAdapter.isWithCheckBoxes()){
+                holder.getCheckBox().setVisibility(View.VISIBLE);
+            }
+            else{
+                holder.getCheckBox().setVisibility(View.GONE);
+                holder.getCheckBox().setChecked(false);
+            }
+        }
     }
 
     /*
