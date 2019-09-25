@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
@@ -14,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.kit.R;
 import com.example.kit.models.ChatMessage;
 import com.example.kit.models.User;
+import com.example.kit.ui.ChatFragment;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -23,20 +25,23 @@ import static com.example.kit.Constants.VIEW_TYPE_MESSAGE_SENT;
 import static com.example.kit.Constants.VIEW_TYPE_MESSAGE_RECEIVED;
 
 
-public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
+public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private ArrayList<ChatMessage> mMessages = new ArrayList<>();
     private ArrayList<User> mUsers = new ArrayList<>();
     private Context mContext;
     private String mUserID;
+    private MessageRecyclerClickListener listener;
 
     public ChatMessageRecyclerAdapter(ArrayList<ChatMessage> messages,
                                       ArrayList<User> users,
-                                      Context context, String userID) {
+                                      Context context, String userID,
+                                      MessageRecyclerClickListener listener) {
         this.mMessages = messages;
         this.mUsers = users;
         this.mContext = context;
         this.mUserID = userID;
+        this.listener = listener;
     }
 
     @NonNull
@@ -50,18 +55,18 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
         if (viewType == VIEW_TYPE_MESSAGE_SENT) {
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_message_sent, parent, false);
-            final RecyclerView.ViewHolder holder = new SentMessageHolder(view);
+            final RecyclerView.ViewHolder holder = new SentMessageHolder(view, listener);
             return holder;
         } else if (viewType == VIEW_TYPE_MESSAGE_RECEIVED) {
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_message_received, parent, false);
-            final RecyclerView.ViewHolder holder = new ReceivedMessageHolder(view);
+            final RecyclerView.ViewHolder holder = new ReceivedMessageHolder(view, listener);
             return holder;
         }
         else if(viewType == VIEW_TYPE_INVITE){
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_invite, parent, false);
-            final RecyclerView.ViewHolder holder = new InviteHolder(view);
+            final RecyclerView.ViewHolder holder = new InviteHolder(view, listener);
             return holder;
         }
 
@@ -95,6 +100,7 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
                 break;
             case VIEW_TYPE_MESSAGE_RECEIVED:
                 ((ReceivedMessageHolder) holder).bind(message);
+                break;
             case VIEW_TYPE_INVITE:
                 ((InviteHolder) holder).bind(message);
         }
@@ -107,27 +113,36 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
         return mMessages.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder
-    {
-        TextView message, username;
+//    public class ViewHolder extends RecyclerView.ViewHolder
+//    {
+//        TextView message, username;
+//
+//        public ViewHolder(View itemView) {
+//            super(itemView);
+//            message = itemView.findViewById(R.id.chat_message_message);
+//            username = itemView.findViewById(R.id.chat_message_username);
+//        }
+//    }
 
-        public ViewHolder(View itemView) {
-            super(itemView);
-            message = itemView.findViewById(R.id.chat_message_message);
-            username = itemView.findViewById(R.id.chat_message_username);
-        }
-    }
-
-    private class ReceivedMessageHolder extends RecyclerView.ViewHolder {
+    private class ReceivedMessageHolder extends RecyclerView.ViewHolder
+            implements View.OnLongClickListener{
         TextView messageText, timeText, nameText;
+        MessageRecyclerClickListener longClickListener;
 //        ImageView profileImage;
 
-        ReceivedMessageHolder(View itemView) {
+        ReceivedMessageHolder(View itemView, MessageRecyclerClickListener listener) {
             super(itemView);
             messageText = (TextView) itemView.findViewById(R.id.chat_message_message);
             nameText = (TextView) itemView.findViewById(R.id.chat_message_username);
-            timeText = (TextView) itemView.findViewById(R.id.text_message_time); //missing
-//            profileImage = (ImageView) itemView.findViewById(R.id.image_message_profile); //missing
+            timeText = (TextView) itemView.findViewById(R.id.text_message_time);
+            longClickListener = listener;
+            itemView.setOnLongClickListener(this);
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            longClickListener.onMessageLongClicked(getAdapterPosition());
+            return true;
         }
 
         void bind(ChatMessage message) {
@@ -143,14 +158,24 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
         }
     }
 
-    private class SentMessageHolder extends RecyclerView.ViewHolder {
+    private class SentMessageHolder extends RecyclerView.ViewHolder
+            implements View.OnLongClickListener{
         TextView messageText, timeText;
+        MessageRecyclerClickListener longClickListener;
 
-        SentMessageHolder(View itemView) {
+        SentMessageHolder(View itemView, MessageRecyclerClickListener listener) {
             super(itemView);
             messageText = (TextView) itemView.findViewById(R.id.chat_message_message);
             timeText = (TextView) itemView.findViewById(R.id.text_message_time);
+            longClickListener = listener;
+            itemView.setOnLongClickListener(this);
             Log.d("BC", "SentMessageHolder: " + timeText.toString());
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            longClickListener.onMessageLongClicked(getAdapterPosition());
+            return true;
         }
 
         void bind(ChatMessage message) {
@@ -160,17 +185,39 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
         }
     }
 
-    private class InviteHolder extends RecyclerView.ViewHolder{
-        InviteHolder(View itemview) {
+    private class InviteHolder extends RecyclerView.ViewHolder
+            implements View.OnClickListener, View.OnLongClickListener{
+
+        TextView timeText;
+        MessageRecyclerClickListener clickListener;
+
+        InviteHolder(View itemview, MessageRecyclerClickListener listener) {
             super(itemview);
+            Button meetButton = itemview.findViewById(R.id.lets_meet);
+            timeText = (TextView) itemView.findViewById(R.id.text_message_time);
+            clickListener = listener;
+            meetButton.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            clickListener.onMessageSelected(getAdapterPosition());
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            return true;
         }
 
         void bind(ChatMessage message) {
-
+            timeText.setText(DateFormat.getTimeInstance(DateFormat.SHORT).format(message.getTimestamp()));
         }
     }
 
-
+    public interface MessageRecyclerClickListener {
+        void onMessageSelected(int position);
+        void onMessageLongClicked(int position);
+    }
 }
 
 
