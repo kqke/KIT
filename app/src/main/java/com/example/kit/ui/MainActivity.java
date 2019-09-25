@@ -25,7 +25,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.kit.Constants;
 import com.example.kit.R;
 import com.example.kit.models.Contact;
 import com.example.kit.models.UChatroom;
@@ -66,7 +68,8 @@ import static com.example.kit.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 public class MainActivity extends AppCompatActivity implements
         ContactsFragment.ContactsCallback,
         ChatsFragment.ChatroomsCallback,
-        RequestsFragment.RequestsCallback{
+        RequestsFragment.RequestsCallback,
+        RequestsDialogFragment.OnInputSelected {
 
     //TODO
     // chat crashes on orientation change
@@ -146,6 +149,7 @@ public class MainActivity extends AppCompatActivity implements
     private Set<String> mChatroomIds = new HashSet<>();
     private boolean mChatroomsFetched;
 
+    private ArrayList<RecyclerView.Adapter> mAdapters = new ArrayList<>();
     private ListenerRegistration mContactEventListener;
     private ListenerRegistration mChatroomEventListener;
 
@@ -616,4 +620,78 @@ public class MainActivity extends AppCompatActivity implements
                 }
         }
     }
+
+    private  void handleRequest(final Contact contact, final String display_name, final boolean accepted){
+        final FirebaseFirestore fs = FirebaseFirestore.getInstance();
+        final String uid = FirebaseAuth.getInstance().getUid();
+        final DocumentReference userRef = fs.collection(Constants.COLLECTION_USERS).document(uid);
+        if (accepted){
+            userRef.collection(Constants.COLLECTION_CONTACTS).document(contact.getCid()).set(new Contact(display_name,
+                    contact.getUsername(), contact.getAvatar(), contact.getCid())).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    userRef.collection(Constants.COLLECTION_REQUESTS).document(contact.getCid()).delete();
+                    final DocumentReference contactRef =
+                            fs.collection(Constants.COLLECTION_USERS).document(contact.getCid());
+                    contactRef.collection(Constants.COLLECTION_PENDING).document(FirebaseAuth.getInstance().getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (!task.isSuccessful()) {
+                                return;
+                            }
+                            final Contact ucontact = task.getResult().toObject(Contact.class);
+                            contactRef.collection(Constants.COLLECTION_CONTACTS).document(ucontact.getCid()).set(ucontact).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (!task.isSuccessful()) {
+                                        return;
+                                    }
+                                    contactRef.collection(Constants.COLLECTION_PENDING).document(ucontact.getCid()).delete();
+                                    mRequests.remove(contact);
+//                                    Contact nContact = new Contact(display_name, contact.getUsername(), contact.getAvatar(),
+//                                            contact.getCid());
+//                                    mContacts.add(nContact);
+//                                    mContactIds.add(contact.getCid());
+//                                    mId2Contact.put(contact.getCid(), nContact);
+//                                    updateAdapters();
+                                    replaceFragment(ContactsRequestsPendingFragment.newInstance(), CONATCTS_FRAG);
+                                    setTitle(R.string.fragment_contacts);
+                                }
+                            });
+                        }
+                    });
+                }
+
+            });
+        }
+
+        else {
+            userRef.collection(Constants.COLLECTION_REQUESTS).document(contact.getCid()).delete();
+            fs.collection(Constants.COLLECTION_USERS).document(contact.getCid()).collection(Constants.COLLECTION_PENDING).document(uid).delete();
+            mRequests.remove(contact);
+            replaceFragment(ContactsRequestsPendingFragment.newInstance(), CONATCTS_FRAG);
+            setTitle(R.string.fragment_contacts);
+
+        }
+    }
+
+    @Override
+    public void requestAccepted(String display_name, Contact contact) {
+        handleRequest(contact, display_name, true);
+    }
+
+    @Override
+    public void requestRemoved(Contact contact) {
+        handleRequest(contact, "", false);
+    }
+
+    public void addAdapter(RecyclerView.Adapter adapter){
+        mAdapters.add(adapter);
+    }
+
+//    private void updateAdapters(){
+//        for (RecyclerView.Adapter adapter: mAdapters) {
+//            adapter.notifyDataSetChanged();
+//        }
+//    }
 }

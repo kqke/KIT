@@ -79,6 +79,9 @@ public class ContactsFragment extends DBGeoFragment implements
         getData = (ContactsCallback)context;
         mContacts = getData.getContacts();
         mContactIds = getData.getContactIds();
+        if (mContactRecyclerAdapter != null){
+            mContactRecyclerAdapter.notifyDataSetChanged();
+        }
     }
 
     @Override
@@ -110,6 +113,7 @@ public class ContactsFragment extends DBGeoFragment implements
         mContactRecyclerView = v.findViewById(R.id.contact_recycler_view);
         mContactRecyclerAdapter = new ContactRecyclerAdapter(mContacts, this);
         mContactRecyclerView.setAdapter(mContactRecyclerAdapter);
+        mContactRecyclerAdapter.notifyDataSetChanged();
         mContactRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
         v.findViewById(R.id.fab).setOnClickListener(this);
         initSearchView(v);
@@ -298,5 +302,6 @@ public class ContactsFragment extends DBGeoFragment implements
         ArrayList<Contact> getContacts();
         Set<String> getContactIds();
         HashMap<String, Contact> getId2Contact();
+        void addAdapter(RecyclerView.Adapter adapter);
     }
 }
