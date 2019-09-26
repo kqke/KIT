@@ -1,6 +1,7 @@
 package com.example.kit.ui;
 
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
@@ -46,7 +48,7 @@ import java.util.Set;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class ChatFragment extends Fragment implements
+public class ChatFragment extends DBGeoFragment implements
         View.OnClickListener,
         ChatMessageRecyclerAdapter.MessageRecyclerClickListener
 {
@@ -87,9 +89,6 @@ public class ChatFragment extends Fragment implements
     private ArrayList<UserLocation> mUserLocations = new ArrayList<>();
     private ArrayList<String> mUserTokens = new ArrayList<>();
 
-    //Callback
-    ChatroomCallback getData;
-
      /*
     ----------------------------- Lifecycle ---------------------------------
     */
@@ -126,7 +125,7 @@ public class ChatFragment extends Fragment implements
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        getData =  (ChatroomCallback)context;
+        ChatroomCallback getData =  (ChatroomCallback)context;
         mChatroom = getData.getChatroom();
         mUserList = getData.getUserList();
         mUserLocations = getData.getUserLocations();
@@ -155,11 +154,33 @@ public class ChatFragment extends Fragment implements
     }
 
     private void initView(){
+        setupUI(v.findViewById(R.id.parent));
         mMessage = v.findViewById(R.id.input_message);
         v.findViewById(R.id.checkmark).setOnClickListener(this);
         v.findViewById(R.id.lets_meet).setOnClickListener(this);
         mChatMessageRecyclerView = v.findViewById(R.id.chatmessage_recycler_view);
         initChatroomRecyclerView();
+    }
+
+    public void setupUI(View view) {
+
+        // Set up touch listener for non-text box views to hide keyboard.
+        if (!(view instanceof EditText)) {
+            view.setOnTouchListener(new View.OnTouchListener() {
+                public boolean onTouch(View v, MotionEvent event) {
+                    hideSoftKeyboard();
+                    return false;
+                }
+            });
+        }
+
+        //If a layout container, iterate over children and seed recursion.
+        if (view instanceof ViewGroup) {
+            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
+                View innerView = ((ViewGroup) view).getChildAt(i);
+                setupUI(innerView);
+            }
+        }
     }
 
 
@@ -207,14 +228,6 @@ public class ChatFragment extends Fragment implements
                 insertMeetInvite();
                 break;
             }
-//            case R.id.chatmessage_recycler_view:
-//                String message = mMessage.getText().toString();
-//                if(!message.equals("")) {
-//                    hideSoftKeyboard();
-//                }
-//                else{
-//                    insertNewMessage();
-//                }
         }
     }
 
