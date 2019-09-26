@@ -9,7 +9,9 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -17,6 +19,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.example.kit.R;
 import com.example.kit.models.ClusterMarker;
@@ -57,7 +60,7 @@ import static com.example.kit.Constants.MAPVIEW_BUNDLE_KEY;
 public class MapFragment extends DBGeoFragment implements
             OnMapReadyCallback,
             GoogleMap.OnInfoWindowClickListener,
-            GoogleMap.OnPolylineClickListener{
+            GoogleMap.OnPolylineClickListener, View.OnClickListener {
 
     //TODO
     // navigate to Profile bubble when user is clicked
@@ -74,6 +77,7 @@ public class MapFragment extends DBGeoFragment implements
     private GeoApiContext mGeoApiContext = null;
     private ArrayList<PolylineData> mPolyLinesData = new ArrayList<>();
     private Marker mSelectedMarker = null;
+    private Marker mTripMarker = null;
 
     //Runnable
     private Handler mHandler = new Handler();
@@ -282,6 +286,8 @@ public class MapFragment extends DBGeoFragment implements
 
     private void addMapMarkers() {
         if (mGoogleMap != null) {
+            resetMap();
+
             if (mClusterManager == null) {
                 mClusterManager = new ClusterManager<ClusterMarker>(mActivity.getApplicationContext(), mGoogleMap);
             }
@@ -345,29 +351,110 @@ public class MapFragment extends DBGeoFragment implements
         }
     }
 
+    public void zoomRoute(List<LatLng> lstLatLngRoute) {
+        if (mGoogleMap == null || lstLatLngRoute == null || lstLatLngRoute.isEmpty()) return;
+        LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+        for (LatLng latLngPoint : lstLatLngRoute)
+            boundsBuilder.include(latLngPoint);
+        int routePadding = 120;
+        LatLngBounds latLngBounds = boundsBuilder.build();
+        mGoogleMap.animateCamera(
+                CameraUpdateFactory.newLatLngBounds(latLngBounds, routePadding),
+                600,
+                null
+        );
+    }
+
+    private void removeTripMarker(){
+        if (mTripMarker != null){
+            mTripMarker.remove();
+            removeTripMarker();
+        }
+    }
+
+    private void resetSelectedMarker(){
+        if (mSelectedMarker != null) {
+            mSelectedMarker.setVisible(true);
+        }
+    }
+
+    private void resetMap(){
+        if(mGoogleMap != null) {
+            mGoogleMap.clear();
+
+            if(mClusterManager != null){
+                mClusterManager.clearItems();
+            }
+
+            if (mClusterMarkers.size() > 0) {
+                mClusterMarkers.clear();
+                mClusterMarkers = new ArrayList<>();
+            }
+
+            if(mPolyLinesData.size() > 0){
+                mPolyLinesData.clear();
+                mPolyLinesData = new ArrayList<>();
+            }
+        }
+    }
+
     @Override
     public void onInfoWindowClick(final Marker marker) {
-        if(marker.getSnippet().equals("This is you")){
-            marker.hideInfoWindow();
-        }
-        else{
-            final AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
-            builder.setMessage("Navigate or Go to Profile?")
+        if(marker.getTitle().contains("Trip #")){
+            final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setMessage("Open Google Maps?")
                     .setCancelable(true)
-                    .setPositiveButton("Navigate", new DialogInterface.OnClickListener() {
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                         public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                            mSelectedMarker = marker;
-                            calculateDirections(marker);
-                            dialog.dismiss();
+                            String latitude = String.valueOf(marker.getPosition().latitude);
+                            String longitude = String.valueOf(marker.getPosition().longitude);
+                            Uri gmmIntentUri = Uri.parse("google.navigation:q=" + latitude + "," + longitude);
+                            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                            mapIntent.setPackage("com.google.android.apps.maps");
+
+                            try{
+                                if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                                    startActivity(mapIntent);
+                                }
+                            }catch (NullPointerException e){
+                                Log.e(TAG, "onClick: NullPointerException: Couldn't open map." + e.getMessage() );
+                                Toast.makeText(getActivity(), "Couldn't open map", Toast.LENGTH_SHORT).show();
+                            }
+
                         }
                     })
-                    .setNegativeButton("Profile", new DialogInterface.OnClickListener() {
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
                         public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
                             dialog.cancel();
                         }
                     });
             final AlertDialog alert = builder.create();
             alert.show();
+        } else {
+
+
+            if (marker.getSnippet().equals("This is you")) {
+                marker.hideInfoWindow();
+            } else {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
+                builder.setMessage("Navigate or Go to Profile?")
+                        .setCancelable(true)
+                        .setPositiveButton("Navigate", new DialogInterface.OnClickListener() {
+                            public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                resetSelectedMarker();
+                                mSelectedMarker = marker;
+                                calculateDirections(marker);
+                                dialog.dismiss();
+                            }
+                        })
+                        .setNegativeButton("Profile", new DialogInterface.OnClickListener() {
+                            public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                dialog.cancel();
+                            }
+                        });
+                final AlertDialog alert = builder.create();
+                alert.show();
+            }
         }
     }
 
@@ -381,8 +468,10 @@ public class MapFragment extends DBGeoFragment implements
                 polylineData.getPolyline().setColor(ContextCompat.getColor(mActivity, R.color.blue1));
                 polylineData.getPolyline().setZIndex(1);
                 LatLng endLocation = new LatLng(polylineData.getLeg().endLocation.lat, polylineData.getLeg().endLocation.lng);
-                Marker marker = mGoogleMap.addMarker(new MarkerOptions().position(endLocation).title("route #: " + index).snippet(
+                Marker marker = mGoogleMap.addMarker(new MarkerOptions().position(endLocation).title("Trip #: " + index).snippet(
                         "Duration: " + polylineData.getLeg().duration + "\nDistance: " + polylineData.getLeg().distance));
+                mTripMarker = marker;
+                zoomRoute(polyline.getPoints());
             }
             else{
                 polylineData.getPolyline().setColor(ContextCompat.getColor(mActivity, R.color.darkGrey));
@@ -436,6 +525,9 @@ public class MapFragment extends DBGeoFragment implements
                     mPolyLinesData.clear();
                     mPolyLinesData = new ArrayList<>();
                 }
+                double duration = 999999999;
+                double distance = 999999999;
+                double tempDuration, tempDistance;
                 for(DirectionsRoute route: result.routes){
                     Log.d(TAG, "run: leg: " + route.legs[0].toString());
                     List<com.google.maps.model.LatLng> decodedPath = PolylineEncoding.decode(route.overviewPolyline.getEncodedPath());
@@ -453,11 +545,27 @@ public class MapFragment extends DBGeoFragment implements
                     polyline.setColor(ContextCompat.getColor(mActivity, R.color.darkGrey));
                     polyline.setClickable(true);
                     mPolyLinesData.add(new PolylineData(polyline, route.legs[0]));
-                    onPolylineClick(polyline);
+                    tempDuration = route.legs[0].duration.inSeconds;
+                    tempDistance = route.legs[0].distance.inMeters;
+                    if (tempDuration < duration || (tempDuration == duration && tempDistance < distance)) {
+                        duration = tempDuration;
+                        distance = tempDistance;
+                        onPolylineClick(polyline);
+                    }
                     mSelectedMarker.setVisible(false);
                 }
             }
         });
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.btn_reset_map: {
+                addMapMarkers();
+                break;
+            }
+        }
     }
 
     /*
