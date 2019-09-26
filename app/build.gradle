@@ -34,6 +34,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0-alpha02'
     implementation 'androidx.fragment:fragment-ktx:1.2.0-alpha04'
     implementation 'com.google.firebase:firebase-analytics:17.2.0'
+    implementation 'com.google.firebase:firebase-storage:19.0.1'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
@@ -75,5 +76,8 @@ dependencies {
     implementation 'org.slf4j:slf4j-simple:1.7.25'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.4.1'
     implementation 'com.squareup.okhttp3:okhttp:3.12.1'
+
+    // Crop Functions
+    implementation 'com.theartofdev.edmodo:android-image-cropper:2.8.+'
 }
 apply plugin: 'com.google.gms.google-services'
