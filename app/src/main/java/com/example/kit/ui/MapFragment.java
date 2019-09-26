@@ -37,15 +37,10 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.maps.DirectionsApiRequest;
 import com.google.maps.GeoApiContext;
 import com.google.maps.PendingResult;
@@ -59,8 +54,10 @@ import java.util.List;
 
 import static com.example.kit.Constants.MAPVIEW_BUNDLE_KEY;
 
-public class MapFragment extends DBGeoFragment
-        implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnPolylineClickListener{
+public class MapFragment extends DBGeoFragment implements
+            OnMapReadyCallback,
+            GoogleMap.OnInfoWindowClickListener,
+            GoogleMap.OnPolylineClickListener{
 
     //TODO
     // navigate to Profile bubble when user is clicked
@@ -74,25 +71,23 @@ public class MapFragment extends DBGeoFragment
     protected ClusterManager<ClusterMarker> mClusterManager;
     protected MyClusterManagerRenderer mClusterManagerRenderer;
     protected ArrayList<ClusterMarker> mClusterMarkers = new ArrayList<>();
+    private GeoApiContext mGeoApiContext = null;
+    private ArrayList<PolylineData> mPolyLinesData = new ArrayList<>();
+    private Marker mSelectedMarker = null;
 
     //Runnable
     private Handler mHandler = new Handler();
     private Runnable mRunnable;
     private static final int LOCATION_UPDATE_INTERVAL = 3000;
 
-    //Vars
-    protected ListenerRegistration mContactListEventListener;
+    //Contacts
     protected ArrayList<Contact> mContactList = new ArrayList<>();
     protected ArrayList<UserLocation> mContactLocations = new ArrayList<>();
-    private GeoApiContext mGeoApiContext = null;
-    private ArrayList<PolylineData> mPolyLinesData = new ArrayList<>();
-    private Marker mSelectedMarker = null;
+    protected ListenerRegistration mContactListEventListener;
 
     //Widgets
     protected MapView mMapView;
 
-    //Callbacks
-    MapCallBack getData;
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -109,9 +104,9 @@ public class MapFragment extends DBGeoFragment
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        getData =  (MapCallBack)context;
-        mUserLocation = getData.getUserPos();
+        MapCallBack getData = (MapCallBack)context;
         mContactLocations = getData.getUserLocations();
+        mUserLocation = getData.getUserLocation();
     }
 
     @Override
@@ -145,10 +140,11 @@ public class MapFragment extends DBGeoFragment
         mMapView.onStart();
     }
 
+
     @Override
-    public void onStop() {
-        super.onStop();
-        mMapView.onStop();
+    public void onLowMemory() {
+        super.onLowMemory();
+        mMapView.onLowMemory();
     }
 
     @Override
@@ -158,20 +154,11 @@ public class MapFragment extends DBGeoFragment
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mMapView.onDestroy();
-        if(mContactListEventListener != null){
-            mContactListEventListener.remove();
-        }
-        stopLocationUpdates();
+    public void onStop() {
+        super.onStop();
+        mMapView.onStop();
     }
 
-    @Override
-    public void onLowMemory() {
-        super.onLowMemory();
-        mMapView.onLowMemory();
-    }
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
@@ -185,6 +172,16 @@ public class MapFragment extends DBGeoFragment
         mMapView.onSaveInstanceState(mapViewBundle);
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mMapView.onDestroy();
+        if(mContactListEventListener != null){
+            mContactListEventListener.remove();
+        }
+        stopLocationUpdates();
+    }
+
     /*
     ----------------------------- init ---------------------------------
     */
@@ -196,56 +193,6 @@ public class MapFragment extends DBGeoFragment
     /*
     ----------------------------- DB ---------------------------------
     */
-
-//    private void getContacts() {
-//        CollectionReference contactsRef = mDb
-//                .collection(getString(R.string.collection_users))
-//                .document(FirebaseAuth.getInstance().getUid())
-//                .collection(getString(R.string.collection_contacts));
-//
-//        mContactListEventListener = contactsRef
-//                .addSnapshotListener(new EventListener<QuerySnapshot>() {
-//                    @Override
-//                    public void onEvent(@javax.annotation.Nullable QuerySnapshot queryDocumentSnapshots, @javax.annotation.Nullable FirebaseFirestoreException e) {
-//                        if (e != null) {
-//                            Log.e(TAG, "onEvent: Listen failed.", e);
-//                            return;
-//                        }
-//
-//                        if (queryDocumentSnapshots != null) {
-//
-//                            // Clear the list and add all the users again
-//                            mContactList.clear();
-//                            mContactList = new ArrayList<>();
-//
-//                            for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-//                                Contact contact = doc.toObject(Contact.class);
-//                                mContactList.add(contact);
-//                                System.out.println(contact.getCid());
-//                                getContactLocation(contact);
-//                            }
-//
-//                            Log.d(TAG, "onEvent: user list size: " + mContactList.size());
-//                        }
-//                    }
-//                });
-//    }
-
-    private void getContactLocation(Contact contact) {
-        DocumentReference locRef = mDb.collection(getString(R.string.collection_user_locations)).document(contact.getCid());
-
-        locRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    if (task.getResult().toObject(UserLocation.class) != null) {
-                        mContactLocations.add(task.getResult().toObject(UserLocation.class));
-                    }
-                }
-            }
-        });
-    }
-
 
     private void startUserLocationsRunnable() {
         Log.d(TAG, "startUserLocationsRunnable: starting runnable for retrieving updated locations.");
@@ -404,7 +351,7 @@ public class MapFragment extends DBGeoFragment
             marker.hideInfoWindow();
         }
         else{
-            final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            final AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
             builder.setMessage("Navigate or Go to Profile?")
                     .setCancelable(true)
                     .setPositiveButton("Navigate", new DialogInterface.OnClickListener() {
@@ -431,23 +378,18 @@ public class MapFragment extends DBGeoFragment
             index++;
             Log.d(TAG, "onPolylineClick: toString: " + polylineData.toString());
             if(polyline.getId().equals(polylineData.getPolyline().getId())){
-                polylineData.getPolyline().setColor(ContextCompat.getColor(getActivity(), R.color.blue1));
+                polylineData.getPolyline().setColor(ContextCompat.getColor(mActivity, R.color.blue1));
                 polylineData.getPolyline().setZIndex(1);
                 LatLng endLocation = new LatLng(polylineData.getLeg().endLocation.lat, polylineData.getLeg().endLocation.lng);
                 Marker marker = mGoogleMap.addMarker(new MarkerOptions().position(endLocation).title("route #: " + index).snippet(
                         "Duration: " + polylineData.getLeg().duration + "\nDistance: " + polylineData.getLeg().distance));
             }
             else{
-                polylineData.getPolyline().setColor(ContextCompat.getColor(getActivity(), R.color.darkGrey));
+                polylineData.getPolyline().setColor(ContextCompat.getColor(mActivity, R.color.darkGrey));
                 polylineData.getPolyline().setZIndex(0);
             }
         }
 
-    }
-
-    public interface MapCallBack {
-        UserLocation getUserPos();
-        ArrayList<UserLocation> getUserLocations();
     }
 
     private void calculateDirections(Marker marker){
@@ -508,7 +450,7 @@ public class MapFragment extends DBGeoFragment
                         ));
                     }
                     Polyline polyline = mGoogleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
-                    polyline.setColor(ContextCompat.getColor(getActivity(), R.color.darkGrey));
+                    polyline.setColor(ContextCompat.getColor(mActivity, R.color.darkGrey));
                     polyline.setClickable(true);
                     mPolyLinesData.add(new PolylineData(polyline, route.legs[0]));
                     onPolylineClick(polyline);
@@ -516,6 +458,15 @@ public class MapFragment extends DBGeoFragment
                 }
             }
         });
+    }
+
+    /*
+    ----------------------------- Map Callback ---------------------------------
+    */
+
+    public interface MapCallBack {
+        ArrayList<UserLocation> getUserLocations();
+        UserLocation getUserLocation();
     }
 }
 

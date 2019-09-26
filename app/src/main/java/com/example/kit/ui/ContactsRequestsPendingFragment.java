@@ -18,8 +18,6 @@ import com.example.kit.R;
 public class ContactsRequestsPendingFragment extends Fragment {
 
     //TODO
-    // requests fragment
-    //TODO
     // pending fragment
     //TODO
     // update recycler item views to have functionality to accept/send/revoke pairing requests
@@ -45,7 +43,7 @@ public class ContactsRequestsPendingFragment extends Fragment {
     }
 
     /*
-    ----------------------------- iit ---------------------------------
+    ----------------------------- init ---------------------------------
     */
 
     private void initView(View v){

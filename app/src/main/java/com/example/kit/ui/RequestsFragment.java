@@ -1,63 +1,60 @@
 package com.example.kit.ui;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
 
 import com.example.kit.Constants;
 import com.example.kit.R;
-import com.example.kit.UserClient;
 import com.example.kit.adapters.ContactRecyclerAdapter;
 import com.example.kit.models.Contact;
-import com.example.kit.models.User;
 import com.example.kit.services.RequestHandler;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 
-public class RequestsFragment extends DBGeoFragment implements ContactRecyclerAdapter.ContactsRecyclerClickListener,
+public class RequestsFragment extends DBGeoFragment implements
+        ContactRecyclerAdapter.ContactsRecyclerClickListener,
         RequestsDialogFragment.OnInputSelected {
 
-    private static RequestHandler rHandler = new RequestHandler();
+    //Tag
     private static final String TAG = "RequestsFragment";
 
-    private String m_Text;
-    private RequestsCallback getData;
-    private ArrayList<Contact> mRequests;
+    //RecyclerView
     private ContactRecyclerAdapter mContactRecyclerAdapter;
     private RecyclerView mRequestsRecyclerView;
 
+    //Requests
+    private ArrayList<Contact> mRequests;
 
+//    private static RequestHandler rHandler = new RequestHandler();
+
+    /*
+    ----------------------------- Lifecycle ---------------------------------
+    */
     public RequestsFragment() {
-        // Required empty public constructor
+        super();
     }
 
     public static RequestsFragment newInstance() {
         RequestsFragment fragment = new RequestsFragment();
         return fragment;
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        RequestsCallback getData = (RequestsCallback)context;
+        mRequests = getData.getRequests();
     }
 
     @Nullable
@@ -68,6 +65,15 @@ public class RequestsFragment extends DBGeoFragment implements ContactRecyclerAd
         initView(rootView);
         return rootView;
     }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+    }
+
+    /*
+    ----------------------------- init ---------------------------------
+    */
 
     private void initView(View v){
         mRequestsRecyclerView = v.findViewById(R.id.requests_recycler_view);
@@ -95,25 +101,9 @@ public class RequestsFragment extends DBGeoFragment implements ContactRecyclerAd
         });
     }
 
-
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        getData = (RequestsCallback)context;
-        mRequests = getData.getRequests();
-    }
-
-
-    public String getName(){
-        return "Requests";
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-    }
-
-
+    /*
+    ----------------------------- onClick ---------------------------------
+    */
 
     @Override
     public void onContactSelected(final int position) {
@@ -156,13 +146,12 @@ public class RequestsFragment extends DBGeoFragment implements ContactRecyclerAd
         RequestHandler.handleRequest(contact, "", false);
     }
 
+    /*
+    ----------------------------- Requests Callback ---------------------------------
+    */
 
     public interface RequestsCallback {
         ArrayList<Contact> getRequests();
-    }
-
-    public Activity getA(){
-        return getActivity();
     }
 
 }

@@ -157,8 +157,8 @@ public class ChatFragment extends Fragment implements
     private void initView(){
         mMessage = v.findViewById(R.id.input_message);
         v.findViewById(R.id.checkmark).setOnClickListener(this);
+        v.findViewById(R.id.lets_meet).setOnClickListener(this);
         mChatMessageRecyclerView = v.findViewById(R.id.chatmessage_recycler_view);
-        mChatMessageRecyclerView.setOnClickListener(this);
         initChatroomRecyclerView();
     }
 
@@ -201,10 +201,11 @@ public class ChatFragment extends Fragment implements
         switch (v.getId()){
             case R.id.checkmark:{
                 insertNewMessage();
+                break;
             }
             case R.id.lets_meet:{
                 insertMeetInvite();
-                mChatMessageRecyclerAdapter.notifyDataSetChanged();
+                break;
             }
 //            case R.id.chatmessage_recycler_view:
 //                String message = mMessage.getText().toString();
@@ -266,56 +267,6 @@ public class ChatFragment extends Fragment implements
                     }
                 });
     }
-
-//    private void getChatroomUsers(){
-//        CollectionReference usersRef = mDb
-//                .collection(getString(R.string.collection_chatrooms))
-//                .document(mChatroom.getChatroom_id())
-//                .collection(getString(R.string.collection_chatroom_user_list));
-//
-//        mUserListEventListener = usersRef
-//                .addSnapshotListener(new EventListener<QuerySnapshot>() {
-//                    @Override
-//                    public void onEvent(@javax.annotation.Nullable QuerySnapshot queryDocumentSnapshots, @javax.annotation.Nullable FirebaseFirestoreException e) {
-//                        if (e != null) {
-//                            Log.e(TAG, "onEvent: Listen failed.", e);
-//                            return;
-//                        }
-//
-//                        if(queryDocumentSnapshots != null){
-//
-//                            // Clear the list and add all the users again
-//                            mUserList.clear();
-//                            mUserList = new ArrayList<>();
-//
-//                            for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-//                                User user = doc.toObject(User.class);
-//                                mUserList.add(user);
-//                                mUserTokens.add(user.getToken());
-//                                System.out.println(user.getUser_id());
-//                                getUserLocation(user);
-//                            }
-//
-//                            Log.d(TAG, "onEvent: user list size: " + mUserList.size());
-//                        }
-//                    }
-//                });
-//    }
-//
-//    private void getUserLocation(User user){
-//        DocumentReference locRef = mDb.collection(getString(R.string.collection_user_locations)).document(user.getUser_id());
-//        locRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-//            @Override
-//            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-//                if (task.isSuccessful()){
-//                    if (task.getResult().toObject(UserLocation.class) != null){
-//                        mUserLocations.add(task.getResult().toObject(UserLocation.class));
-//                    }
-//                }
-//            }
-//        });
-//    }
-
 
     private void insertNewMessage(){
         String message = mMessage.getText().toString();
@@ -402,14 +353,16 @@ public class ChatFragment extends Fragment implements
         imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
     }
 
-
+    /*
+    ----------------------------- Chatroom Callback ---------------------------------
+    */
 
     public interface ChatroomCallback {
         UChatroom getChatroom();
         ArrayList<User> getUserList();
         ArrayList<UserLocation>getUserLocations();
         ArrayList<String>getUserTokens();
-        UserLocation getUserPos();
+        UserLocation getUserLocation();
     }
 
 }

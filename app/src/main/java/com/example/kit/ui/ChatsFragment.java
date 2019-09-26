@@ -37,6 +37,13 @@ public class ChatsFragment extends DBGeoFragment implements
         View.OnClickListener
 {
 
+    //TODO
+    // create images for when there are no chats
+    //TODO
+    // swipe functionality to recyclerview items? archive/star etc.
+    //TODO
+    // images for chats (maybe in chatroom activity, anyways chatroom should have an image)
+
     //Tag
     private static final String TAG = "ChatsFragment";
 
@@ -53,19 +60,7 @@ public class ChatsFragment extends DBGeoFragment implements
     private HashMap<String, Contact> mId2Contact = new HashMap<>();
 
     //Location
-    protected UserLocation mUserLocation;
-
-    //Callback
-    ContactsFragment.ContactsCallback getContactsData;
-    ChatroomsCallback getChatroomsData;
-
-
-    //TODO
-    // create images for when there are no chats
-    //TODO
-    // swipe functionality to recyclerview items? archive/star etc.
-    //TODO
-    // images for chats (maybe in chatroom activity, anyways chatroom should have an image)
+    private UserLocation mUserLocation;
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -82,14 +77,13 @@ public class ChatsFragment extends DBGeoFragment implements
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        getContactsData =  (ContactsFragment.ContactsCallback)context;
-        getChatroomsData = (ChatroomsCallback)context;
+        ContactsFragment.ContactsCallback getContactsData = (ContactsFragment.ContactsCallback)context;
+        ChatroomsCallback getChatroomsData = (ChatroomsCallback)context;
         mId2Contact = getContactsData.getId2Contact();
         mContacts = getContactsData.getContacts();
         mChatrooms = getChatroomsData.getChatrooms();
         mChatroomIds = getChatroomsData.getChatroomIds();
         mUserLocation = getChatroomsData.getUserLocation();
-
     }
 
     @Override
@@ -150,9 +144,7 @@ public class ChatsFragment extends DBGeoFragment implements
     @Override
     public void onClick(View v) {
         if(v.getId() == R.id.fab){
-            //TODO
-            // build a new chat/chat room (Fragment?)
-            navContactMessageActivity();
+            navNewMessageActivity();
         }
     }
 
@@ -160,21 +152,23 @@ public class ChatsFragment extends DBGeoFragment implements
     ----------------------------- nav ---------------------------------
     */
 
-    private void navContactMessageActivity(){
-        Intent intent = new Intent(getActivity(), NewMessageActivity.class);
+    private void navNewMessageActivity(){
+        Intent intent = new Intent(mActivity, NewMessageActivity.class);
         intent.putExtra(CONTACTS_LIST, mContacts);
         startActivityForResult(intent, 1);
     }
 
     private void navChatroomActivity(UChatroom chatroom){
-        Intent intent = new Intent(getActivity(), ChatroomActivity.class);
+        Intent intent = new Intent(mActivity, ChatroomActivity.class);
         intent.putExtra(CHATROOM, chatroom);
         intent.putExtra(CONTACTS_HASH_MAP, mId2Contact);
         intent.putExtra(USER_LOCATION, mUserLocation);
         startActivityForResult(intent, 1);
     }
 
-
+    /*
+    ----------------------------- Chatrooms Callback ---------------------------------
+    */
 
     public interface ChatroomsCallback{
         ArrayList<UChatroom> getChatrooms();
