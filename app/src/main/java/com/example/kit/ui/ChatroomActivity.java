@@ -109,7 +109,7 @@ public class ChatroomActivity extends AppCompatActivity implements
 
     private void initView(){
         ChatMapViewPagerAdapter mAdapter = new ChatMapViewPagerAdapter(getSupportFragmentManager(), mChatroom);
-        ViewPager mPager = findViewById(R.id.view_pager);
+        ViewPager mPager = findViewById(R.id.chatroom_view_pager);
         findViewById(R.id.progressBar).setVisibility(View.GONE);
         mPager.setVisibility(View.VISIBLE);
         mPager.setAdapter(mAdapter);
