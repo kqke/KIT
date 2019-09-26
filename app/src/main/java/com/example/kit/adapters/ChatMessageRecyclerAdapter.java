@@ -76,15 +76,14 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
     @Override
     public int getItemViewType(int position) {
         ChatMessage message = (ChatMessage) mMessages.get(position);
-        if (message.getUser().getUser_id().equals(mUserID)) {
+        if(message.isInvite()){
+            return VIEW_TYPE_INVITE;
+        }
+        else if (message.getUser().getUser_id().equals(mUserID)) {
             // If the current user is the sender of the message
             return VIEW_TYPE_MESSAGE_SENT;
         }
-        else if(message.isInvite()){
-            return VIEW_TYPE_INVITE;
-        }
         else {
-            // If some other user sent the message
             return VIEW_TYPE_MESSAGE_RECEIVED;
         }
     }
@@ -113,22 +112,10 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
         return mMessages.size();
     }
 
-//    public class ViewHolder extends RecyclerView.ViewHolder
-//    {
-//        TextView message, username;
-//
-//        public ViewHolder(View itemView) {
-//            super(itemView);
-//            message = itemView.findViewById(R.id.chat_message_message);
-//            username = itemView.findViewById(R.id.chat_message_username);
-//        }
-//    }
-
     private class ReceivedMessageHolder extends RecyclerView.ViewHolder
             implements View.OnLongClickListener{
         TextView messageText, timeText, nameText;
         MessageRecyclerClickListener longClickListener;
-//        ImageView profileImage;
 
         ReceivedMessageHolder(View itemView, MessageRecyclerClickListener listener) {
             super(itemView);
@@ -148,13 +135,8 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<RecyclerVie
         void bind(ChatMessage message) {
             messageText.setText(message.getMessage());
 
-            // Format the stored timestamp into a readable String using method.
-
             timeText.setText(DateFormat.getTimeInstance(DateFormat.SHORT).format(message.getTimestamp()));
             nameText.setText(message.getUser().getUsername());
-
-//             Insert the profile image from the URL into the ImageView.
-//            Utils.displayRoundImageFromUrl(mContext, message.getUser().getUsername(), profileImage);
         }
     }
 
