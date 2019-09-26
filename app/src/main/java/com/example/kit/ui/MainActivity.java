@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements
         ChatsFragment.ChatroomsCallback,
         RequestsFragment.RequestsCallback,
         MapFragment.MapCallBack,
-    RequestsDialogFragment.OnInputSelected
+        RequestsDialogFragment.OnInputSelected
 
 {
     //TODO
@@ -96,6 +96,15 @@ public class MainActivity extends AppCompatActivity implements
     //  merge activity_login.xml & activity_username.xml
     //TODO
     //  transitions between activities
+    //TODO
+    // what is the convention for sharing UserLocation between activities and fragments?
+    // should we store all major data at application level? shared preferences?
+    //TODO
+    // make a nicer toolbar
+    // TODO
+    //  make Contacts recycler adapter compatible with request and pending views
+    // TODO
+    //  hide bottom navibar if keyboard present
 
     //Tag
     private static final String TAG = "MainActivity";
@@ -122,6 +131,7 @@ public class MainActivity extends AppCompatActivity implements
     private ArrayList<UserLocation> mContactLocations = new ArrayList<>();
     private HashMap<String, Contact> mId2Contact = new HashMap<>();
     private Set<String> mContactIds = new HashSet<>();
+    private ListenerRegistration mContactEventListener;
     private boolean mContactsFetched;
 
     //Requests
@@ -131,10 +141,8 @@ public class MainActivity extends AppCompatActivity implements
     //Chatrooms
     private ArrayList<UChatroom> mChatrooms = new ArrayList<>();
     private Set<String> mChatroomIds = new HashSet<>();
-    private boolean mChatroomsFetched;
-
-    private ListenerRegistration mContactEventListener;
     private ListenerRegistration mChatroomEventListener;
+    private boolean mChatroomsFetched;
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -148,6 +156,13 @@ public class MainActivity extends AppCompatActivity implements
         getLocationPermission();
         initLoadingView();
         initMessageService();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.action_bar, menu);
+        return true;
     }
 
     @Override
@@ -170,14 +185,6 @@ public class MainActivity extends AppCompatActivity implements
             mChatroomEventListener.remove();
         }
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.action_bar, menu);
-        return true;
-    }
-
 
     /*
     ----------------------------- init ---------------------------------
@@ -296,11 +303,6 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public ArrayList<Contact> getRequests() {
-        return mRequests;
-    }
-
-    @Override
     public Set<String> getContactIds() {
         return mContactIds;
     }
@@ -325,26 +327,45 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public UserLocation getUserLocation () {
+    public UserLocation getUserLocation() {
         return mUserLocation;
     }
 
-/*
------------------------------ Maps Callback ---------------------------------
-*/
-
-    @Override
-    public UserLocation getUserPos () {
-        return mUserLocation;
-    }
+    /*
+    ----------------------------- Maps Callback ---------------------------------
+    */
 
     @Override
     public ArrayList<UserLocation> getUserLocations () {
         return mContactLocations;
     }
-/*
------------------------------ nav ---------------------------------
-*/
+
+    /*
+    ----------------------------- Requests Callback ---------------------------------
+    */
+
+    @Override
+    public ArrayList<Contact> getRequests() {
+        return mRequests;
+    }
+
+    /*
+    ----------------------------- Requests Dialog Fragment Callback ---------------------------------
+    */
+
+    @Override
+    public void requestAccepted(String display_name, Contact contact) {
+        handleRequest(contact, display_name, true);
+    }
+
+    @Override
+    public void requestRemoved(Contact contact) {
+        handleRequest(contact, "", false);
+    }
+
+    /*
+    ----------------------------- nav ---------------------------------
+    */
 
     private void navSettingsActivity () {
         Intent intent = new Intent(this, SettingsActivity.class);
@@ -509,7 +530,6 @@ public class MainActivity extends AppCompatActivity implements
                         }
                     }
                     Log.d(TAG, "onEvent: number of chatrooms: " + mChatrooms.size());
-//                    mChatroomRecyclerAdapter.notifyDataSetChanged();
                 }
                 mChatroomsFetched = true;
                 checkReady();
@@ -517,7 +537,7 @@ public class MainActivity extends AppCompatActivity implements
         });
     }
 
-       /*
+    /*
     ----------------------------- Location ---------------------------------
     */
 
@@ -699,15 +719,4 @@ public class MainActivity extends AppCompatActivity implements
 
         }
     }
-
-    @Override
-    public void requestAccepted(String display_name, Contact contact) {
-        handleRequest(contact, display_name, true);
-    }
-
-    @Override
-    public void requestRemoved(Contact contact) {
-        handleRequest(contact, "", false);
-    }
-
 }

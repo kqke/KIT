@@ -21,7 +21,6 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager.widget.ViewPager;
 
 import com.example.kit.R;
-import com.example.kit.UserClient;
 import com.example.kit.models.Contact;
 import com.example.kit.models.UChatroom;
 import com.example.kit.models.User;
@@ -47,10 +46,10 @@ import static com.example.kit.Constants.CONTACTS_HASH_MAP;
 import static com.example.kit.Constants.USER_LOCATION;
 
 
-public class ChatroomActivity extends AppCompatActivity
-    implements ChatFragment.ChatroomCallback,
-    MapFragment.MapCallBack,
-    View.OnClickListener
+public class ChatroomActivity extends AppCompatActivity implements
+        ChatFragment.ChatroomCallback,
+        MapFragment.MapCallBack,
+        View.OnClickListener
 {
 
     //Tag
@@ -124,10 +123,10 @@ public class ChatroomActivity extends AppCompatActivity
             mContacts = (HashMap<String, Contact>)getIntent().getSerializableExtra(CONTACTS_HASH_MAP);
         }
         if(intent.hasExtra(USER_LOCATION)){
-            userPos = (UserLocation) getIntent().getParcelableExtra(USER_LOCATION);
+            userPos = getIntent().getParcelableExtra(USER_LOCATION);
         }
         if(intent.hasExtra(CHATROOM)){
-            mChatroom = (UChatroom) getIntent().getParcelableExtra(CHATROOM);
+            mChatroom = getIntent().getParcelableExtra(CHATROOM);
         }
 //        joinChatroom();
     }
@@ -320,14 +319,13 @@ public class ChatroomActivity extends AppCompatActivity
     }
 
     @Override
-    public UserLocation getUserPos() {
+    public UserLocation getUserLocation() {
         return userPos;
     }
 
-
     /*
-    ----------------------------- ViewPagerAdapter ---------------------------------
-    */
+        ----------------------------- ViewPagerAdapter ---------------------------------
+        */
     public static class ChatMapViewPagerAdapter extends FragmentPagerAdapter {
 
         private String[] mTitles = new String[] {
