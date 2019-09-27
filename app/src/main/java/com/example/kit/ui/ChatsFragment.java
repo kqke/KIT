@@ -7,6 +7,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SearchView;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -26,6 +27,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+import static android.widget.LinearLayout.HORIZONTAL;
 import static com.example.kit.Constants.CHATROOM;
 import static com.example.kit.Constants.CONTACTS_HASH_MAP;
 import static com.example.kit.Constants.CONTACTS_LIST;
@@ -112,6 +114,8 @@ public class ChatsFragment extends DBGeoFragment implements
         mChatroomRecyclerAdapter = new ChatroomRecyclerAdapter(mChatrooms, this);
         mChatroomRecyclerView.setAdapter(mChatroomRecyclerAdapter);
         mChatroomRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
+        DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
+        mChatroomRecyclerView.addItemDecoration(itemDecor);
         initSearchView(v);
     }
 

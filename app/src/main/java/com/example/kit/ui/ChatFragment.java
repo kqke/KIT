@@ -8,6 +8,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -44,6 +45,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+
+import static android.widget.LinearLayout.HORIZONTAL;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -133,6 +136,12 @@ public class ChatFragment extends DBGeoFragment implements
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        hideSoftKeyboard();
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
         if(mChatMessageEventListener != null){
@@ -190,7 +199,6 @@ public class ChatFragment extends DBGeoFragment implements
         mChatMessageRecyclerAdapter = new ChatMessageRecyclerAdapter(mMessages, new ArrayList<User>(), getActivity(), userID, this);
         mChatMessageRecyclerView.setAdapter(mChatMessageRecyclerAdapter);
         mChatMessageRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-
         mChatMessageRecyclerView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
             public void onLayoutChange(View v,

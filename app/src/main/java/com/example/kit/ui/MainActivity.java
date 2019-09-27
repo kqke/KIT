@@ -75,8 +75,6 @@ public class MainActivity extends AppCompatActivity implements
     //TODO
     // chat crashes on orientation change
     //TODO
-    // 'fragment not attached to context' error upon rapid switches of fragments
-    //TODO
     // launch different fragments for private chats (no user list)
     // and for group chats (with user list)
     //TODO
@@ -84,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements
     //TODO
     // should we make this the launcher activity that redirects to login if necessary?
     //TODO
-    // add meeting invites as a new message type
+    // add functionality to invite message type
     //TODO
     // Login activity isn't perfect yet
     //TODO
@@ -95,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements
     // TODO
     //  merge activity_login.xml & activity_username.xml
     //TODO
-    //  transitions between activities
+    // transitions between activities
     //TODO
     // what is the convention for sharing UserLocation between activities and fragments?
     // should we store all major data at application level? shared preferences?
