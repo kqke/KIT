@@ -33,11 +33,12 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
     private boolean withCheckBoxes = false;
 
     public ContactRecyclerAdapter(ArrayList<Contact> contacts,
-                                  ContactsRecyclerClickListener contactRecyclerClickListener)
+                                  ContactsRecyclerClickListener contactRecyclerClickListener,
+                                  int type)
     {
         mContacts = contacts;
         mFilteredContacts = contacts;
-        itemLayout = R.layout.layout_contact_list_item;
+        itemLayout = type;
         mContactRecyclerClickListener = contactRecyclerClickListener;
     }
 
@@ -73,8 +74,6 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
             holder.checkBox.setVisibility(View.GONE);
             holder.checkBox.setChecked(false);
         }
-//        ((ViewHolder)holder).contactUsername.setText(mFilteredContacts.get(position).getUsername());
-//        ((ViewHolder)holder).contactAvatar.setImage();
     }
 
     @Override
@@ -95,40 +94,75 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
             super(itemView);
             contactName = itemView.findViewById(R.id.contact_name);
             contactAvatar = itemView.findViewById(R.id.contact_avatar);
-            checkBox = itemView.findViewById(R.id.check);
-            if(withCheckBoxes){
-                checkBox.setVisibility(View.VISIBLE);
-                checkBox.setChecked(mCheckedContacts.contains(mFilteredContacts.get(getAdapterPosition())));
-            }
-            else{
-                checkBox.setVisibility(View.GONE);
-                checkBox.setChecked(false);
-            }
             this.clickListener = clickListener;
-            itemView.setOnClickListener(this);
-            itemView.setOnLongClickListener(this);
+            switch (itemLayout){
+                case R.layout.layout_contact_list_item:{
+                    checkBox = itemView.findViewById(R.id.check);
+                    if(withCheckBoxes){
+                        checkBox.setVisibility(View.VISIBLE);
+                        checkBox.setChecked(mCheckedContacts.contains(mFilteredContacts.get(getAdapterPosition())));
+                    }
+                    else{
+                        checkBox.setVisibility(View.GONE);
+                        checkBox.setChecked(false);
+                    }
+                    itemView.setOnClickListener(this);
+                    itemView.setOnLongClickListener(this);
+                    break;
+                }
+                case R.layout.layout_requests_list_item:{
+                    itemView.findViewById(R.id.accept).setOnClickListener(this);
+                    itemView.findViewById(R.id.decline).setOnClickListener(this);
+                    break;
+                }
+                case R.layout.layout_pending_list_item:{
+                    itemView.findViewById(R.id.delete_request).setOnClickListener(this);
+                    break;
+                }
+            }
         }
 
         @Override
         public void onClick(View v) {
             Log.d(TAG, "onClick: Entered");
-            if(withCheckBoxes){
-                int adapterPosition = getAdapterPosition();
-                checkBox.setChecked(!checkBox.isChecked());
-                if(checkBox.isChecked()){
-                    mCheckedContacts.add(mContacts.get(adapterPosition));
+            int adapterPosition = getAdapterPosition();
+            switch (itemLayout){
+                case R.layout.layout_contact_list_item:{
+                    if(withCheckBoxes){
+                        checkBox.setChecked(!checkBox.isChecked());
+                        if(checkBox.isChecked()){
+                            mCheckedContacts.add(mContacts.get(adapterPosition));
+                        }
+                        else{
+                            mCheckedContacts.remove(mContacts.get(adapterPosition));
+                        }
+                        if(mCheckedContacts.isEmpty())
+                        {
+                            changeView();
+                        }
+                    }
+                    else {
+                        clickListener.onContactSelected(getAdapterPosition());
+                    }
+                    break;
                 }
-                else{
-                    mCheckedContacts.remove(mContacts.get(adapterPosition));
+                case R.layout.layout_requests_list_item:{
+                    if(v.getId() == R.id.accept){
+                        clickListener.onAcceptSelected(adapterPosition);
+                    }
+                    else if(v.getId() == R.id.decline){
+                        clickListener.onRejectSelected(adapterPosition);
+                    }
+                    break;
                 }
-                if(mCheckedContacts.isEmpty())
-                {
-                    changeView();
+                case R.layout.layout_pending_list_item:{
+                    if(v.getId() == R.id.delete_request){
+                        clickListener.onDeleteSelected(adapterPosition);
+                    }
                 }
             }
-            else {
-                clickListener.onContactSelected(getAdapterPosition());
-            }
+
+
         }
 
         @Override
@@ -188,5 +222,8 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
     public interface ContactsRecyclerClickListener {
         void onContactSelected(int position);
         void onContactLongClick(int position);
+        void onAcceptSelected(int position);
+        void onRejectSelected(int position);
+        void onDeleteSelected(int position);
     }
 }

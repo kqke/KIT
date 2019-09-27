@@ -88,7 +88,8 @@ public class UserListFragment extends MapFragment
     }
 
     private void initUserListRecyclerView() {
-        mUserRecyclerAdapter = new ContactRecyclerAdapter(mContactList, this);
+        mUserRecyclerAdapter = new ContactRecyclerAdapter(mContactList,
+                this, R.layout.layout_contact_list_item);
         mUserListRecyclerView.setAdapter(mUserRecyclerAdapter);
         mUserListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
     }
@@ -110,6 +111,21 @@ public class UserListFragment extends MapFragment
         //TODO
         // ContactActivity is deprecated
         navContactActivity(mContactList.get(position));
+    }
+
+    @Override
+    public void onAcceptSelected(int position) {
+
+    }
+
+    @Override
+    public void onRejectSelected(int position) {
+
+    }
+
+    @Override
+    public void onDeleteSelected(int position) {
+
     }
 
     @Override

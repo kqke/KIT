@@ -105,6 +105,8 @@ public class MainActivity extends AppCompatActivity implements
     //  make Contacts recycler adapter compatible with request and pending views
     // TODO
     //  hide bottom navibar if keyboard present
+    //TODO
+    //
 
     //Tag
     private static final String TAG = "MainActivity";
@@ -136,6 +138,7 @@ public class MainActivity extends AppCompatActivity implements
 
     //Requests
     private ArrayList<Contact> mRequests = new ArrayList<>();
+    private ListenerRegistration mRequestEventListener;
     private boolean mRequestsFetched;
 
     //Chatrooms
@@ -183,6 +186,9 @@ public class MainActivity extends AppCompatActivity implements
         }
         if (mChatroomEventListener != null) {
             mChatroomEventListener.remove();
+        }
+        if (mRequestEventListener != null) {
+            mRequestEventListener.remove();
         }
     }
 
@@ -416,8 +422,9 @@ public class MainActivity extends AppCompatActivity implements
                     checkReady();
                 }
             });
-
         }
+//        mLocationFetched = true;
+//        checkReady();
     }
 
     private void fetchContacts () {
@@ -452,8 +459,6 @@ public class MainActivity extends AppCompatActivity implements
                     }
                     Log.d(TAG, "onEvent: number of contacts: " + mContacts.size());
                 }
-                mContactsFetched = true;
-                checkReady();
             }
         });
     }
@@ -485,7 +490,7 @@ public class MainActivity extends AppCompatActivity implements
                 .collection(getString(R.string.collection_users))
                 .document(FirebaseAuth.getInstance().getUid())
                 .collection(getString(R.string.collection_requests));
-        mContactEventListener = contactsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
+        mRequestEventListener = contactsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
                 Log.d(TAG, "onEvent: called.");

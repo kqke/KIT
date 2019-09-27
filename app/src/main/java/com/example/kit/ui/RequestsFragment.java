@@ -1,6 +1,5 @@
 package com.example.kit.ui;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 
@@ -77,7 +76,8 @@ public class RequestsFragment extends DBGeoFragment implements
 
     private void initView(View v){
         mRequestsRecyclerView = v.findViewById(R.id.requests_recycler_view);
-        mContactRecyclerAdapter = new ContactRecyclerAdapter(mRequests, this);
+        mContactRecyclerAdapter = new ContactRecyclerAdapter(mRequests,
+                this, R.layout.layout_requests_list_item);
         mRequestsRecyclerView.setAdapter(mContactRecyclerAdapter);
         mRequestsRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
         mContactRecyclerAdapter.notifyDataSetChanged();
@@ -107,9 +107,7 @@ public class RequestsFragment extends DBGeoFragment implements
 
     @Override
     public void onContactSelected(final int position) {
-        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_ACCEPT_REQUEST, mRequests.get(position), getActivity());
-        requestDialog.setTargetFragment(RequestsFragment.this, 1);
-        requestDialog.show(getFragmentManager(), "RequestsDialogFragment");
+
     }
 //        android.app.AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
 //        builder.setTitle("Accept Friend Request?");
@@ -129,11 +127,29 @@ public class RequestsFragment extends DBGeoFragment implements
 //        builder.show();
 //    }
 
+
     @Override
-    public void onContactLongClick(final int position) {
+    public void onAcceptSelected(int position) {
+        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_ACCEPT_REQUEST, mRequests.get(position), getActivity());
+        requestDialog.setTargetFragment(RequestsFragment.this, 1);
+        requestDialog.show(getFragmentManager(), "RequestsDialogFragment");
+    }
+
+    @Override
+    public void onRejectSelected(int position) {
         RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_REMOVE_REQUEST, mRequests.get(position), getActivity());
         requestDialog.setTargetFragment(RequestsFragment.this, 1);
         requestDialog.show(getFragmentManager(), "RequestsDialogFragment");
+    }
+
+    @Override
+    public void onDeleteSelected(int position) {
+
+    }
+
+    @Override
+    public void onContactLongClick(final int position) {
+
     }
 
     @Override
