@@ -234,7 +234,8 @@ public class ChatFragment extends DBGeoFragment implements
     @Override
     public void onMessageSelected(int position) {
         // TODO
-        // some navigation dialog
+        // this gets called whenever the lets meet button is clicked
+        // it should initiate a dialog of some sort that'd schedula a meeting
     }
 
     @Override

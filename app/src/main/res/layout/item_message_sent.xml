@@ -17,7 +17,7 @@
     android:padding="8dp"
     android:textColor="#ffffff"
     android:layout_marginRight="8dp"
-    app:layout_constraintRight_toRightOf="parent"
+    app:layout_constraintEnd_toStartOf="@+id/check"
     app:layout_constraintTop_toTopOf="parent" />
 
 <TextView
@@ -28,6 +28,16 @@
     android:textSize="10sp"
     android:layout_marginRight="4dp"
     app:layout_constraintBottom_toBottomOf="@+id/chat_message_message"
-    app:layout_constraintRight_toLeftOf="@+id/chat_message_message" />
+    app:layout_constraintEnd_toStartOf="@+id/chat_message_message" />
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/check"
+        android:checked="false"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

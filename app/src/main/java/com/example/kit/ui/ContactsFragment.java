@@ -99,7 +99,8 @@ public class ContactsFragment extends DBGeoFragment implements
     private void initView(View v){
         v.findViewById(R.id.fab).setOnClickListener(this);
         mContactRecyclerView = v.findViewById(R.id.contact_recycler_view);
-        mContactRecyclerAdapter = new ContactRecyclerAdapter(mContacts, this);
+        mContactRecyclerAdapter = new ContactRecyclerAdapter(mContacts,
+                this, R.layout.layout_contact_list_item);
         mContactRecyclerView.setAdapter(mContactRecyclerAdapter);
         mContactRecyclerAdapter.notifyDataSetChanged();
         mContactRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
@@ -148,6 +149,21 @@ public class ContactsFragment extends DBGeoFragment implements
     public void onContactLongClick(int pos) {
         // TODO
         // will it have any significance here?
+    }
+
+    @Override
+    public void onAcceptSelected(int position) {
+
+    }
+
+    @Override
+    public void onRejectSelected(int position) {
+
+    }
+
+    @Override
+    public void onDeleteSelected(int position) {
+
     }
 
     /*

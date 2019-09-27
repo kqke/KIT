@@ -96,7 +96,7 @@ public class NewMessageActivity extends AppCompatActivity implements
     */
 
     private void initContactRecyclerView() {
-        mContactRecyclerAdapter = new ContactRecyclerAdapter(mContacts, this);
+        mContactRecyclerAdapter = new ContactRecyclerAdapter(mContacts, this, R.layout.layout_contact_list_item);
         mContactRecyclerView.setAdapter(mContactRecyclerAdapter);
         mContactRecyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
@@ -152,6 +152,21 @@ public class NewMessageActivity extends AppCompatActivity implements
                 holder.getCheckBox().setChecked(false);
             }
         }
+    }
+
+    @Override
+    public void onAcceptSelected(int position) {
+
+    }
+
+    @Override
+    public void onRejectSelected(int position) {
+
+    }
+
+    @Override
+    public void onDeleteSelected(int position) {
+
     }
 
     /*
