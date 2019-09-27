@@ -8,6 +8,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SearchView;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -34,6 +35,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+
+import static android.widget.LinearLayout.HORIZONTAL;
 
 
 public class ContactsFragment extends DBGeoFragment implements
@@ -104,6 +107,8 @@ public class ContactsFragment extends DBGeoFragment implements
         mContactRecyclerView.setAdapter(mContactRecyclerAdapter);
         mContactRecyclerAdapter.notifyDataSetChanged();
         mContactRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
+        DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
+        mContactRecyclerView.addItemDecoration(itemDecor);
         v.findViewById(R.id.fab).setOnClickListener(this);
         initSearchView(v);
     }

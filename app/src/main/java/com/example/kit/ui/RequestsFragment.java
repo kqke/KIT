@@ -6,6 +6,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -20,6 +21,8 @@ import com.example.kit.models.Contact;
 import com.example.kit.services.RequestHandler;
 
 import java.util.ArrayList;
+
+import static android.widget.LinearLayout.HORIZONTAL;
 
 public class RequestsFragment extends DBGeoFragment implements
         ContactRecyclerAdapter.ContactsRecyclerClickListener,
@@ -80,6 +83,8 @@ public class RequestsFragment extends DBGeoFragment implements
                 this, R.layout.layout_requests_list_item);
         mRequestsRecyclerView.setAdapter(mContactRecyclerAdapter);
         mRequestsRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
+        DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
+        mRequestsRecyclerView.addItemDecoration(itemDecor);
         mContactRecyclerAdapter.notifyDataSetChanged();
         initSearchView(v);
     }

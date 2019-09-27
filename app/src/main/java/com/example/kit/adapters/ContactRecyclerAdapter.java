@@ -65,14 +65,15 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.contactName.setText(mFilteredContacts.get(position).getName());
-        if(withCheckBoxes){
-            holder.checkBox.setVisibility(View.VISIBLE);
-            holder.checkBox
-                    .setChecked(mCheckedContacts.contains(mFilteredContacts.get(position)));
-        }
-        else{
-            holder.checkBox.setVisibility(View.GONE);
-            holder.checkBox.setChecked(false);
+        if (itemLayout == R.layout.layout_contact_list_item) {
+            if (withCheckBoxes) {
+                holder.checkBox.setVisibility(View.VISIBLE);
+                holder.checkBox
+                        .setChecked(mCheckedContacts.contains(mFilteredContacts.get(position)));
+            } else {
+                holder.checkBox.setVisibility(View.GONE);
+                holder.checkBox.setChecked(false);
+            }
         }
     }
 
