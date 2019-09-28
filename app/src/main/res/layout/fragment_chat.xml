@@ -12,7 +12,6 @@
             android:layout_height="match_parent"
             android:id="@+id/chatmessage_recycler_view"
             android:layout_marginBottom="40dp"
-            android:background="@color/darkGrey"
             />
 
         <RelativeLayout

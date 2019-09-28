@@ -27,7 +27,8 @@
 
         <activity
             android:name=".ui.MainActivity"
-            android:launchMode="singleTop"></activity>
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustPan"/>
         <activity android:name=".ui.ChatroomActivity" />
         <activity android:name=".ui.ProfileActivity" />
         <activity android:name=".ui.AddContactsActivity" />

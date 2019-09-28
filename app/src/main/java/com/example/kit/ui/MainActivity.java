@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements
     // TODO
     //  hide bottom navibar if keyboard present
     //TODO
-    //
+    // empty display names are accepted
 
     //Tag
     private static final String TAG = "MainActivity";
@@ -314,6 +314,11 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public HashMap<String, Contact> getId2Contact() {
         return mId2Contact;
+    }
+
+    @Override
+    public void initContactFragment(String contactID) {
+        fetchUser(contactID);
     }
 
     /*
@@ -539,6 +544,10 @@ public class MainActivity extends AppCompatActivity implements
                 checkReady();
             }
         });
+    }
+
+    private void fetchUser(String userID){
+
     }
 
     /*
