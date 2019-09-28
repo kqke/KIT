@@ -75,9 +75,6 @@ public class MainActivity extends AppCompatActivity implements
     //TODO
     // chat crashes on orientation change
     //TODO
-    // launch different fragments for private chats (no user list)
-    // and for group chats (with user list)
-    //TODO
     // actionbar functionality - additional menu options if necessary
     //TODO
     // should we make this the launcher activity that redirects to login if necessary?
@@ -101,8 +98,6 @@ public class MainActivity extends AppCompatActivity implements
     // make a nicer toolbar
     // TODO
     //  make Contacts recycler adapter compatible with request and pending views
-    // TODO
-    //  hide bottom navibar if keyboard present
     //TODO
     // empty display names are accepted
 
