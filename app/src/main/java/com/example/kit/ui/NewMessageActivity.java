@@ -29,6 +29,7 @@ import com.example.kit.models.User;
 import com.example.kit.util.UsernameValidator;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
@@ -59,6 +60,8 @@ public class NewMessageActivity extends AppCompatActivity implements
     private ArrayList<Contact> mContacts = new ArrayList<>();
     private ContactRecyclerAdapter mContactRecyclerAdapter;
     private RecyclerView mContactRecyclerView;
+    private FloatingActionButton fab;
+
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -75,7 +78,9 @@ public class NewMessageActivity extends AppCompatActivity implements
         mProgressBar = findViewById(R.id.progressBarCM);
         mContactRecyclerView = findViewById(R.id.contact_msg_recycler_view);
 
-        findViewById(R.id.fab_group_message).setOnClickListener(this);
+        fab = findViewById(R.id.fab_group_message);
+        fab.setOnClickListener(this);
+        fab.setEnabled(false);
 
         initSupportActionBar();
         initContactRecyclerView();
@@ -140,6 +145,14 @@ public class NewMessageActivity extends AppCompatActivity implements
 
     @Override
     public void onContactLongClick(int pos) {
+        if(mContactRecyclerAdapter.isWithCheckBoxes()){
+            fab.setEnabled(true);
+            fab.setVisibility(View.VISIBLE);
+        }
+        else{
+            fab.setEnabled(false);
+            fab.setVisibility(View.GONE);
+        }
         for (int childCount = mContactRecyclerView.getChildCount(), i = 0; i < childCount; ++i) {
             final ContactRecyclerAdapter.ViewHolder holder =
                     (ContactRecyclerAdapter.ViewHolder)mContactRecyclerView

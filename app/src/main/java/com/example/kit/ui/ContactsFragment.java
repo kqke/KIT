@@ -58,6 +58,9 @@ public class ContactsFragment extends DBGeoFragment implements
     private ArrayList<Contact> mContacts = new ArrayList<>();
     private Set<String> mContactIds = new HashSet<>();
 
+    //Contacts Callback
+    ContactsCallback getData;
+
     /*
     ----------------------------- Lifecycle ---------------------------------
     */
@@ -73,7 +76,7 @@ public class ContactsFragment extends DBGeoFragment implements
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        ContactsCallback getData = (ContactsCallback)context;
+        getData = (ContactsCallback)context;
         mContacts = getData.getContacts();
         mContactIds = getData.getContactIds();
         if (mContactRecyclerAdapter != null){
@@ -254,5 +257,6 @@ public class ContactsFragment extends DBGeoFragment implements
         ArrayList<Contact> getContacts();
         Set<String> getContactIds();
         HashMap<String, Contact> getId2Contact();
+        void initContactFragment(String contactID);
     }
 }
