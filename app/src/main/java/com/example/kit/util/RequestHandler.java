@@ -1,4 +1,4 @@
-package com.example.kit.services;
+package com.example.kit.util;
 
 import androidx.annotation.NonNull;
 
@@ -38,7 +38,7 @@ public class RequestHandler {
                                         return;
                                     }
                                     final Contact ucontact = task.getResult().toObject(Contact.class);
-                                    contactRef.collection(Constants.COLLECTION_CONTACTS).document(ucontact.getCid()).set(ucontact).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    contactRef.collection(Constants.COLLECTION_CONTACTS).document(ucontact.getCid()).set(new Contact(ucontact.getName(), ucontact.getUsername(), ucontact.getAvatar(), ucontact.getCid())).addOnCompleteListener(new OnCompleteListener<Void>() {
                                         @Override
                                         public void onComplete(@NonNull Task<Void> task) {
                                             if (!task.isSuccessful()) {
