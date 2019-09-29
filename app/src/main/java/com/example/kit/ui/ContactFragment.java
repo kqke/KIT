@@ -14,10 +14,14 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.example.kit.Constants;
 import com.example.kit.R;
 import com.example.kit.UserClient;
+import com.example.kit.models.Contact;
 
 import static android.view.View.VISIBLE;
+import static com.example.kit.Constants.CONTACT;
+import static com.example.kit.Constants.CONTACT_STATE;
 import static com.example.kit.Constants.FRIENDS;
 import static com.example.kit.Constants.MY_REQUEST_PENDING;
 import static com.example.kit.Constants.NOT_FRIENDS;
@@ -34,6 +38,9 @@ public class ContactFragment extends DBGeoFragment implements
     private TextView mProfileName, mUserName, mProfileStatus;
     private Button mSendReqBtn, mAcceptBtn, mDeclineBtn, mDeleteReqBtn, mDeleteBtn;
 
+    //Contact
+    private Contact mContact;
+
     //vars
     private String mCurrent_state;
 
@@ -45,11 +52,16 @@ public class ContactFragment extends DBGeoFragment implements
         // Required empty public constructor
     }
 
+    public static ContactFragment newInstance() {
+        return new ContactFragment();
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mCurrent_state = NOT_FRIENDS;
-        checkState();
+        Bundle args = getArguments();
+        mContact = args.getParcelable(CONTACT);
+        mCurrent_state = args.getString(CONTACT_STATE);
     }
 
     @Override
@@ -65,13 +77,17 @@ public class ContactFragment extends DBGeoFragment implements
     ----------------------------- init ---------------------------------
     */
 
-    private void checkState(){
-
-    }
-
     private void initView(View v){
         mAvatarImage = v.findViewById(R.id.image_choose_avatar);
         mProfileName = v.findViewById(R.id.profile_displayName);
+        mProfileName.setText(mContact.getName());
+        mUserName = v.findViewById(R.id.profile_userName);
+        if(mCurrent_state.equals(FRIENDS)){
+            mUserName.setText(mContact.getUsername());
+        }
+        else{
+            mUserName.setVisibility(View.GONE);
+        }
         mProfileStatus = v.findViewById(R.id.profile_status);
         mSendReqBtn = v.findViewById(R.id.profile_send_req_btn);
         mAcceptBtn = v.findViewById(R.id.profile_accept_req_btn);
@@ -133,26 +149,54 @@ public class ContactFragment extends DBGeoFragment implements
     @Override
     public void onClick(View v) {
         switch(v.getId()){
-//            case R.id.profile_send_req_btn:{
-//                sendRequest();
-//                break;
-//            }
-//            case R.id.profile_accept_req_btn:{
-//                acceptRequest();
-//                break;
-//            }
-//            case R.id.profile_decline_btn:{
-//                declineRequest();
-//                break;
-//            }
-//            case R.id.profile_delete_request_btn:{
-//                deleteRequest();
-//                break;
-//            }
-//            case R.id.profile_delete_btn:{
-//                deleteContact();
-//                break;
-//            }
+            case R.id.profile_send_req_btn:{
+                sendRequest();
+                break;
+            }
+            case R.id.profile_accept_req_btn:{
+                acceptRequest();
+                break;
+            }
+            case R.id.profile_decline_btn:{
+                declineRequest();
+                break;
+            }
+            case R.id.profile_delete_request_btn:{
+                deleteRequest();
+                break;
+            }
+            case R.id.profile_delete_btn:{
+                deleteContact();
+                break;
+            }
         }
+    }
+
+    /*
+    ----------------------------- DB ---------------------------------
+    */
+
+    private void sendRequest(){
+
+    }
+
+    private void acceptRequest(){
+        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_ACCEPT_REQUEST, mContact, getActivity());
+        requestDialog.setTargetFragment(ContactFragment.this, 1);
+        requestDialog.show(getFragmentManager(), "RequestsDialogFragment");
+    }
+
+    private void declineRequest(){
+        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_REMOVE_REQUEST, mContact, getActivity());
+        requestDialog.setTargetFragment(ContactFragment.this, 1);
+        requestDialog.show(getFragmentManager(), "RequestsDialogFragment");
+    }
+
+    private void deleteRequest(){
+
+    }
+
+    private void deleteContact(){
+
     }
 }

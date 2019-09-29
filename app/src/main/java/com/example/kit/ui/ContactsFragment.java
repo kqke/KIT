@@ -139,9 +139,7 @@ public class ContactsFragment extends DBGeoFragment implements
 
     @Override
     public void onContactSelected(int position) {
-        //TODO
-        // ContactActivity is deprecated
-        navContactActivity(mContacts.get(position));
+        getData.initContactFragment(mContacts.get(position).getCid());
     }
 
     @Override
