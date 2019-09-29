@@ -256,6 +256,10 @@ public class MainActivity extends AppCompatActivity implements
 
     private void replaceFragment (Fragment newFragment, String tag){
         if(!isDestroyed() && !isFinishing()) {
+            mChatroomEventListener.remove();
+            mContactEventListener.remove();
+            mRequestEventListener.remove();
+            mPendingEventListener.remove();
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.fragment_container, newFragment, tag).commit();
         }
@@ -527,11 +531,11 @@ public class MainActivity extends AppCompatActivity implements
     private void fetchRequests () {
         FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().build();
         mDb.setFirestoreSettings(settings);
-        CollectionReference contactsCollection = mDb
+        CollectionReference requestsCollection = mDb
                 .collection(getString(R.string.collection_users))
                 .document(FirebaseAuth.getInstance().getUid())
                 .collection(getString(R.string.collection_requests));
-        mRequestEventListener = contactsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
+        mRequestEventListener = requestsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
                 Log.d(TAG, "onEvent: called.");
@@ -587,11 +591,11 @@ public class MainActivity extends AppCompatActivity implements
     private void fetchPending(){
         FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().build();
         mDb.setFirestoreSettings(settings);
-        CollectionReference contactsCollection = mDb
+        CollectionReference pendingCollection = mDb
                 .collection(getString(R.string.collection_users))
                 .document(FirebaseAuth.getInstance().getUid())
                 .collection(getString(R.string.collection_pending));
-        mPendingEventListener = contactsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
+        mPendingEventListener = pendingCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
                 Log.d(TAG, "onEvent: called.");

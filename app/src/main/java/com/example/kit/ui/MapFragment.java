@@ -20,6 +20,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.example.kit.R;
@@ -92,7 +93,7 @@ public class MapFragment extends DBGeoFragment implements
 
     //Widgets
     protected MapView mMapView;
-    Button mapRefreshButton;
+    ImageButton mapRefreshButton;
 
 
     /*
