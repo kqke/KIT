@@ -3,6 +3,9 @@ package com.example.kit.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.Date;
+
+
 public class Contact implements Parcelable
 
     {
@@ -11,6 +14,8 @@ public class Contact implements Parcelable
     private String username;
     private String avatar;
     private String cid;
+    private Date last_sent;
+    private boolean inArea;
 
 
     public Contact(String name, String username, String avatar, String cid) {
@@ -18,6 +23,8 @@ public class Contact implements Parcelable
         this.username = username;
         this.avatar = avatar;
         this.cid = cid;
+        last_sent = new Date(System.currentTimeMillis() - 3600000);
+        inArea = false;
     }
 
     public Contact() {
@@ -29,6 +36,8 @@ public class Contact implements Parcelable
         username = in.readString();
         avatar = in.readString();
         cid = in.readString();
+        last_sent = new Date(in.readLong());
+        inArea = in.readInt() == 1;
     }
 
     public static final Creator<Contact> CREATOR = new Creator<Contact>() {
@@ -75,6 +84,22 @@ public class Contact implements Parcelable
         this.cid = cid;
     }
 
+    public Date getLast_sent() {
+        return last_sent;
+    }
+
+    public void setLast_sent(Date last_sent) {
+        this.last_sent = last_sent;
+    }
+
+        public boolean isInArea() {
+        return inArea;
+    }
+
+    public void setInArea(boolean notification_sent) {
+        this.inArea = notification_sent;
+    }
+
         @Override
     public String toString() {
         return "Contact{" +
@@ -96,5 +121,7 @@ public class Contact implements Parcelable
         dest.writeString(username);
         dest.writeString(avatar);
         dest.writeString(cid);
+        dest.writeLong(last_sent.getTime());
+        dest.writeInt(inArea ? 1:0);
     }
 }

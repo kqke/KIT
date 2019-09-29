@@ -18,7 +18,7 @@ import com.example.kit.Constants;
 import com.example.kit.R;
 import com.example.kit.adapters.ContactRecyclerAdapter;
 import com.example.kit.models.Contact;
-import com.example.kit.services.RequestHandler;
+import com.example.kit.util.RequestHandler;
 
 import java.util.ArrayList;
 
