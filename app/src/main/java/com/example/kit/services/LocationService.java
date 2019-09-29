@@ -47,6 +47,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.Semaphore;
 
 public class LocationService extends Service {
 
@@ -54,9 +55,12 @@ public class LocationService extends Service {
     private FusedLocationProviderClient mFusedLocationClient;
     private final static long UPDATE_INTERVAL = 4 * 1000;  /* 4 secs */
     private final static long FASTEST_INTERVAL = 2000; /* 2 sec */
-    private static HashMap<String, UserLocation> CONTACT_LOCATIONS = new HashMap<>();
+//    private static HashMap<String, UserLocation> CONTACT_LOCATIONS = new HashMap<>();
     private static HashMap<String, Contact> CONTACTS = new HashMap<>();
     private static Location location = new Location("");
+    private static ListenerRegistration mContactEventListener;
+    private static final boolean[] notification_sent = new boolean[1];
+    private static final Semaphore semaphore = new Semaphore(1);
 
 
     @Nullable
@@ -133,7 +137,7 @@ public class LocationService extends Service {
                                 "\n latitude: " + userLocation.getGeo_point().getLatitude() +
                                 "\n longitude: " + userLocation.getGeo_point().getLongitude());
                         getContactLocations();
-                        if (CONTACTS != null || CONTACTS.isEmpty()){
+                        if (CONTACTS != null && CONTACTS.isEmpty()){
                             getContacts();
                         }
 
@@ -175,19 +179,43 @@ public class LocationService extends Service {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         final CollectionReference contactsRef =
                 db.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_contacts));
-        contactsRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+        mContactEventListener = contactsRef.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()){
-                    CONTACTS.clear();
-                    Contact contact;
-                    for (QueryDocumentSnapshot snapshot: task.getResult()){
-                        contact = snapshot.toObject(Contact.class);
-                        CONTACTS.put(contact.getCid(), contact);
-                    }
+            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+                Log.d(TAG, "onEvent: called.");
+                if (e != null) {
+                    Log.e(TAG, "onEvent: Listen failed.", e);
+                    return;
                 }
+                if (queryDocumentSnapshots != null) {
+                    Log.d(TAG, "onEvent: loc service got contacts");
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+
+                        Contact contact = doc.toObject(Contact.class);
+                        CONTACTS.put(contact.getCid(), contact);
+                        getContactLocation(contact);
+                    }
+//                    if(queryDocumentSnapshots.size() == 0){
+//                        mContactsFetched = true;
+//                        checkReady();
+//                    }
+                }
+
             }
         });
+//        contactsRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+//            @Override
+//            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+//                if (task.isSuccessful()){
+//                    CONTACTS.clear();
+//                    Contact contact;
+//                    for (QueryDocumentSnapshot snapshot: task.getResult()){
+//                        contact = snapshot.toObject(Contact.class);
+//                        CONTACTS.put(contact.getCid(), contact);
+//                    }
+//                }
+//            }
+//        });
     }
 
     private void getContactLocations(){
@@ -197,24 +225,51 @@ public class LocationService extends Service {
     }
 
     private void getContactLocation(final Contact contact){
+        notification_sent[0] = false;
         DocumentReference locRef =
                 FirebaseFirestore.getInstance().collection(getString(R.string.collection_user_locations)).document(contact.getCid());
         locRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+
                 if (task.isSuccessful()){
-                    UserLocation userLocation = task.getResult().toObject(UserLocation.class);
+                    final UserLocation userLocation = task.getResult().toObject(UserLocation.class);
                     if (userLocation != null){
-                        CONTACT_LOCATIONS.put(userLocation.getUser().getUser_id(), userLocation);
+//                        CONTACT_LOCATIONS.put(userLocation.getUser().getUser_id(), userLocation);
                         Location loc1 = new Location("");
                         loc1.setLatitude(userLocation.getGeo_point().getLatitude());
                         loc1.setLongitude(userLocation.getGeo_point().getLongitude());
-                        if (location.distanceTo(loc1) <= 1000){ //todo set preference
+                        if (location.distanceTo(loc1) <= 10000){ //todo set preference
+
                             Long cur_time = new Date().getTime();
                             if (!contact.isInArea() && cur_time - contact.getLast_sent().getTime() >= 3600000) {
-                                User user = ((UserClient) (getApplicationContext())).getUser();
-                                FCM.send_FCM_Notification(userLocation.getUser().getToken(), "Proximity Alert",
-                                        "you are close to: " + user.getUsername());
+                                final User user = ((UserClient) (getApplicationContext())).getUser();
+                                FirebaseFirestore fs = FirebaseFirestore.getInstance();
+                                final DocumentReference uContactRef =
+                                        fs.collection(getString(R.string.collection_users)).document(contact.getCid()).collection(getString(R.string.collection_contacts)).document(user.getUser_id());
+                                uContactRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                        if (!task.isSuccessful()) {
+                                            return;
+                                        }
+                                        Contact uContact = task.getResult().toObject(Contact.class);
+                                        try {
+                                            semaphore.acquire();
+                                        } catch (InterruptedException e){
+                                            Log.e(TAG, "onComplete: ", e );
+                                        }
+                                        if (!notification_sent[0]) {
+                                            FCM.send_FCM_Notification(userLocation.getUser().getToken(), "Proximity Alert",
+                                                    "you are close to: " + uContact.getName());
+                                            notification_sent[0] = true;
+                                        }
+                                        semaphore.release();
+                                        uContact.setLast_sent(new Date());
+                                        uContact.setInArea(true);
+                                        uContactRef.set(uContact);
+                                    }
+                                });
                                 NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "1234")
                                         .setContentTitle("Proximity Alert")
                                         .setContentText("you are near " + contact.getName())
@@ -225,12 +280,14 @@ public class LocationService extends Service {
 
 // notificationId is a unique int for each notification that you must define
                                 notificationManager.notify(12345, builder.build());
+
                                 Contact nContact = new Contact(contact.getName(), contact.getUsername(), contact.getAvatar(),
                                         contact.getCid());
                                 nContact.setInArea(true);
                                 nContact.setLast_sent(new Date());
                                 CONTACTS.get(contact.getCid()).setLast_sent(new Date());
-                                FirebaseFirestore.getInstance().collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_contacts)).document(contact.getCid()).set(nContact);
+                                fs.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_contacts)).document(contact.getCid()).set(nContact);
+
                             }
 
                         } else {
