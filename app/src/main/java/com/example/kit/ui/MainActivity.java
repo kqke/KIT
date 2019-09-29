@@ -137,12 +137,12 @@ public class MainActivity extends AppCompatActivity implements
     private boolean mContactsFetched;
 
     //Requests
-    private ArrayList<Contact> mRequests = new ArrayList<>();
+    private HashMap<String, Contact> mRequests = new HashMap<>();
     private ListenerRegistration mRequestEventListener;
     private boolean mRequestsFetched;
 
     //Pending
-    private ArrayList<Contact> mPending = new ArrayList<>();
+    private HashMap<String, Contact> mPending = new HashMap<>();
     private ListenerRegistration mPendingEventListener;
     private boolean mPendingFetched;
 
@@ -377,7 +377,7 @@ public class MainActivity extends AppCompatActivity implements
     */
 
     @Override
-    public ArrayList<Contact> getRequests() {
+    public HashMap<String, Contact> getRequests() {
         return mRequests;
     }
 
@@ -387,7 +387,7 @@ public class MainActivity extends AppCompatActivity implements
     */
 
     @Override
-    public ArrayList<Contact> getPending() {
+    public HashMap<String, Contact> getPending() {
         return mPending;
     }
 
@@ -546,7 +546,7 @@ public class MainActivity extends AppCompatActivity implements
                 if (queryDocumentSnapshots != null) {
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         Contact contact = doc.toObject(Contact.class);
-                        mRequests.add(contact);
+                        mRequests.put(contact.getCid(), contact);
                     }
                     Log.d(TAG, "onEvent: number of contacts: " + mContacts.size());
                 }
@@ -606,7 +606,7 @@ public class MainActivity extends AppCompatActivity implements
                 if (queryDocumentSnapshots != null) {
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         Contact contact = doc.toObject(Contact.class);
-                        mPending.add(contact);
+                        mPending.put(contact.getCid(), contact);
                     }
                     Log.d(TAG, "onEvent: number of contacts: " + mContacts.size());
                 }
@@ -623,14 +623,14 @@ public class MainActivity extends AppCompatActivity implements
             return;
         }
 
-        for(Contact request : mRequests){
+        for(Contact request : mRequests.values()){
             if(request.getCid().equals(userID)){
                 navContactFragment(request, THEIR_REQUEST_PENDING);
                 return;
             }
         }
 
-        for(Contact pending : mPending){
+        for(Contact pending : mPending.values()){
             if(pending.getCid().equals(userID)){
                 navContactFragment(pending, MY_REQUEST_PENDING);
                 return;

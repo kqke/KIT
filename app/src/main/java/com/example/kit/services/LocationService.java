@@ -59,9 +59,6 @@ public class LocationService extends Service {
     private static HashMap<String, Contact> CONTACTS = new HashMap<>();
     private static Location location = new Location("");
     private static ListenerRegistration mContactEventListener;
-    private static final boolean[] notification_sent = new boolean[1];
-    private static final Semaphore semaphore = new Semaphore(1);
-
 
     @Nullable
     @Override
@@ -193,7 +190,6 @@ public class LocationService extends Service {
 
                         Contact contact = doc.toObject(Contact.class);
                         CONTACTS.put(contact.getCid(), contact);
-                        getContactLocation(contact);
                     }
 //                    if(queryDocumentSnapshots.size() == 0){
 //                        mContactsFetched = true;
@@ -225,7 +221,6 @@ public class LocationService extends Service {
     }
 
     private void getContactLocation(final Contact contact){
-        notification_sent[0] = false;
         DocumentReference locRef =
                 FirebaseFirestore.getInstance().collection(getString(R.string.collection_user_locations)).document(contact.getCid());
         locRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -254,20 +249,16 @@ public class LocationService extends Service {
                                             return;
                                         }
                                         Contact uContact = task.getResult().toObject(Contact.class);
-                                        try {
-                                            semaphore.acquire();
-                                        } catch (InterruptedException e){
-                                            Log.e(TAG, "onComplete: ", e );
-                                        }
-                                        if (!notification_sent[0]) {
+                                        if (uContact != null) {
+
                                             FCM.send_FCM_Notification(userLocation.getUser().getToken(), "Proximity Alert",
                                                     "you are close to: " + uContact.getName());
-                                            notification_sent[0] = true;
+
+                                            uContact.setLast_sent(new Date());
+                                            uContact.setInArea(true);
+                                            uContactRef.set(uContact);
+                                            uContactRef.update("inArea", true);
                                         }
-                                        semaphore.release();
-                                        uContact.setLast_sent(new Date());
-                                        uContact.setInArea(true);
-                                        uContactRef.set(uContact);
                                     }
                                 });
                                 NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "1234")
@@ -275,6 +266,10 @@ public class LocationService extends Service {
                                         .setContentText("you are near " + contact.getName())
                                         .setSmallIcon(R.drawable.chef)
                                         .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+                                if (Build.VERSION.SDK_INT >= 26) {
+                                    builder.setChannelId("my_channel_01");
+                                }
 
                                 NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
 
@@ -304,18 +299,18 @@ public class LocationService extends Service {
         });
     }
 
-    private void createNotificationChannel() {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "poximity";
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel("1234", name, importance);
-            // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-
-        }
-    }
+//    private void createNotificationChannel() {
+//        // Create the NotificationChannel, but only on API 26+ because
+//        // the NotificationChannel class is new and not in the support library
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            CharSequence name = "poximity";
+//            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+//            NotificationChannel channel = new NotificationChannel("1234", name, importance);
+//            // Register the channel with the system; you can't change the importance
+//            // or other notification behaviors after this
+//            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+//            notificationManager.createNotificationChannel(channel);
+//
+//        }
+//    }
 }

@@ -12,6 +12,8 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -26,15 +28,22 @@ import com.example.kit.models.Contact;
 import com.example.kit.models.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import static android.widget.LinearLayout.HORIZONTAL;
 
@@ -55,11 +64,17 @@ public class ContactsFragment extends DBGeoFragment implements
     private RecyclerView mContactRecyclerView;
 
     //Contacts
-    private ArrayList<Contact> mContacts = new ArrayList<>();
-    private Set<String> mContactIds = new HashSet<>();
+    private HashMap<String, Contact> mContacts = new HashMap<>();
+    private ArrayList<Contact> mRecyclerList = new ArrayList<>();
 
     //Contacts Callback
     ContactsCallback getData;
+
+    //Listeners
+    private ListenerRegistration mContactEventListener;
+
+    //Vars
+    private ContactsFragment mContactFragment;
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -76,12 +91,20 @@ public class ContactsFragment extends DBGeoFragment implements
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
+        mContactFragment = this;
         getData = (ContactsCallback)context;
-        mContacts = getData.getContacts();
-        mContactIds = getData.getContactIds();
+        mContacts = getData.getId2Contact();
+        mRecyclerList = new ArrayList<>(mContacts.values());
         if (mContactRecyclerAdapter != null){
             mContactRecyclerAdapter.notifyDataSetChanged();
         }
+        initListener();
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mContactEventListener.remove();
     }
 
     @Override
@@ -105,7 +128,7 @@ public class ContactsFragment extends DBGeoFragment implements
     private void initView(View v){
         v.findViewById(R.id.fab).setOnClickListener(this);
         mContactRecyclerView = v.findViewById(R.id.contact_recycler_view);
-        mContactRecyclerAdapter = new ContactRecyclerAdapter(mContacts,
+        mContactRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
                 this, R.layout.layout_contact_list_item);
         mContactRecyclerView.setAdapter(mContactRecyclerAdapter);
         mContactRecyclerAdapter.notifyDataSetChanged();
@@ -132,6 +155,47 @@ public class ContactsFragment extends DBGeoFragment implements
             }
         });
     }
+
+    private void initListener(){
+        CollectionReference contactsCollection = mDb
+                .collection(getString(R.string.collection_users))
+                .document(FirebaseAuth.getInstance().getUid())
+                .collection(getString(R.string.collection_contacts));
+        mContactEventListener = contactsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+                Log.d(TAG, "onEvent: called.");
+                if (e != null) {
+                    Log.e(TAG, "onEvent: Listen failed.", e);
+                    return;
+                }
+                if (queryDocumentSnapshots != null) {
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+
+                        Contact contact = doc.toObject(Contact.class);
+                        mContacts.put(contact.getCid(), contact);
+                        mRecyclerList = new ArrayList<>(mContacts.values());
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            public void run() {
+                                mContactRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
+                                        mContactFragment, R.layout.layout_contact_list_item);
+                                mContactRecyclerView.setAdapter(mContactRecyclerAdapter);
+                                mContactRecyclerAdapter.notifyDataSetChanged();
+                                mContactRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
+                                DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
+                                mContactRecyclerView.addItemDecoration(itemDecor);
+                                mContactRecyclerAdapter.notifyDataSetChanged();
+                            }
+                        });
+
+                        Log.d(TAG, "onEvent: number of contacts: " + mContacts.size());
+
+                    }
+                }
+            }
+        });
+    }
+
 
     /*
     ----------------------------- onClick ---------------------------------

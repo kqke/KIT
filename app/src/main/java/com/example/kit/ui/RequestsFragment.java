@@ -10,6 +10,9 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,8 +22,16 @@ import com.example.kit.R;
 import com.example.kit.adapters.ContactRecyclerAdapter;
 import com.example.kit.models.Contact;
 import com.example.kit.util.RequestHandler;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import static android.widget.LinearLayout.HORIZONTAL;
 
@@ -32,14 +43,21 @@ public class RequestsFragment extends DBGeoFragment implements
     private static final String TAG = "RequestsFragment";
 
     //RecyclerView
-    private ContactRecyclerAdapter mContactRecyclerAdapter;
+    private ContactRecyclerAdapter mRequestsRecyclerAdapter;
     private RecyclerView mRequestsRecyclerView;
+    private ArrayList<Contact> mRecyclerList;
 
     //Requests
-    private ArrayList<Contact> mRequests;
+    private HashMap<String, Contact> mRequests;
 
     //Contacts Callback
     ContactsFragment.ContactsCallback initContactFragment;
+
+    //Listener
+    private ListenerRegistration mRequestEventListener;
+
+    //vars
+    private RequestsFragment mRequestFragment;
 
 //    private static RequestHandler rHandler = new RequestHandler();
 
@@ -58,9 +76,12 @@ public class RequestsFragment extends DBGeoFragment implements
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
+        mRequestFragment = this;
         RequestsCallback getData = (RequestsCallback)context;
         mRequests = getData.getRequests();
+        mRecyclerList = new ArrayList<>(mRequests.values());
         initContactFragment = (ContactsFragment.ContactsCallback)context;
+        initListener();
     }
 
     @Nullable
@@ -75,6 +96,7 @@ public class RequestsFragment extends DBGeoFragment implements
     @Override
     public void onDetach() {
         super.onDetach();
+        mRequestEventListener.remove();
     }
 
     /*
@@ -83,13 +105,13 @@ public class RequestsFragment extends DBGeoFragment implements
 
     private void initView(View v){
         mRequestsRecyclerView = v.findViewById(R.id.requests_recycler_view);
-        mContactRecyclerAdapter = new ContactRecyclerAdapter(mRequests,
+        mRequestsRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
                 this, R.layout.layout_requests_list_item);
-        mRequestsRecyclerView.setAdapter(mContactRecyclerAdapter);
+        mRequestsRecyclerView.setAdapter(mRequestsRecyclerAdapter);
         mRequestsRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
         DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
         mRequestsRecyclerView.addItemDecoration(itemDecor);
-        mContactRecyclerAdapter.notifyDataSetChanged();
+        mRequestsRecyclerAdapter.notifyDataSetChanged();
         initSearchView(v);
     }
 
@@ -98,14 +120,52 @@ public class RequestsFragment extends DBGeoFragment implements
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String queryString) {
-                mContactRecyclerAdapter.getFilter().filter(queryString);
+                mRequestsRecyclerAdapter.getFilter().filter(queryString);
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String queryString) {
-                mContactRecyclerAdapter.getFilter().filter(queryString);
+                mRequestsRecyclerAdapter.getFilter().filter(queryString);
                 return false;
+            }
+        });
+    }
+
+    private void initListener(){
+        CollectionReference requestsCollection = mDb
+                .collection(getString(R.string.collection_users))
+                .document(FirebaseAuth.getInstance().getUid())
+                .collection(getString(R.string.collection_requests));
+        mRequestEventListener = requestsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@javax.annotation.Nullable QuerySnapshot queryDocumentSnapshots, @javax.annotation.Nullable FirebaseFirestoreException e) {
+                Log.d(TAG, "onEvent: called.");
+                if (e != null) {
+                    Log.e(TAG, "onEvent: Listen failed.", e);
+                    return;
+                }
+                if (queryDocumentSnapshots != null) {
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        Contact contact = doc.toObject(Contact.class);
+                        mRequests.put(contact.getCid(), contact);
+                        mRecyclerList = new ArrayList<>(mRequests.values());
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            public void run() {
+                                mRequestsRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
+                                       mRequestFragment, R.layout.layout_requests_list_item);
+                                mRequestsRecyclerView.setAdapter(mRequestsRecyclerAdapter);
+                                mRequestsRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
+                                DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
+                                mRequestsRecyclerView.addItemDecoration(itemDecor);
+                                mRequestsRecyclerAdapter.notifyDataSetChanged();
+                            }
+                        });
+
+                    }
+                    Log.d(TAG, "onEvent: number of contacts: " + mRequests.size());
+                    mRequestsRecyclerAdapter.notifyDataSetChanged();
+                }
             }
         });
     }
@@ -139,14 +199,16 @@ public class RequestsFragment extends DBGeoFragment implements
 
     @Override
     public void onAcceptSelected(int position) {
-        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_ACCEPT_REQUEST, mRequests.get(position), getActivity());
+        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_ACCEPT_REQUEST, mRecyclerList.get(position),
+                getActivity(), this);
         requestDialog.setTargetFragment(RequestsFragment.this, 1);
         requestDialog.show(getFragmentManager(), "RequestsDialogFragment");
     }
 
     @Override
     public void onRejectSelected(int position) {
-        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_REMOVE_REQUEST, mRequests.get(position), getActivity());
+        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_REMOVE_REQUEST, mRecyclerList.get(position),
+                getActivity(), this);
         requestDialog.setTargetFragment(RequestsFragment.this, 1);
         requestDialog.show(getFragmentManager(), "RequestsDialogFragment");
     }
@@ -164,11 +226,43 @@ public class RequestsFragment extends DBGeoFragment implements
     @Override
     public void requestAccepted(String display_name, Contact contact) {
         RequestHandler.handleRequest(contact, display_name, true);
+        for (Contact cont: mRecyclerList) {
+            if (cont.getCid().equals(contact.getCid())) {
+                mRecyclerList.remove(contact);
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    public void run() {
+                        mRequestsRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
+                                mRequestFragment, R.layout.layout_requests_list_item);
+                        mRequestsRecyclerView.setAdapter(mRequestsRecyclerAdapter);
+                        mRequestsRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
+                        DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
+                        mRequestsRecyclerView.addItemDecoration(itemDecor);
+                        mRequestsRecyclerAdapter.notifyDataSetChanged();
+                    }
+                });
+            }
+        }
     }
 
     @Override
     public void requestRemoved(Contact contact) {
         RequestHandler.handleRequest(contact, "", false);
+        for (Contact cont: mRecyclerList) {
+            if (cont.getCid().equals(contact.getCid())) {
+                mRecyclerList.remove(contact);
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    public void run() {
+                        mRequestsRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
+                                mRequestFragment, R.layout.layout_requests_list_item);
+                        mRequestsRecyclerView.setAdapter(mRequestsRecyclerAdapter);
+                        mRequestsRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
+                        DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
+                        mRequestsRecyclerView.addItemDecoration(itemDecor);
+                        mRequestsRecyclerAdapter.notifyDataSetChanged();
+                    }
+                });
+            }
+        }
     }
 
     /*
@@ -176,7 +270,7 @@ public class RequestsFragment extends DBGeoFragment implements
     */
 
     public interface RequestsCallback {
-        ArrayList<Contact> getRequests();
+        HashMap<String, Contact> getRequests();
     }
 
 }

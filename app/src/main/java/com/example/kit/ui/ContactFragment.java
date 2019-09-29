@@ -181,13 +181,13 @@ public class ContactFragment extends DBGeoFragment implements
     }
 
     private void acceptRequest(){
-        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_ACCEPT_REQUEST, mContact, getActivity());
+        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_ACCEPT_REQUEST, mContact, getActivity(), this);
         requestDialog.setTargetFragment(ContactFragment.this, 1);
         requestDialog.show(getFragmentManager(), "RequestsDialogFragment");
     }
 
     private void declineRequest(){
-        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_REMOVE_REQUEST, mContact, getActivity());
+        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_REMOVE_REQUEST, mContact, getActivity(), this);
         requestDialog.setTargetFragment(ContactFragment.this, 1);
         requestDialog.show(getFragmentManager(), "RequestsDialogFragment");
     }

@@ -40,10 +40,12 @@ public class RequestsDialogFragment extends DialogFragment {
     private int type;
     private Contact contact;
     private Activity mActivity;
+    private DBGeoFragment requestsFragment;
 
-    public RequestsDialogFragment(int type, Contact contact, Activity activity){
+    public RequestsDialogFragment(int type, Contact contact, Activity activity, DBGeoFragment requestsFragment){
         super();
         this.mActivity = activity;
+        this.requestsFragment = requestsFragment;
         this.type = type;
         this.contact = contact;
     }
@@ -87,7 +89,7 @@ public class RequestsDialogFragment extends DialogFragment {
                         } else {
                             Toast.makeText(getActivity(), "Enter a name", Toast.LENGTH_SHORT).show();
                         }
-                            mOnInputSelected.requestAccepted(input, contact);
+//                            mOnInputSelected.requestAccepted(input, contact);
                         break;
 
 
@@ -110,7 +112,7 @@ public class RequestsDialogFragment extends DialogFragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         try{
-            mOnInputSelected = (OnInputSelected) mActivity;
+            mOnInputSelected = (OnInputSelected) requestsFragment;
         }catch (ClassCastException e){
             Log.e(TAG, "onAttach: ClassCastException : " + e.getMessage() );
         }

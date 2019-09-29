@@ -6,24 +6,28 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.Toast;
 
-import com.example.kit.Constants;
 import com.example.kit.R;
 import com.example.kit.adapters.ContactRecyclerAdapter;
 import com.example.kit.models.Contact;
-import com.example.kit.util.RequestHandler;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import static android.widget.LinearLayout.HORIZONTAL;
 
@@ -35,14 +39,19 @@ public class PendingFragment extends DBGeoFragment implements
     private static final String TAG = "PendingFragment";
 
     //RecyclerView
-    private ContactRecyclerAdapter mContactRecyclerAdapter;
+    private ContactRecyclerAdapter mPendingRecyclerAdapter;
     private RecyclerView mPendingRecyclerView;
+    private ArrayList<Contact> mRecyclerList;
 
     //Requests
-    private ArrayList<Contact> mPending;
+    private HashMap<String, Contact> mPending;
 
     //Contacts Callback
     ContactsFragment.ContactsCallback initContactFragment;
+
+    //Listener
+    private ListenerRegistration mPendingEventListener;
+
 
 //    private static RequestHandler rHandler = new RequestHandler();
 
@@ -63,7 +72,9 @@ public class PendingFragment extends DBGeoFragment implements
         super.onAttach(context);
         PendingCallback getData = (PendingCallback)context;
         mPending = getData.getPending();
+        mRecyclerList = new ArrayList<>(mPending.values());
         initContactFragment = (ContactsFragment.ContactsCallback)context;
+        initListener();
     }
 
     @Nullable
@@ -78,6 +89,7 @@ public class PendingFragment extends DBGeoFragment implements
     @Override
     public void onDetach() {
         super.onDetach();
+        mPendingEventListener.remove();
     }
 
     /*
@@ -86,13 +98,13 @@ public class PendingFragment extends DBGeoFragment implements
 
     private void initView(View v){
         mPendingRecyclerView = v.findViewById(R.id.pending_recycler_view);
-        mContactRecyclerAdapter = new ContactRecyclerAdapter(mPending,
+        mPendingRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
                 this, R.layout.layout_pending_list_item);
-        mPendingRecyclerView.setAdapter(mContactRecyclerAdapter);
+        mPendingRecyclerView.setAdapter(mPendingRecyclerAdapter);
         mPendingRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
         DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
         mPendingRecyclerView.addItemDecoration(itemDecor);
-        mContactRecyclerAdapter.notifyDataSetChanged();
+        mPendingRecyclerAdapter.notifyDataSetChanged();
         initSearchView(v);
     }
 
@@ -101,14 +113,41 @@ public class PendingFragment extends DBGeoFragment implements
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String queryString) {
-                mContactRecyclerAdapter.getFilter().filter(queryString);
+                mPendingRecyclerAdapter.getFilter().filter(queryString);
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String queryString) {
-                mContactRecyclerAdapter.getFilter().filter(queryString);
+                mPendingRecyclerAdapter.getFilter().filter(queryString);
                 return false;
+            }
+        });
+    }
+
+    private void initListener(){
+        CollectionReference pendingCollection = mDb
+                .collection(getString(R.string.collection_users))
+                .document(FirebaseAuth.getInstance().getUid())
+                .collection(getString(R.string.collection_pending));
+        mPendingEventListener = pendingCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@javax.annotation.Nullable QuerySnapshot queryDocumentSnapshots, @javax.annotation.Nullable FirebaseFirestoreException e) {
+                Log.d(TAG, "onEvent: called.");
+                if (e != null) {
+                    Log.e(TAG, "onEvent: Listen failed.", e);
+                    return;
+                }
+                if (queryDocumentSnapshots != null) {
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        Contact contact = doc.toObject(Contact.class);
+                        mPending.put(contact.getCid(), contact);
+                        mRecyclerList = new ArrayList<>(mPending.values());
+                        mPendingRecyclerView.getAdapter().notifyDataSetChanged();
+                    }
+                    Log.d(TAG, "onEvent: number of contacts: " + mPending.size());
+
+                }
             }
         });
     }
@@ -165,7 +204,7 @@ public class PendingFragment extends DBGeoFragment implements
     */
 
     public interface PendingCallback {
-        ArrayList<Contact> getPending();
+        HashMap<String, Contact> getPending();
     }
 
 }
