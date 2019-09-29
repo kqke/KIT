@@ -60,17 +60,23 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import static com.example.kit.Constants.CONTACT;
+import static com.example.kit.Constants.CONTACT_STATE;
 import static com.example.kit.Constants.ERROR_DIALOG_REQUEST;
+import static com.example.kit.Constants.FRIENDS;
+import static com.example.kit.Constants.MY_REQUEST_PENDING;
+import static com.example.kit.Constants.NOT_FRIENDS;
 import static com.example.kit.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 import static com.example.kit.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
+import static com.example.kit.Constants.THEIR_REQUEST_PENDING;
 
 public class MainActivity extends AppCompatActivity implements
         ContactsFragment.ContactsCallback,
         ChatsFragment.ChatroomsCallback,
         RequestsFragment.RequestsCallback,
         MapFragment.MapCallBack,
-        RequestsDialogFragment.OnInputSelected
-
+        RequestsDialogFragment.OnInputSelected,
+        PendingFragment.PendingCallback
 {
     //TODO
     // chat crashes on orientation change
@@ -110,6 +116,7 @@ public class MainActivity extends AppCompatActivity implements
     private static final String MAP_FRAG = "MAP_FRAG";
     private static final String CONATCTS_FRAG = "CONTACTS_FRAG";
     private static final String PROFLE_FRAG = "PROFILE_FRAG";
+    private static final String CONTACT_FRAG = "CONTACT_FRAG";
     private FragmentTransaction ft;
 
     //Firebase
@@ -133,6 +140,11 @@ public class MainActivity extends AppCompatActivity implements
     private ArrayList<Contact> mRequests = new ArrayList<>();
     private ListenerRegistration mRequestEventListener;
     private boolean mRequestsFetched;
+
+    //Pending
+    private ArrayList<Contact> mPending = new ArrayList<>();
+    private ListenerRegistration mPendingEventListener;
+    private boolean mPendingFetched;
 
     //Chatrooms
     private ArrayList<UChatroom> mChatrooms = new ArrayList<>();
@@ -182,6 +194,9 @@ public class MainActivity extends AppCompatActivity implements
         }
         if (mRequestEventListener != null) {
             mRequestEventListener.remove();
+        }
+        if (mPendingEventListener != null) {
+            mPendingEventListener.remove();
         }
     }
 
@@ -269,7 +284,11 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void checkReady () {
-        if (mContactsFetched && mLocationFetched && mChatroomsFetched && mRequestsFetched) {
+        if (mContactsFetched &&
+                mLocationFetched &&
+                mChatroomsFetched &&
+                mRequestsFetched &&
+                mPendingFetched) {
             mContactLocations.add(mUserLocation);
             initView();
     }
@@ -279,18 +298,18 @@ public class MainActivity extends AppCompatActivity implements
     ----------------------------- onClick ---------------------------------
     */
 
-        @Override
-        public boolean onOptionsItemSelected (MenuItem item){
-            // Handle action bar item clicks here. The action bar will
-            // automatically handle clicks on the Home/Up button, so long
-            // as you specify a parent activity in AndroidManifest.xml.
-            int id = item.getItemId();
-            if (id == R.id.action_settings) {
-                navSettingsActivity();
-                return true;
-            }
-            return super.onOptionsItemSelected(item);
+    @Override
+    public boolean onOptionsItemSelected (MenuItem item){
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+        if (id == R.id.action_settings) {
+            navSettingsActivity();
+            return true;
         }
+        return super.onOptionsItemSelected(item);
+    }
 
     /*
     ----------------------------- ContactsCallback ---------------------------------
@@ -313,6 +332,11 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void initContactFragment(String contactID) {
+        if(!isDestroyed() && !isFinishing()) {
+            ft = getSupportFragmentManager().beginTransaction();
+            ft.add(R.id.fragment_container, LoadingFragment.newInstance(), LOADING_FRAG)
+                    .commit();
+        }
         fetchUser(contactID);
     }
 
@@ -353,6 +377,16 @@ public class MainActivity extends AppCompatActivity implements
         return mRequests;
     }
 
+
+    /*
+    ----------------------------- Pending Callback ---------------------------------
+    */
+
+    @Override
+    public ArrayList<Contact> getPending() {
+        return mPending;
+    }
+
     /*
     ----------------------------- Requests Dialog Fragment Callback ---------------------------------
     */
@@ -374,6 +408,15 @@ public class MainActivity extends AppCompatActivity implements
     private void navSettingsActivity () {
         Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
+    }
+
+    private void navContactFragment(Contact contact, String state){
+        ContactFragment contactFrag = ContactFragment.newInstance();
+        Bundle args = new Bundle();
+        args.putParcelable(CONTACT, contact);
+        args.putString(CONTACT_STATE, state);
+        contactFrag.setArguments(args);
+        replaceFragment(contactFrag, CONTACT_FRAG);
     }
 
     /*
@@ -541,9 +584,74 @@ public class MainActivity extends AppCompatActivity implements
         });
     }
 
-    private void fetchUser(String userID){
+    private void fetchPending(){
+        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder().build();
+        mDb.setFirestoreSettings(settings);
+        CollectionReference contactsCollection = mDb
+                .collection(getString(R.string.collection_users))
+                .document(FirebaseAuth.getInstance().getUid())
+                .collection(getString(R.string.collection_pending));
+        mPendingEventListener = contactsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+                Log.d(TAG, "onEvent: called.");
+                if (e != null) {
+                    Log.e(TAG, "onEvent: Listen failed.", e);
+                    return;
+                }
+                if (queryDocumentSnapshots != null) {
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        Contact contact = doc.toObject(Contact.class);
+                        mPending.add(contact);
+                    }
+                    Log.d(TAG, "onEvent: number of contacts: " + mContacts.size());
+                }
+                mPendingFetched = true;
+                checkReady();
+            }
+        });
+    }
+
+    private void fetchUser(final String userID){
+        if(mContactIds.contains(userID)){
+            Contact contact = mId2Contact.get(userID);
+            navContactFragment(contact, FRIENDS);
+            return;
+        }
+
+        for(Contact request : mRequests){
+            if(request.getCid().equals(userID)){
+                navContactFragment(request, THEIR_REQUEST_PENDING);
+                return;
+            }
+        }
+
+        for(Contact pending : mPending){
+            if(pending.getCid().equals(userID)){
+                navContactFragment(pending, MY_REQUEST_PENDING);
+                return;
+            }
+        }
+
+        final Contact contact = new Contact();
+        DocumentReference userRef = mDb.collection(getString(R.string.collection_users))
+                .document(userID);
+        userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    Log.d(TAG, "onComplete: successfully found contact.");
+                    User user = task.getResult().toObject(User.class);
+                    contact.setCid(userID);
+                    contact.setName(user.getUsername());
+                    contact.setAvatar(user.getAvatar());
+                    navContactFragment(contact, NOT_FRIENDS);
+                }
+            }
+        });
 
     }
+
 
     /*
     ----------------------------- Location ---------------------------------
@@ -583,6 +691,7 @@ public class MainActivity extends AppCompatActivity implements
             getUserDetails();
             fetchContacts();
             fetchRequests();
+            fetchPending();
             fetchChatrooms();
         } else {
             ActivityCompat.requestPermissions(this,

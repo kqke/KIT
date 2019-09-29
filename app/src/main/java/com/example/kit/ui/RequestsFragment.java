@@ -38,6 +38,9 @@ public class RequestsFragment extends DBGeoFragment implements
     //Requests
     private ArrayList<Contact> mRequests;
 
+    //Contacts Callback
+    ContactsFragment.ContactsCallback initContactFragment;
+
 //    private static RequestHandler rHandler = new RequestHandler();
 
     /*
@@ -57,6 +60,7 @@ public class RequestsFragment extends DBGeoFragment implements
         super.onAttach(context);
         RequestsCallback getData = (RequestsCallback)context;
         mRequests = getData.getRequests();
+        initContactFragment = (ContactsFragment.ContactsCallback)context;
     }
 
     @Nullable
@@ -112,7 +116,7 @@ public class RequestsFragment extends DBGeoFragment implements
 
     @Override
     public void onContactSelected(final int position) {
-
+        initContactFragment.initContactFragment(mRequests.get(position).getCid());
     }
 //        android.app.AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
 //        builder.setTitle("Accept Friend Request?");

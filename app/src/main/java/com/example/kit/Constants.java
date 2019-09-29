@@ -31,4 +31,6 @@ public class Constants {
     public static final String FRIENDS = "friends";
     public static final String MY_REQUEST_PENDING = "my_req_pending";
     public static final String THEIR_REQUEST_PENDING = "their_req_pending";
+    public static final String CONTACT = "contact";
+    public static final String CONTACT_STATE = "contact_state";
 }
