@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="30dp">
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:id="@+id/avatar"
+        android:src="@drawable/cartman_cop"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        />
+
+    <TextView
+        android:id="@+id/profile_displayName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/avatar"
+        android:text="DISPLAY NAME"
+        android:textColor="@android:color/holo_green_dark"
+        android:textSize="28sp" />
+
+    <TextView
+        android:id="@+id/wants_to_meet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/profile_displayName"
+        android:layout_centerHorizontal="true"
+        android:text="WANTS TO MEET YOU"
+        />
+
+    <TextView
+        android:id="@+id/date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/wants_to_meet"
+        android:layout_centerHorizontal="true"
+        android:text="DATE"
+        />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@+id/date"
+        android:layout_centerHorizontal="true">
+
+        <Button
+            android:id="@+id/set"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="SET"
+            android:layout_below="@+id/date"
+            android:textColor="@android:color/holo_green_dark"
+            android:drawableTop="@drawable/ic_schedule"
+            style="?android:attr/borderlessButtonStyle" />
+
+        <Button
+            android:id="@+id/reschedule"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="RESCHEDULE"
+            android:layout_below="@+id/date"
+            android:layout_toEndOf="@+id/set"
+            android:textColor="@android:color/holo_red_dark"
+            android:drawableTop="@drawable/ic_reschedule"
+
+            style="?android:attr/borderlessButtonStyle" />
+
+
+    </LinearLayout>
+
+
+</RelativeLayout>
