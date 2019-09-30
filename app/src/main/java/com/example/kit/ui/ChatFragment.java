@@ -35,6 +35,7 @@ import com.example.kit.util.FCM;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -337,6 +338,7 @@ public class ChatFragment extends DBGeoFragment implements
                                     mMessageIds.add(message.getMessage_id());
                                     mMessages.add(message);
                                     mChatMessageRecyclerView.smoothScrollToPosition(mMessages.size() - 1);
+                                    mDb.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_user_chatrooms)).document(mChatroom.getChatroom_id()).update("read_last_message", true);
                                 }
 
                             }
@@ -372,10 +374,9 @@ public class ChatFragment extends DBGeoFragment implements
                     if(task.isSuccessful()){
                         String uid = user.getUser_id();
                         for (final User u: mUserList){
-                            final DocumentReference uChatRef = mDb
-                                    .collection(getString(R.string.collection_users))
-                                    .document(uid).collection(getString(R.string.collection_user_chatrooms)).document(mChatroom.getChatroom_id());
-                            uChatRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            mDb.collection(getString(R.string.collection_users))
+                                    .document(u.getUser_id()).collection(getString(R.string.collection_user_chatrooms))
+                                    .document(mChatroom.getChatroom_id()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                                 @Override
                                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                                     if (task.isSuccessful()){
@@ -385,7 +386,9 @@ public class ChatFragment extends DBGeoFragment implements
                                         if (!u.getUser_id().equals(user.getUser_id())){
                                             uChatroom.setRead_last_message(false);
                                         }
-                                        uChatRef.set(uChatroom).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        DocumentReference chatRef =
+                                                mDb.collection(getString(R.string.collection_users)).document(u.getUser_id()).collection(getString(R.string.collection_user_chatrooms)).document(mChatroom.getChatroom_id());
+                                        mDb.collection(getString(R.string.collection_users)).document(u.getUser_id()).collection(getString(R.string.collection_user_chatrooms)).document(mChatroom.getChatroom_id()).set(uChatroom).addOnCompleteListener(new OnCompleteListener<Void>() {
                                             @Override
                                             public void onComplete(@NonNull Task<Void> task) {
                                                 if (u.getUser_id().equals(user.getUser_id())) {return;}
