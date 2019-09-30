@@ -14,6 +14,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
@@ -486,6 +487,8 @@ public class MainActivity extends AppCompatActivity implements
                 }
             });
         }
+//        mLocationFetched = true;
+//        checkReady();
     }
 
     private void fetchContacts () {
@@ -532,7 +535,7 @@ public class MainActivity extends AppCompatActivity implements
                 if (task.isSuccessful()){
                     UserLocation userLocation = task.getResult().toObject(UserLocation.class);
                     if (userLocation != null){
-                        userLocation.getUser().setUsername(user.getUsername());
+                        userLocation.getUser().setUsername(user.getName());
                         mContactLocations.add(userLocation);
                         if (mContactLocations.size() == numTotal){
                             mContactsFetched = true;
@@ -665,7 +668,6 @@ public class MainActivity extends AppCompatActivity implements
                     contact.setCid(userID);
                     contact.setName(user.getUsername());
                     contact.setAvatar(user.getAvatar());
-                    contact.setStatus(user.getStatus());
                     navContactFragment(contact, NOT_FRIENDS);
                 }
             }
@@ -812,8 +814,7 @@ public class MainActivity extends AppCompatActivity implements
         final DocumentReference userRef = fs.collection(Constants.COLLECTION_USERS).document(uid);
         if (accepted) {
             userRef.collection(Constants.COLLECTION_CONTACTS).document(contact.getCid()).set(new Contact(display_name,
-                    contact.getUsername(), contact.getAvatar(), contact.getCid(), contact.getStatus()))
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    contact.getUsername(), contact.getAvatar(), contact.getCid(), contact.getStatus())).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     userRef.collection(Constants.COLLECTION_REQUESTS).document(contact.getCid()).delete();
