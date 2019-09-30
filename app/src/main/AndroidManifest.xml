@@ -30,7 +30,6 @@
             android:launchMode="singleTop"
             android:windowSoftInputMode="adjustPan"/>
         <activity android:name=".ui.ChatroomActivity" />
-        <activity android:name=".ui.ProfileActivity" />
         <activity android:name=".ui.AddContactsActivity" />
         <activity android:name=".ui.NewMessageActivity" />
         <activity android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
@@ -38,6 +37,10 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_api_key" />
+
+        <meta-data android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/chef"/>
+
 
         <meta-data
             android:name="com.google.android.gms.version"
