@@ -15,6 +15,9 @@ import android.view.ViewGroup;
 
 import com.example.kit.R;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ContactsRequestsPendingFragment extends Fragment {
 
     //TODO
@@ -63,22 +66,20 @@ public class ContactsRequestsPendingFragment extends Fragment {
                 "Pending"
         };
 
+        private List<Fragment> fragments;
+
         private ContactsViewPagerAdapter(FragmentManager manager) {
             super(manager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
+            this.fragments = new ArrayList<>();
+            this.fragments.add(0, ContactsFragment.newInstance());
+            this.fragments.add(1, RequestsFragment.newInstance());
+            this.fragments.add(2, PendingFragment.newInstance());
         }
 
         @Override
         @NonNull
         public Fragment getItem(int position) {
-            switch(position){
-                case 0:
-                    return ContactsFragment.newInstance();
-                case 1:
-                    return RequestsFragment.newInstance();
-                case 2:
-                    return PendingFragment.newInstance();
-            }
-            return null; // not reachable
+            return fragments.get(position);
         }
 
         @Override

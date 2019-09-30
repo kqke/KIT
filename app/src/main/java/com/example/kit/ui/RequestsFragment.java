@@ -9,6 +9,7 @@ import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import de.hdodenhof.circleimageview.CircleImageView;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -16,7 +17,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.kit.Constants;
 import com.example.kit.R;
 import com.example.kit.adapters.ContactRecyclerAdapter;
@@ -284,6 +288,7 @@ public class RequestsFragment extends DBGeoFragment implements
     public void onContactLongClick(final int position) {
 
     }
+
 
     @Override
     public void requestAccepted(String display_name, Contact contact) {
