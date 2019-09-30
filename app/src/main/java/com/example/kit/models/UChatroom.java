@@ -3,9 +3,14 @@ package com.example.kit.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.Date;
+
 public class UChatroom implements Parcelable {
     private String display_name;
     private String chatroom_id;
+    private String last_message;
+    private Date time_last_sent;
+    private boolean read_last_message;
     private boolean group;
     private int numUsers;
 
@@ -13,6 +18,9 @@ public class UChatroom implements Parcelable {
     public UChatroom(String display_name, String chatroom_id, boolean isGroup) {
         this.display_name = display_name;
         this.chatroom_id = chatroom_id;
+        last_message = "";
+        time_last_sent = new Date();
+        read_last_message = false;
         this.group = isGroup;
         this.numUsers = 2;
     }
@@ -20,6 +28,9 @@ public class UChatroom implements Parcelable {
     public UChatroom(String display_name, String chatroom_id, boolean isGroup, int numUsers) {
         this.display_name = display_name;
         this.chatroom_id = chatroom_id;
+        last_message = "";
+        time_last_sent = new Date();
+        read_last_message = false;
         this.group = isGroup;
         this.numUsers = numUsers;
         }
@@ -31,6 +42,9 @@ public class UChatroom implements Parcelable {
     public UChatroom(Parcel in) {
         display_name = in.readString();
         chatroom_id = in.readString();
+        last_message = in.readString();
+        time_last_sent = new Date(in.readLong());
+        read_last_message = in.readInt() == 1;
         group = in.readInt() == 1;
         numUsers = in.readInt();
         }
@@ -64,6 +78,30 @@ public class UChatroom implements Parcelable {
         this.chatroom_id = chatroom_id;
     }
 
+    public String getLast_message() {
+        return last_message;
+    }
+
+    public void setLast_message(String last_message) {
+        this.last_message = last_message;
+    }
+
+    public Date getTime_last_sent() {
+        return time_last_sent;
+    }
+
+    public void setTime_last_sent(Date time_last_sent) {
+        this.time_last_sent = time_last_sent;
+    }
+
+    public boolean isRead_last_message() {
+        return read_last_message;
+    }
+
+    public void setRead_last_message(boolean read_last_message) {
+        this.read_last_message = read_last_message;
+    }
+
     public boolean isGroup() {
         return group;
     }
@@ -81,6 +119,9 @@ public class UChatroom implements Parcelable {
         return "UChatroom{" +
                 "display_name='" + display_name + '\'' +
                 ", chatroom_id='" + chatroom_id + '\'' +
+                ", last_message='" + last_message + '\'' +
+                ", time_last_sent='" + time_last_sent.getTime() + '\'' +
+                ", read_last_message='" + read_last_message + '\'' +
                 ", isGroup='" + group + '\'' +
                 ", numUsers='" + numUsers + '\'' +
                 '}';
@@ -95,6 +136,9 @@ public class UChatroom implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(display_name);
         dest.writeString(chatroom_id);
+        dest.writeString(last_message);
+        dest.writeLong(time_last_sent.getTime());
+        dest.writeInt(read_last_message ? 1:0);
         dest.writeInt(group ? 1:0);
         dest.writeInt(numUsers);
     }

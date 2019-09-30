@@ -119,6 +119,8 @@ public class Contact implements Parcelable
                 ", avatar='" + avatar + '\'' +
                 ", cid='" + cid + '\'' +
                 ", status='" + status + '\'' +
+                ", last_sent='" + last_sent + '\'' +
+                ", inArea='" + inArea + '\'' +
                 '}';
     }
 

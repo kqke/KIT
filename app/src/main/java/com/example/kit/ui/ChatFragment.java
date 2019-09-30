@@ -33,6 +33,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -314,8 +315,31 @@ public class ChatFragment extends DBGeoFragment implements
                     if(task.isSuccessful()){
                         String uid = user.getUser_id();
                         for (final User u: mUserList){
-                            if (u.getUser_id().equals(uid)) {continue;}
-                            FCM.send_FCM_Notification(u.getToken(), "message", newChatMessage.getMessage());
+                            final DocumentReference uChatRef = mDb
+                                    .collection(getString(R.string.collection_users))
+                                    .document(uid).collection(getString(R.string.collection_user_chatrooms)).document(mChatroom.getChatroom_id());
+                            uChatRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                    if (task.isSuccessful()){
+                                        UChatroom uChatroom = task.getResult().toObject(UChatroom.class);
+                                        uChatroom.setLast_message(newChatMessage.getMessage());
+                                        uChatroom.setTime_last_sent(new Date());
+                                        if (!u.getUser_id().equals(user.getUser_id())){
+                                            uChatroom.setRead_last_message(false);
+                                        }
+                                        uChatRef.set(uChatroom).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                if (u.getUser_id().equals(user.getUser_id())) {return;}
+                                                FCM.send_FCM_Notification(u.getToken(), "message", newChatMessage.getMessage());
+                                            }
+                                        });
+
+                                    }
+                                }
+                            });
+
                         }
                         clearMessage();
                     }else{
