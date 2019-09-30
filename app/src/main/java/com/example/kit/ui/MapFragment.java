@@ -306,6 +306,9 @@ public class MapFragment extends DBGeoFragment implements
             }
             System.out.println(mContactLocations.toString());
             for (UserLocation userLocation : mContactLocations) {
+
+                if (userLocation.isIncognito()) { continue; }
+
                 Log.d(TAG, "addMapMarkers: location: " + userLocation.getGeo_point().toString());
                 try {
                     String snippet = "";
