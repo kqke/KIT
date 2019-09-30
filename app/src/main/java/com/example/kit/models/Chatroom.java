@@ -10,7 +10,7 @@ public class Chatroom implements Parcelable {
     private String user2;
     private String chatroom_id;
     private String group_name;
-    private boolean isGroup;
+    private boolean group;
     private int numUsers;
 
 
@@ -19,7 +19,7 @@ public class Chatroom implements Parcelable {
         this.user2 = user2;
         this.chatroom_id = chatroom_id;
         this.group_name = "default";
-        this.isGroup = false;
+        this.group = false;
         this.numUsers = 2;
 
     }
@@ -29,7 +29,7 @@ public class Chatroom implements Parcelable {
         this.user2 = "";
         this.chatroom_id = chatroom_id;
         this.group_name = group_name;
-        this.isGroup = true;
+        this.group = true;
         this.numUsers = numUsers;
 
     }
@@ -43,7 +43,7 @@ public class Chatroom implements Parcelable {
         user2 = in.readString();
         chatroom_id = in.readString();
         group_name = in.readString();
-        isGroup = in.readInt() == 1;
+        group = in.readInt() == 1;
         numUsers = in.readInt();
     }
 
@@ -92,10 +92,10 @@ public class Chatroom implements Parcelable {
         this.group_name = group_name;
     }
 
-    public void setGroup(boolean group) { isGroup = group; }
+    public void setGroup(boolean group) { group = group; }
 
     public boolean isGroup() {
-        return isGroup;
+        return group;
     }
 
     public int getNumUsers() {
@@ -113,6 +113,7 @@ public class Chatroom implements Parcelable {
                 ", user2='" + user2 + '\'' +
                 ", chatroom_id='" + chatroom_id + '\'' +
                 ", group_name='" + group_name + '\'' +
+                ", isGroup='" + group + '\'' +
                 ", numUsers='" + numUsers + '\'' +
                 '}';
     }
@@ -128,7 +129,7 @@ public class Chatroom implements Parcelable {
         dest.writeString(user2);
         dest.writeString(chatroom_id);
         dest.writeString(group_name);
-        dest.writeInt(isGroup ? 1:0);
+        dest.writeInt(group ? 1:0);
         dest.writeInt(numUsers);
     }
 
