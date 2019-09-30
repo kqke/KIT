@@ -24,6 +24,7 @@ public class Constants {
     public static final String ACCEPT_REQUEST = "Are You Sure You Want to Accept the Request?";
     public static final int GET_REMOVE_REQUEST = 3;
     public static final String REMOVE_REQUEST = "Are You Sure You Want to Remove the Request?";
+    public static final int GET_REMOVE_CONTACT = 5;
     public static final String COLLECTION_USERS = "Users";
     public static final String COLLECTION_CONTACTS = "Contacts";
     public static final String COLLECTION_REQUESTS = "Requests";

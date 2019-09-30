@@ -1,7 +1,7 @@
 TODO
-- Proximity notifications // almost done
-- Pending Fragment
-- Contact Fragment
+- Proximity notifications // done
+- Pending Fragment // loading requests for some reason
+- Contact Fragment // I think it's done
 - Account Settings
 - Privacy Settings
 - UI finishes

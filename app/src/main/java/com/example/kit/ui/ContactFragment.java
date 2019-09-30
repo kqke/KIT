@@ -22,6 +22,7 @@ import com.example.kit.R;
 import com.example.kit.UserClient;
 import com.example.kit.models.Contact;
 import com.example.kit.util.UsernameValidator;
+import com.google.firebase.auth.FirebaseAuth;
 
 import static android.view.View.VISIBLE;
 import static com.example.kit.Constants.CONTACT;
@@ -32,7 +33,7 @@ import static com.example.kit.Constants.NOT_FRIENDS;
 import static com.example.kit.Constants.THEIR_REQUEST_PENDING;
 
 public class ContactFragment extends DBGeoFragment implements
-        View.OnClickListener{
+        View.OnClickListener, ContactDialogFragment.OnInputSelected{
 
     //Tag
     private static final String TAG = "ConatactFragment";
@@ -247,10 +248,33 @@ public class ContactFragment extends DBGeoFragment implements
     }
 
     private void deleteRequest(){
-
+        ContactDialogFragment contactDialogFragment = new ContactDialogFragment(Constants.GET_REMOVE_REQUEST, mContact, getActivity(), this);
+        contactDialogFragment.setTargetFragment(ContactFragment.this, 1);
+        contactDialogFragment.show(getFragmentManager(), "RequestsDialogFragment");
     }
 
     private void deleteContact(){
+        ContactDialogFragment contactDialogFragment = new ContactDialogFragment(Constants.GET_REMOVE_CONTACT, mContact, getActivity(), this);
+        contactDialogFragment.setTargetFragment(ContactFragment.this, 1);
+        contactDialogFragment.show(getFragmentManager(), "RequestsDialogFragment");
 
+    }
+
+    @Override
+    public void removeContact(Contact contact) {
+        String uid = FirebaseAuth.getInstance().getUid();
+        mDb.collection(getString(R.string.collection_users)).document(contact.getCid()).collection(getString(R.string.collection_contacts)).document(uid).delete();
+        mDb.collection(getString(R.string.collection_users)).document(uid).collection(getString(R.string.collection_contacts)).document(contact.getCid()).delete();
+        mDeleteBtn.setClickable(false);
+        mDeleteBtn.setVisibility(View.INVISIBLE);
+    }
+
+    @Override
+    public void removeRequest(Contact contact) {
+        String uid = FirebaseAuth.getInstance().getUid();
+        mDb.collection(getString(R.string.collection_users)).document(contact.getCid()).collection(getString(R.string.collection_pending)).document(uid).delete();
+        mDb.collection(getString(R.string.collection_users)).document(uid).collection(getString(R.string.collection_requests)).document(contact.getCid()).delete();
+        mDeleteReqBtn.setClickable(false);
+        mDeleteReqBtn.setVisibility(View.INVISIBLE);
     }
 }
