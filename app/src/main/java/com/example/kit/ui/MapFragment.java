@@ -315,9 +315,9 @@ public class MapFragment extends DBGeoFragment implements
                         snippet = "Determine route to " + userLocation.getUser().getUsername() + "?";
                     }
 
-                    int avatar = R.drawable.cartman_cop; // set the default avatar
+                    String avatar = ""; // set the default avatar
                     try {
-                        avatar = Integer.parseInt(userLocation.getUser().getAvatar());
+                        avatar = userLocation.getUser().getAvatar();
                     } catch (NumberFormatException e) {
                         Log.d(TAG, "addMapMarkers: no avatar for " + userLocation.getUser().getUsername() + ", setting default.");
                     }
