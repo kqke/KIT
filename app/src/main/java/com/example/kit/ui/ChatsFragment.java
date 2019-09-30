@@ -11,6 +11,8 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,14 +20,24 @@ import android.view.ViewGroup;
 
 import com.example.kit.R;
 import com.example.kit.adapters.ChatroomRecyclerAdapter;
+import com.example.kit.adapters.ContactRecyclerAdapter;
 import com.example.kit.models.Contact;
 import com.example.kit.models.UChatroom;
 import com.example.kit.models.UserLocation;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.EventListener;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import static android.widget.LinearLayout.HORIZONTAL;
 import static com.example.kit.Constants.CHATROOM;
@@ -64,6 +76,9 @@ public class ChatsFragment extends DBGeoFragment implements
     //Location
     private UserLocation mUserLocation;
 
+    ListenerRegistration mChatsEventListener;
+    ChatroomRecyclerAdapter.ChatroomRecyclerClickListener listener;
+
     /*
     ----------------------------- Lifecycle ---------------------------------
     */
@@ -86,6 +101,8 @@ public class ChatsFragment extends DBGeoFragment implements
         mChatrooms = getChatroomsData.getChatrooms();
         mChatroomIds = getChatroomsData.getChatroomIds();
         mUserLocation = getChatroomsData.getUserLocation();
+        listener = this;
+        initListener();
     }
 
     @Override
@@ -132,6 +149,50 @@ public class ChatsFragment extends DBGeoFragment implements
             public boolean onQueryTextChange(String queryString) {
                 mChatroomRecyclerAdapter.getFilter().filter(queryString);
                 return false;
+            }
+        });
+    }
+
+    private void initListener(){
+        CollectionReference chatsCollection = mDb
+                .collection(getString(R.string.collection_users))
+                .document(FirebaseAuth.getInstance().getUid())
+                .collection(getString(R.string.collection_user_chatrooms));
+        mChatsEventListener = chatsCollection.addSnapshotListener(new com.google.firebase.firestore.EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+                Log.d(TAG, "onEvent: called.");
+                if (e != null) {
+                    Log.e(TAG, "onEvent: Listen failed.", e);
+                    return;
+                }
+                if (queryDocumentSnapshots != null) {
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+
+                        UChatroom uChatroom = doc.toObject(UChatroom.class);
+                        if (mChatroomIds.contains(uChatroom.getChatroom_id())) {
+                            mChatrooms.add(uChatroom);
+                            notifyRecyclerAdapter();
+                        }
+
+                        Log.d(TAG, "onEvent: number of contacts: " + mContacts.size());
+
+                    }
+                }
+            }
+        });
+    }
+
+    private void notifyRecyclerAdapter(){
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            public void run() {
+                mChatroomRecyclerAdapter = new ChatroomRecyclerAdapter(mChatrooms, listener);
+                mChatroomRecyclerView.setAdapter(mChatroomRecyclerAdapter);
+                mChatroomRecyclerAdapter.notifyDataSetChanged();
+                mChatroomRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
+                DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
+                mChatroomRecyclerView.addItemDecoration(itemDecor);
+                mChatroomRecyclerAdapter.notifyDataSetChanged();
             }
         });
     }
