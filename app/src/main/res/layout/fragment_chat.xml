@@ -48,7 +48,7 @@
                 android:layout_toEndOf="@+id/lets_meet"
                 android:gravity="center_vertical"
                 android:textSize="14sp"
-                android:hint="new message..."
+                android:hint="new message"
                 android:textColor="@color/Black"
                 android:layout_marginStart="5dp"/>
 

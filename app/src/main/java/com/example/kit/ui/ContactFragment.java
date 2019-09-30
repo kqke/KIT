@@ -10,7 +10,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
@@ -18,6 +21,7 @@ import com.example.kit.Constants;
 import com.example.kit.R;
 import com.example.kit.UserClient;
 import com.example.kit.models.Contact;
+import com.example.kit.util.UsernameValidator;
 
 import static android.view.View.VISIBLE;
 import static com.example.kit.Constants.CONTACT;
@@ -36,7 +40,10 @@ public class ContactFragment extends DBGeoFragment implements
     //widgets
     private CircleImageView mAvatarImage;
     private TextView mProfileName, mUserName, mProfileStatus;
-    private Button mSendReqBtn, mAcceptBtn, mDeclineBtn, mDeleteReqBtn, mDeleteBtn;
+    private Button mSendReqBtn, mAcceptBtn,
+            mDeclineBtn, mDeleteReqBtn, mDeleteBtn;
+    private ImageView mEditBtn, mEditDoneBtn;
+    private EditText mEditDisplayName;
 
     //Contact
     private Contact mContact;
@@ -94,8 +101,21 @@ public class ContactFragment extends DBGeoFragment implements
         mDeclineBtn = v.findViewById(R.id.profile_decline_btn);
         mDeleteReqBtn = v.findViewById(R.id.profile_delete_request_btn);
         mDeleteBtn = v.findViewById(R.id.profile_delete_btn);
+        initEditText(v);
         initState();
         retrieveProfileImage();
+    }
+
+    private void initEditText(View v){
+        if(mCurrent_state.equals(FRIENDS)){
+            mEditDisplayName = v.findViewById(R.id.profile_editDisplayName);
+            mEditDisplayName.setVisibility(View.GONE);
+            mEditDisplayName.setHint(mContact.getName());
+            mEditBtn = v.findViewById(R.id.edit_btn);
+            mEditBtn.setVisibility(VISIBLE);
+            mEditBtn.setOnClickListener(this);
+            mEditDoneBtn = v.findViewById(R.id.edit_done_btn);
+        }
     }
 
     private void initState(){
@@ -142,6 +162,32 @@ public class ContactFragment extends DBGeoFragment implements
                 .into(mAvatarImage);
     }
 
+    private void editDisplayName(){
+        mEditDisplayName.setVisibility(VISIBLE);
+        mProfileName.setVisibility(View.GONE);
+        mEditBtn.setVisibility(View.GONE);
+        mEditDoneBtn.setVisibility(VISIBLE);
+        mEditDoneBtn.setOnClickListener(this);
+    }
+
+    private void doneEditDisplayName(){
+        UsernameValidator validator = new UsernameValidator();
+        if(validator.validate(mEditDisplayName.getText().toString())){
+            mEditDisplayName.setVisibility(View.GONE);
+            mProfileName.setVisibility(VISIBLE);
+            mProfileName.setText(mEditDisplayName.getText().toString());
+            mEditDisplayName.setText("");
+            mEditBtn.setVisibility(VISIBLE);
+            mEditDoneBtn.setVisibility(View.GONE);
+        }
+        else{
+            Log.d(TAG, "edit done: invalid display name");
+            Toast.makeText(mActivity,
+                    "Enter a valid display name",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
     /*
     ----------------------------- onClick ---------------------------------
     */
@@ -149,6 +195,14 @@ public class ContactFragment extends DBGeoFragment implements
     @Override
     public void onClick(View v) {
         switch(v.getId()){
+            case R.id.edit_btn:{
+                editDisplayName();
+                break;
+            }
+            case R.id.edit_done_btn:{
+                doneEditDisplayName();
+                break;
+            }
             case R.id.profile_send_req_btn:{
                 sendRequest();
                 break;
