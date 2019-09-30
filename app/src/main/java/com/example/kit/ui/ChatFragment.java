@@ -7,6 +7,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -18,7 +19,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.TimePicker;
+import android.widget.Toast;
 
 import com.example.kit.R;
 import com.example.kit.UserClient;
@@ -43,7 +47,9 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -232,7 +238,7 @@ public class ChatFragment extends DBGeoFragment implements
                 break;
             }
             case R.id.lets_meet:{
-                insertMeetInvite();
+                getDate();
                 break;
             }
         }
@@ -249,6 +255,31 @@ public class ChatFragment extends DBGeoFragment implements
     public void onMessageLongClicked(int position) {
         // TODO
         // some deletion dialog
+    }
+
+    public void getDate(){
+        final View dialogView = View.inflate(mActivity, R.layout.date_time_picker, null);
+        final AlertDialog alertDialog = new AlertDialog.Builder(mActivity).create();
+
+        dialogView.findViewById(R.id.date_time_set).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                DatePicker datePicker = (DatePicker) dialogView.findViewById(R.id.date_picker);
+                TimePicker timePicker = (TimePicker) dialogView.findViewById(R.id.time_picker);
+
+                Calendar calendar = new GregorianCalendar(datePicker.getYear(),
+                        datePicker.getMonth(),
+                        datePicker.getDayOfMonth(),
+                        timePicker.getCurrentHour(),
+                        timePicker.getCurrentMinute());
+
+                long time = calendar.getTimeInMillis();
+                insertMeetInvite();
+                alertDialog.dismiss();
+            }});
+        alertDialog.setView(dialogView);
+        alertDialog.show();
     }
 
     /*

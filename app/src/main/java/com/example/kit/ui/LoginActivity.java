@@ -17,6 +17,7 @@ import com.example.kit.UserClient;
 import com.example.kit.models.User;
 import com.example.kit.util.UsernameValidator;
 import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.auth.IdpResponse;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -38,7 +39,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.example.kit.Constants.AUTH;
 import static com.example.kit.Constants.EMPTY;
+import static com.example.kit.Constants.RC_SIGN_IN;
 import static com.example.kit.Constants.WRONG_FORMAT;
 import static com.example.kit.util.Check.isEmpty;
 
@@ -49,18 +52,11 @@ public class LoginActivity extends AppCompatActivity
     private static final String TAG = "LoginActivity";
 
     //Firebase
-    private FirebaseAuth.AuthStateListener mAuthListener;
     private FirebaseFirestore mDb;
     private FirebaseAuth mAuth;
 
     //widgets
     private EditText mUsername;
-    private ProgressBar mProgressBar;
-
-    // TODO
-    //  check which is better - onActivityResult or onAuthStateChanged;
-    //  does the usage of the latter create a problem of concurrency,
-    //  or does the AuthenticationActivity have to be initiated with startActivityForResult
 
     //TODO
     // add a sign in button at the beginning of the run
@@ -76,21 +72,6 @@ public class LoginActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         init();
         initView();
-        setupFirebaseAuth();
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        FirebaseAuth.getInstance().addAuthStateListener(mAuthListener);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (mAuthListener != null) {
-            FirebaseAuth.getInstance().removeAuthStateListener(mAuthListener);
-        }
     }
 
     /*
@@ -98,34 +79,64 @@ public class LoginActivity extends AppCompatActivity
     */
 
     private void init(){
-        FirebaseApp.initializeApp(this);
         mAuth = FirebaseAuth.getInstance();
         mDb = FirebaseFirestore.getInstance();
+        getIncomingIntent();
+    }
 
+    private void getIncomingIntent(){
+        if(getIntent().getBooleanExtra(AUTH, false)){
+            startAuthenticationActivity();
+        }
     }
 
     private void initView(){
+        //TODO
+        // add logo to the registration button
         setContentView(R.layout.activity_login);
-        mProgressBar = findViewById(R.id.progressBar);
-        showLoading();
-    }
-
-    private void showLoading(){
-
-        // TODO
-        //  We can put here the logo of the app with loading animation or smth.
-
-        mProgressBar.setVisibility(View.VISIBLE);
-    }
-
-    private void hideLoading(){
-        if(mProgressBar.getVisibility() == View.VISIBLE){
-            mProgressBar.setVisibility(View.INVISIBLE);
-        }
+        findViewById(R.id.auth).setOnClickListener(this);
     }
 
     private void hideSoftKeyboard(){
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+    }
+
+    /*
+    ----------------------------- OnClick ---------------------------------
+    */
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case(R.id.auth):
+                startAuthenticationActivity();
+                break;
+            case(R.id.btn_go):{
+                Log.d(TAG, "onClick: attempting to verify username.");
+                String userName = mUsername.getText().toString();
+                switch (checkUsername(userName)) {
+                    case EMPTY:{
+                        Toast.makeText(LoginActivity.this,
+                                "Error message informing of empty username",
+                                Toast.LENGTH_SHORT).show();
+                        break;
+                    }
+                    case WRONG_FORMAT: {
+
+                        // TODO
+                        // maybe add another func for more specific error codes
+
+                        Toast.makeText(LoginActivity.this,
+                                "Error message informing of username containing wrong chars",
+                                Toast.LENGTH_SHORT).show();
+                        break;
+                    }
+                    default:
+                        checkExistingUsername(userName);
+                }
+                break;
+            }
+        }
     }
 
     /*
@@ -135,48 +146,52 @@ public class LoginActivity extends AppCompatActivity
     protected void startMainActivity() {
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intent.putExtra(AUTH, true);
         startActivity(intent);
         finish();
     }
 
     public void startAuthenticationActivity () {
+        if(mAuth.getCurrentUser() == null) {
 
-        ArrayList<AuthUI.IdpConfig> idps = new ArrayList<>();
+            ArrayList<AuthUI.IdpConfig> idps = new ArrayList<>();
 
-        idps.add(new AuthUI.IdpConfig.EmailBuilder().build());
-        idps.add(new AuthUI.IdpConfig.GoogleBuilder().build());
-        idps.add(new AuthUI.IdpConfig.PhoneBuilder().build());
+            idps.add(new AuthUI.IdpConfig.EmailBuilder().build());
+            idps.add(new AuthUI.IdpConfig.GoogleBuilder().build());
+            idps.add(new AuthUI.IdpConfig.PhoneBuilder().build());
 
-        startActivity(AuthUI.getInstance()
-                        .createSignInIntentBuilder()
-                        .setAvailableProviders(idps)
-                        .build());
+            startActivityForResult(AuthUI.getInstance()
+                    .createSignInIntentBuilder()
+                    .setAvailableProviders(idps)
+                    .build(), RC_SIGN_IN);
+        }
+        else{
+            getUserName();
+        }
     }
 
-    //    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//
-//        // RC_SIGN_IN is the request code you passed into  startActivityForResult(...) when starting the sign in flow.
-//        if (requestCode == RC_SIGN_IN) {
-//            IdpResponse response = IdpResponse.fromResultIntent(data);
-//
-//            // Successfully signed in
-//            if (resultCode == RESULT_OK) {
-//                // Success
-////                startMainActivity();
-//            }
-//            else {
-//                // Handle Error
-//            }
-//        }
-//    }
+        @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // RC_SIGN_IN is the request code you passed into  startActivityForResult(...) when starting the sign in flow.
+        if (requestCode == RC_SIGN_IN) {
+            IdpResponse response = IdpResponse.fromResultIntent(data);
+            // Successfully signed in
+            if(resultCode == RESULT_OK)
+            {
+                checkExistingUser();
+            }
+            else {
+                Log.d(TAG, "LOLZ");
+            }
+        }
+    }
 
     /*
     ----------------------------- DB ---------------------------------
     */
 
-    private User registerNewUser(String userName){
+    private void registerNewUser(String userName){
         FirebaseUser cur_user = mAuth.getCurrentUser();
         User user = new User();
         String email = cur_user.getEmail();
@@ -192,43 +207,8 @@ public class LoginActivity extends AppCompatActivity
 
         DocumentReference newUserRef = db
                 .collection(getString(R.string.collection_users))
-                .document(FirebaseAuth.getInstance().getUid());
-
+                .document(mAuth.getUid());
         newUserRef.set(user);
-        return user;
-    }
-
-    private void updateToken(){
-        FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
-            @Override
-            public void onSuccess(InstanceIdResult instanceIdResult) {
-                String newToken = instanceIdResult.getToken();
-                Log.e("newToken", newToken);
-                sendRegistrationToServer(newToken);
-            }
-        });
-    }
-
-    private void sendRegistrationToServer(String token){
-        try{
-            Map<String, Object> data = new HashMap<>();
-            data.put("token", token);
-            DocumentReference usersRef = FirebaseFirestore.getInstance()
-                    .collection(getString(R.string.collection_users))
-                    .document(FirebaseAuth.getInstance().getUid());
-            usersRef.set(data, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
-                @Override
-                public void onSuccess(Void aVoid) {
-                    Log.d(TAG, "TOKEN successfully written!");
-                }
-            });
-        }catch (NullPointerException e){
-            Log.e(TAG, "User instance is null, stopping notification service.");
-            Log.e(TAG, "saveToken: NullPointerException: "  + e.getMessage() );
-        }
-    }
-
-    private void setCurrentUser(User user){
         Toast.makeText(LoginActivity.this,
                 "Authenticated with: " + user.getEmail(),
                 Toast.LENGTH_SHORT).show();
@@ -237,90 +217,15 @@ public class LoginActivity extends AppCompatActivity
     }
 
 /*
------------------------------ Firebase setup ---------------------------------
-*/
-    private void setupFirebaseAuth(){
-        Log.d(TAG, "setupFirebaseAuth: started.");
-
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null) {
-                    FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
-                            .build();
-                    mDb.setFirestoreSettings(settings);
-
-                    DocumentReference userRef = mDb.collection(getString(R.string.collection_users))
-                            .document(user.getUid());
-
-                    userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                            if(task.isSuccessful()){
-                                User user = task.getResult().toObject(User.class);
-                                System.out.println(user);
-                                if(user == null) // TODO maybe add another check for unique username
-                                {
-                                    getUserName();
-                                }
-                                else {
-                                    Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUser_id());
-                                    setCurrentUser(user);
-                                    updateToken();
-                                    startMainActivity();
-                                }
-                            }
-                        }
-                    });
-                } else {
-                    // User is signed out
-                    Log.d(TAG, "onAuthStateChanged:signed_out");
-                    startAuthenticationActivity();
-                }
-            }
-        };
-    }
-
-/*
 ----------------------------- Username setup ---------------------------------
 */
     private void getUserName(){
+        //TODO
+        // changes to the xml
         setContentView(R.layout.activity_username);
         mUsername = findViewById(R.id.input_username);
         findViewById(R.id.btn_go).setOnClickListener(this);
         hideSoftKeyboard();
-    }
-
-    @Override
-    public void onClick(View v) {
-        showLoading();
-        if(v.getId() == R.id.btn_go) {
-            Log.d(TAG, "onClick: attempting to verify username.");
-            String userName = mUsername.getText().toString();
-            switch (checkUsername(userName)) {
-                case EMPTY:{
-                    Toast.makeText(LoginActivity.this,
-                            "Error message informing of empty username",
-                            Toast.LENGTH_SHORT).show();
-                    break;
-                }
-
-                case WRONG_FORMAT: {
-
-                    // TODO
-                    // maybe add another func for more specific error codes
-
-                    Toast.makeText(LoginActivity.this,
-                            "Error message informing of username containing wrong chars",
-                            Toast.LENGTH_SHORT).show();
-                    break;
-                }
-                default:
-                    checkExisting(userName);
-            }
-            hideLoading();
-        }
     }
 
     private int checkUsername(String userName)
@@ -336,7 +241,33 @@ public class LoginActivity extends AppCompatActivity
         return 0;
     }
 
-    private void checkExisting(final String userName)
+    private void checkExistingUser(){
+        CollectionReference usersRef = mDb.collection("Users");
+        Query query = usersRef.whereEqualTo("user_id", mAuth.getUid());
+        query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if(task.isSuccessful()){
+                    if (task.getResult() != null) {
+                        for (DocumentSnapshot documentSnapshot : task.getResult()) {
+                            String userID = documentSnapshot.getString("user_id");
+                            if (userID.equals(mAuth.getUid())) {
+                                Log.d(TAG, "chcekExistingUser: User Exists");
+                                startMainActivity();
+                            }
+                        }
+                        if(task.getResult().size() == 0){
+                            Log.d(TAG, "checkExistingUser: user does not exist in DB");
+                            getUserName();
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+
+    private void checkExistingUsername(final String userName)
     {
         CollectionReference usersRef = mDb.collection("Users");
         Query query = usersRef.whereEqualTo("username", userName);
@@ -358,9 +289,7 @@ public class LoginActivity extends AppCompatActivity
                         if(task.getResult().size() == 0 ){
                             Log.d(TAG, "checkExisting: User chose a unique username");
                             // SUCCESS
-                            User user = registerNewUser(userName);
-                            setCurrentUser(user);
-                            updateToken();
+                            registerNewUser(userName);
                             startMainActivity();
                         }
                     }
