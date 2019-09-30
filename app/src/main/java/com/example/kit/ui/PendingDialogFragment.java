@@ -25,7 +25,7 @@ public class PendingDialogFragment extends DialogFragment {
     public interface OnInputSelected{
         void remove(Contact contact);
     }
-    public ContactsDialogFragment.OnInputSelected mOnInputSelected;
+    public PendingDialogFragment.OnInputSelected mOnInputSelected;
 
     //widgets
     private EditText mInput;
@@ -37,10 +37,10 @@ public class PendingDialogFragment extends DialogFragment {
 
 
 
-    public PendingDialogFragment(int type, Contact contact, Activity activity, DBGeoFragment contactsFragment){
+    public PendingDialogFragment(int type, Contact contact, Activity activity, DBGeoFragment pendingFragment){
         super();
         this.mActivity = activity;
-        this.contactsFragment = contactsFragment;
+        this.contactsFragment = pendingFragment;
         this.type = type;
         this.contact = contact;
     }
@@ -87,7 +87,7 @@ public class PendingDialogFragment extends DialogFragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         try{
-            mOnInputSelected = (ContactsDialogFragment.OnInputSelected) contactsFragment;
+            mOnInputSelected = (PendingDialogFragment.OnInputSelected) contactsFragment;
         }catch (ClassCastException e){
             Log.e(TAG, "onAttach: ClassCastException : " + e.getMessage() );
         }

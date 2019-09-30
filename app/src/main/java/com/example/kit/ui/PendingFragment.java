@@ -18,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.kit.Constants;
 import com.example.kit.R;
 import com.example.kit.adapters.ContactRecyclerAdapter;
 import com.example.kit.models.Contact;
@@ -25,6 +26,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
@@ -55,6 +57,9 @@ public class PendingFragment extends DBGeoFragment implements
     //Contacts Callback
     ContactsFragment.ContactsCallback initContactFragment;
 
+    //Pending Callback
+    PendingCallback getData;
+
     //Listener
     private ListenerRegistration mPendingEventListener;
 
@@ -79,7 +84,7 @@ public class PendingFragment extends DBGeoFragment implements
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         mPendingFragment = this;
-        PendingCallback getData = (PendingCallback)context;
+        getData = (PendingCallback)context;
         mPending = getData.getPending();
         mRecyclerList = new ArrayList<>(mPending.values());
         initContactFragment = (ContactsFragment.ContactsCallback)context;
@@ -147,27 +152,82 @@ public class PendingFragment extends DBGeoFragment implements
                     Log.e(TAG, "onEvent: Listen failed.", e);
                     return;
                 }
-                if (queryDocumentSnapshots != null) {
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        Contact contact = doc.toObject(Contact.class);
-                        mPending.put(contact.getCid(), contact);
-                        mRecyclerList = new ArrayList<>(mPending.values());
-                        new Handler(Looper.getMainLooper()).post(new Runnable() {
-                            public void run() {
-                                mPendingRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
-                                        mPendingFragment, R.layout.layout_pending_list_item, getContext());
-                                mPendingRecyclerView.setAdapter(mPendingRecyclerAdapter);
-                                mPendingRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
-                                DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
-                                mPendingRecyclerView.addItemDecoration(itemDecor);
-                                mPendingRecyclerAdapter.notifyDataSetChanged();
-                            }
-                        });
 
+                if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()) {
+                    Contact contact;
+                    //Instead of simply using the entire query snapshot
+                    //See the actual changes to query results between query snapshots (added, removed, and modified)
+                    for (DocumentChange doc : queryDocumentSnapshots.getDocumentChanges()) {
+                        switch (doc.getType()) {
+
+                            case ADDED:
+
+                                //Call the model to populate it with document
+                                contact = doc.getDocument().toObject(Contact.class);
+                                mPending.put(contact.getCid(), contact);
+                                mRecyclerList = new ArrayList<>(mPending.values());
+                                notifyRecyclerView();
+
+                                Log.d(TAG,"THIS SHOULD BE CALLED");
+
+                                   /* //Just call this method once
+                                    if (noContent.isShown()){
+                                        //This will be called only if user added some new post
+                                        announcementList.add(annonPost);
+                                        announcementRecyclerAdapter.notifyDataSetChanged();
+                                        noContent.setVisibility(View.GONE);
+                                        label.setVisibility(View.VISIBLE);
+                                    }*/
+
+                                break;
+
+                            case MODIFIED:
+                                contact = doc.getDocument().toObject(Contact.class);
+                                mPending.put(contact.getCid(), contact);
+                                mRecyclerList = new ArrayList<>(mPending.values());
+                                notifyRecyclerView();
+                                break;
+
+                            case REMOVED:
+                                contact = doc.getDocument().toObject(Contact.class);
+                                mPending.remove(contact.getCid());
+                                mRecyclerList = new ArrayList<>(mPending.values());
+                                notifyRecyclerView();
+                        }
                     }
-                    Log.d(TAG, "onEvent: number of contacts: " + mPending.size());
 
                 }
+
+            }
+//                if (queryDocumentSnapshots != null) {
+//                    for (DocumentChange doc: queryDocumentSnapshots.getDocumentChanges())
+//                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+//                        Contact contact = doc.toObject(Contact.class);
+//                        mPending.put(contact.getCid(), contact);
+//                        mRecyclerList = new ArrayList<>(mPending.values());
+//                        notifyRecyclerView();
+//
+//
+//                    }
+//                    Log.d(TAG, "onEvent: number of contacts: " + mPending.size());
+//
+//                }
+//            }
+        });
+
+
+    }
+
+    private void notifyRecyclerView(){
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            public void run() {
+                mPendingRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
+                        mPendingFragment, R.layout.layout_pending_list_item, getContext());
+                mPendingRecyclerView.setAdapter(mPendingRecyclerAdapter);
+                mPendingRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
+                DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
+                mPendingRecyclerView.addItemDecoration(itemDecor);
+                mPendingRecyclerAdapter.notifyDataSetChanged();
             }
         });
     }
@@ -209,8 +269,10 @@ public class PendingFragment extends DBGeoFragment implements
 
     @Override
     public void onDeleteSelected(int position) {
-        //TODO
-        // we want to delete a pending request
+        PendingDialogFragment requestDialog = new PendingDialogFragment(Constants.GET_ACCEPT_REQUEST, mRecyclerList.get(position),
+                getActivity(), this);
+        requestDialog.setTargetFragment(PendingFragment.this, 1);
+        requestDialog.show(getFragmentManager(), "PendingDialogFragment");
     }
 
     @Override
@@ -243,7 +305,7 @@ public class PendingFragment extends DBGeoFragment implements
 
 
     /*
-    ----------------------------- Requests Callback ---------------------------------
+    ----------------------------- Pending Callback ---------------------------------
     */
 
     public interface PendingCallback {
