@@ -14,15 +14,17 @@ public class Contact implements Parcelable
     private String username;
     private String avatar;
     private String cid;
+    private String status = "Hey, I'm using KIT!";
     private Date last_sent;
     private boolean inArea;
 
 
-    public Contact(String name, String username, String avatar, String cid) {
+    public Contact(String name, String username, String avatar, String cid, String status) {
         this.name = name;
         this.username = username;
         this.avatar = avatar;
         this.cid = cid;
+        this.status = status;
         last_sent = new Date(System.currentTimeMillis() - 3600000);
         inArea = false;
     }
@@ -36,6 +38,7 @@ public class Contact implements Parcelable
         username = in.readString();
         avatar = in.readString();
         cid = in.readString();
+        status = in.readString();
         last_sent = new Date(in.readLong());
         inArea = in.readInt() == 1;
     }
@@ -84,15 +87,23 @@ public class Contact implements Parcelable
         this.cid = cid;
     }
 
-    public Date getLast_sent() {
-        return last_sent;
+    public String getStatus() {
+        return status;
     }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Date getLast_sent() {
+    return last_sent;
+}
 
     public void setLast_sent(Date last_sent) {
         this.last_sent = last_sent;
     }
 
-        public boolean isInArea() {
+    public boolean isInArea() {
         return inArea;
     }
 
@@ -107,6 +118,7 @@ public class Contact implements Parcelable
                 ", username='" + username + '\'' +
                 ", avatar='" + avatar + '\'' +
                 ", cid='" + cid + '\'' +
+                ", status='" + status + '\'' +
                 '}';
     }
 
@@ -121,6 +133,7 @@ public class Contact implements Parcelable
         dest.writeString(username);
         dest.writeString(avatar);
         dest.writeString(cid);
+        dest.writeString(status);
         dest.writeLong(last_sent.getTime());
         dest.writeInt(inArea ? 1:0);
     }

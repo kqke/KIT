@@ -11,7 +11,7 @@
         <de.hdodenhof.circleimageview.CircleImageView
             android:layout_width="150dp"
             android:layout_height="150dp"
-            android:id="@+id/image_choose_avatar"
+            android:id="@+id/avatar"
             android:src="@drawable/cartman_cop"
             android:layout_alignParentTop="true"
             android:layout_alignParentStart="true"
@@ -24,8 +24,8 @@
             android:id="@+id/edit_image_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/image_choose_avatar"
-            android:layout_alignStart="@+id/image_choose_avatar"
+            android:layout_below="@+id/avatar"
+            android:layout_alignStart="@+id/avatar"
             android:layout_marginStart="56dp"
             android:textColor="@color/colorPrimary"
             android:text="Edit"/>
@@ -34,19 +34,30 @@
             android:id="@+id/profile_userName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@id/image_choose_avatar"
-            android:layout_marginBottom="70dp"
-            android:layout_marginStart="10dp"
-            android:layout_toEndOf="@+id/image_choose_avatar"
-            android:layout_marginTop="5dp"
+            android:layout_alignTop="@id/avatar"
+            android:layout_marginTop="50dp"
+            android:layout_marginStart="13dp"
+            android:layout_toEndOf="@+id/avatar"
             android:text="User Name"
             android:textSize="24sp"/>
+
+        <Button
+            android:id="@+id/sign_out"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/profile_userName"
+            android:layout_toEndOf="@id/avatar"
+            android:drawableStart="@drawable/ic_leave"
+            style="?android:attr/borderlessButtonStyle"
+            android:minHeight="0dp"
+            android:minWidth="0dp"
+            android:text="Sign Out"/>
 
         <TextView
             android:id="@+id/profile_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/image_choose_avatar"
+            android:layout_below="@+id/avatar"
             android:background="@drawable/status"
             android:padding="8dp"
             android:layout_marginTop="30dp"
@@ -54,24 +65,33 @@
             android:text="Hey, I'm using KIT"
             android:textSize="16sp" />
 
-        <ImageView
-            android:id="@+id/edit_btn"
+        <EditText
+            android:id="@+id/profile_editStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@+id/profile_status"
-            android:layout_alignTop="@id/profile_status"
-            android:paddingTop="5dp"
-            android:paddingStart="10dp"
+            android:layout_below="@+id/avatar"
+            android:background="@drawable/status"
+            android:padding="8dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginStart="20dp"
+            android:hint="Hey, I'm using KIT"
+            android:visibility="gone"
+            android:textSize="16sp"/>
+
+        <ImageView
+            android:id="@+id/edit_btn"
+            android:layout_width="17dp"
+            android:layout_height="17dp"
+            android:layout_below="@+id/profile_status"
+            android:layout_alignStart="@id/profile_status"
             android:src="@drawable/ic_edit"/>
 
         <ImageView
             android:id="@+id/edit_done_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_toEndOf="@+id/profile_status"
-            android:layout_alignTop="@id/profile_status"
-            android:paddingTop="5dp"
-            android:paddingStart="10dp"
+            android:layout_width="17dp"
+            android:layout_height="17dp"
+            android:layout_below="@+id/profile_editStatus"
+            android:layout_alignStart="@id/profile_editStatus"
             android:src="@drawable/ic_accept"
             android:visibility="gone"
             />
