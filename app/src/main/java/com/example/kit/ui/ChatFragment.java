@@ -246,9 +246,37 @@ public class ChatFragment extends DBGeoFragment implements
 
     @Override
     public void onMessageSelected(int position) {
-        // TODO
-        // this gets called whenever the lets meet button is clicked
-        // it should initiate a dialog of some sort that'd schedula a meeting
+        ChatMessage message = mMessages.get(position);
+        if(message.getUser().getUser_id()
+                .equals(((UserClient)mActivity.getApplicationContext()).getUser().getUser_id())){
+            if(message.isExpired()){
+                Toast.makeText(mActivity, "This invite has expired...", Toast.LENGTH_SHORT).show();
+            }
+            else {
+                Toast.makeText(mActivity, "Waiting for approval", Toast.LENGTH_SHORT).show();
+            }
+        }
+        else {
+            final View dialogView = View.inflate(mActivity, R.layout.dialog_schedule, null);
+            final AlertDialog alertDialog = new AlertDialog.Builder(mActivity).create();
+
+            dialogView.findViewById(R.id.set).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                    alertDialog.dismiss();
+                }
+            });
+
+            dialogView.findViewById(R.id.reschedule).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                }
+            });
+            alertDialog.setView(dialogView);
+            alertDialog.show();
+        }
     }
 
     @Override
@@ -273,9 +301,7 @@ public class ChatFragment extends DBGeoFragment implements
                         datePicker.getDayOfMonth(),
                         timePicker.getCurrentHour(),
                         timePicker.getCurrentMinute());
-
-                long time = calendar.getTimeInMillis();
-                insertMeetInvite();
+                insertMeetInvite(new Date(calendar.getTimeInMillis()));
                 alertDialog.dismiss();
             }});
         alertDialog.setView(dialogView);
@@ -382,7 +408,7 @@ public class ChatFragment extends DBGeoFragment implements
         }
     }
 
-    private void insertMeetInvite(){
+    private void insertMeetInvite(Date date){
 
         DocumentReference newMessageDoc = mDb
                 .collection(getString(R.string.collection_chatrooms))
@@ -393,6 +419,8 @@ public class ChatFragment extends DBGeoFragment implements
         final ChatMessage newChatMessage = new ChatMessage();
         newChatMessage.setMessage_id(newMessageDoc.getId());
         newChatMessage.setInvite(true);
+        newChatMessage.setMeeting_time(date);
+        newChatMessage.setExpired(false);
 
         final User user = ((UserClient)(getActivity().getApplicationContext())).getUser();
         Log.d(TAG, "insertNewMessage: retrieved user client: " + user.toString());
