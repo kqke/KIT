@@ -137,7 +137,7 @@ public class UserListFragment extends MapFragment
             }
         }
         mUserRecyclerAdapter = new ContactRecyclerAdapter(mContactList,
-                this, R.layout.layout_contact_list_item);
+                this, R.layout.layout_contact_list_item, getContext());
         mUserListRecyclerView.setAdapter(mUserRecyclerAdapter);
         mUserListRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
     }

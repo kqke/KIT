@@ -28,6 +28,7 @@ import com.example.kit.UserClient;
 import com.example.kit.adapters.ContactRecyclerAdapter;
 import com.example.kit.models.Contact;
 import com.example.kit.models.User;
+import com.example.kit.models.UserLocation;
 import com.example.kit.util.FCM;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -100,7 +101,15 @@ public class ContactsFragment extends DBGeoFragment implements
         super.onAttach(context);
         mContactFragment = this;
         getData = (ContactsCallback)context;
+        ArrayList<UserLocation> locs = getData.getUserLocations();
         mContacts = getData.getId2Contact();
+
+        for (UserLocation userLocation: locs){
+
+            if (mContacts.containsKey(userLocation.getUser().getUser_id())) {
+                mContacts.get(userLocation.getUser().getUser_id()).setAvatar(userLocation.getUser().getAvatar());
+            }
+        }
         mRecyclerList = new ArrayList<>(mContacts.values());
         if (mContactRecyclerAdapter != null){
             mContactRecyclerAdapter.notifyDataSetChanged();
@@ -136,7 +145,7 @@ public class ContactsFragment extends DBGeoFragment implements
         v.findViewById(R.id.fab).setOnClickListener(this);
         mContactRecyclerView = v.findViewById(R.id.contact_recycler_view);
         mContactRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
-                this, R.layout.layout_contact_list_item);
+                this, R.layout.layout_contact_list_item, getContext());
         mContactRecyclerView.setAdapter(mContactRecyclerAdapter);
         mContactRecyclerAdapter.notifyDataSetChanged();
         mContactRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
@@ -185,7 +194,7 @@ public class ContactsFragment extends DBGeoFragment implements
                         new Handler(Looper.getMainLooper()).post(new Runnable() {
                             public void run() {
                                 mContactRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
-                                        mContactFragment, R.layout.layout_contact_list_item);
+                                        mContactFragment, R.layout.layout_contact_list_item, getContext());
                                 mContactRecyclerView.setAdapter(mContactRecyclerAdapter);
                                 mContactRecyclerAdapter.notifyDataSetChanged();
                                 mContactRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
@@ -342,7 +351,7 @@ public class ContactsFragment extends DBGeoFragment implements
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     public void run() {
                         mContactRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
-                                mContactFragment, R.layout.layout_contact_list_item);
+                                mContactFragment, R.layout.layout_contact_list_item, getContext());
                         mContactRecyclerView.setAdapter(mContactRecyclerAdapter);
                         mContactRecyclerAdapter.notifyDataSetChanged();
                         mContactRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
@@ -366,6 +375,7 @@ public class ContactsFragment extends DBGeoFragment implements
         ArrayList<Contact> getContacts();
         Set<String> getContactIds();
         HashMap<String, Contact> getId2Contact();
+        ArrayList<UserLocation> getUserLocations();
         void initContactFragment(String contactID);
     }
 }

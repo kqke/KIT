@@ -101,7 +101,7 @@ public class NewMessageActivity extends AppCompatActivity implements
     */
 
     private void initContactRecyclerView() {
-        mContactRecyclerAdapter = new ContactRecyclerAdapter(mContacts, this, R.layout.layout_contact_list_item);
+        mContactRecyclerAdapter = new ContactRecyclerAdapter(mContacts, this, R.layout.layout_contact_list_item, this);
         mContactRecyclerView.setAdapter(mContactRecyclerAdapter);
         mContactRecyclerView.setLayoutManager(new LinearLayoutManager(this));
     }

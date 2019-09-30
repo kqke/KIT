@@ -2,6 +2,7 @@ package com.example.kit.adapters;
 
 import androidx.annotation.NonNull;
 
+import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,7 +16,10 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.kit.R;
+import com.example.kit.UserClient;
 import com.example.kit.models.Contact;
 
 import java.util.ArrayList;
@@ -31,15 +35,17 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
     private ContactsRecyclerClickListener mContactRecyclerClickListener;
     private int itemLayout;
     private boolean withCheckBoxes = false;
+    private Context mContext;
 
     public ContactRecyclerAdapter(ArrayList<Contact> contacts,
                                   ContactsRecyclerClickListener contactRecyclerClickListener,
-                                  int type)
+                                  int type, Context context)
     {
         mContacts = contacts;
         mFilteredContacts = contacts;
         itemLayout = type;
         mContactRecyclerClickListener = contactRecyclerClickListener;
+        mContext = context;
     }
 
     public ArrayList<Contact> getCheckedContacts() {
@@ -65,6 +71,23 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.contactName.setText(mFilteredContacts.get(position).getName());
+        RequestOptions requestOptions = new RequestOptions()
+                .error(R.drawable.cartman_cop)
+                .placeholder(R.drawable.cartman_cop);
+        String avatar = "";
+        try{
+           avatar = mFilteredContacts.get(position).getAvatar();
+        }catch (NumberFormatException e){
+            Log.e(TAG, "retrieveProfileImage: no avatar image. Setting default. " + e.getMessage() );
+        }
+
+        Log.d(TAG, "onBindViewHolder: setting " + mFilteredContacts.get(position).getUsername() + "\'s avatar");
+
+        Glide.with(mContext)
+                .setDefaultRequestOptions(requestOptions)
+                .load(avatar)
+                .into(holder.contactAvatar);
+
         if (itemLayout == R.layout.layout_contact_list_item) {
             if (withCheckBoxes) {
                 holder.checkBox.setVisibility(View.VISIBLE);

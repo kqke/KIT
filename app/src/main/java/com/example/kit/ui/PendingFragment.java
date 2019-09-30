@@ -108,7 +108,7 @@ public class PendingFragment extends DBGeoFragment implements
     private void initView(View v){
         mPendingRecyclerView = v.findViewById(R.id.pending_recycler_view);
         mPendingRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
-                this, R.layout.layout_pending_list_item);
+                this, R.layout.layout_pending_list_item, getContext());
         mPendingRecyclerView.setAdapter(mPendingRecyclerAdapter);
         mPendingRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
         DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
@@ -155,7 +155,7 @@ public class PendingFragment extends DBGeoFragment implements
                         new Handler(Looper.getMainLooper()).post(new Runnable() {
                             public void run() {
                                 mPendingRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
-                                        mPendingFragment, R.layout.layout_pending_list_item);
+                                        mPendingFragment, R.layout.layout_pending_list_item, getContext());
                                 mPendingRecyclerView.setAdapter(mPendingRecyclerAdapter);
                                 mPendingRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
                                 DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
@@ -229,7 +229,7 @@ public class PendingFragment extends DBGeoFragment implements
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     public void run() {
                         mPendingRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
-                                mPendingFragment, R.layout.layout_pending_list_item);
+                                mPendingFragment, R.layout.layout_pending_list_item, getContext());
                         mPendingRecyclerView.setAdapter(mPendingRecyclerAdapter);
                         mPendingRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
                         DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
