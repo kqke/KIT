@@ -24,6 +24,7 @@ import com.example.kit.models.Contact;
 import com.example.kit.util.RequestHandler;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
@@ -145,27 +146,88 @@ public class RequestsFragment extends DBGeoFragment implements
                     Log.e(TAG, "onEvent: Listen failed.", e);
                     return;
                 }
-                if (queryDocumentSnapshots != null) {
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        Contact contact = doc.toObject(Contact.class);
-                        mRequests.put(contact.getCid(), contact);
-                        mRecyclerList = new ArrayList<>(mRequests.values());
-                        new Handler(Looper.getMainLooper()).post(new Runnable() {
-                            public void run() {
-                                mRequestsRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
-                                       mRequestFragment, R.layout.layout_requests_list_item, getContext());
-                                mRequestsRecyclerView.setAdapter(mRequestsRecyclerAdapter);
-                                mRequestsRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
-                                DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
-                                mRequestsRecyclerView.addItemDecoration(itemDecor);
-                                mRequestsRecyclerAdapter.notifyDataSetChanged();
-                            }
-                        });
+                if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()) {
+                    Contact contact;
+                    //Instead of simply using the entire query snapshot
+                    //See the actual changes to query results between query snapshots (added, removed, and modified)
+                    for (DocumentChange doc : queryDocumentSnapshots.getDocumentChanges()) {
+                        switch (doc.getType()) {
 
+                            case ADDED:
+
+                                //Call the model to populate it with document
+                                contact = doc.getDocument().toObject(Contact.class);
+                                mRequests.put(contact.getCid(), contact);
+                                mRecyclerList = new ArrayList<>(mRequests.values());
+                                notifyRecyclerView();
+
+                                Log.d(TAG,"THIS SHOULD BE CALLED");
+
+                                   /* //Just call this method once
+                                    if (noContent.isShown()){
+                                        //This will be called only if user added some new post
+                                        announcementList.add(annonPost);
+                                        announcementRecyclerAdapter.notifyDataSetChanged();
+                                        noContent.setVisibility(View.GONE);
+                                        label.setVisibility(View.VISIBLE);
+                                    }*/
+
+                                break;
+
+                            case MODIFIED:
+                                contact = doc.getDocument().toObject(Contact.class);
+                                mRequests.put(contact.getCid(), contact);
+                                mRecyclerList = new ArrayList<>(mRequests.values());
+                                notifyRecyclerView();
+                                break;
+
+                            case REMOVED:
+                                contact = doc.getDocument().toObject(Contact.class);
+                                mRequests.remove(contact.getCid());
+                                mRecyclerList = new ArrayList<>(mRequests.values());
+                                notifyRecyclerView();
+                        }
                     }
-                    Log.d(TAG, "onEvent: number of contacts: " + mRequests.size());
-                    mRequestsRecyclerAdapter.notifyDataSetChanged();
+
                 }
+
+            }
+
+//                if (queryDocumentSnapshots != null) {
+//                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+//                        Contact contact = doc.toObject(Contact.class);
+//                        mRequests.put(contact.getCid(), contact);
+//                        mRecyclerList = new ArrayList<>(mRequests.values());
+//                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+//                            public void run() {
+//                                mRequestsRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
+//                                       mRequestFragment, R.layout.layout_requests_list_item, getContext());
+//                                mRequestsRecyclerView.setAdapter(mRequestsRecyclerAdapter);
+//                                mRequestsRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
+//                                DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
+//                                mRequestsRecyclerView.addItemDecoration(itemDecor);
+//                                mRequestsRecyclerAdapter.notifyDataSetChanged();
+//                            }
+//                        });
+//
+//                    }
+//                    Log.d(TAG, "onEvent: number of contacts: " + mRequests.size());
+//                    mRequestsRecyclerAdapter.notifyDataSetChanged();
+//                }
+//            }
+        });
+    }
+
+    private void notifyRecyclerView(){
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            public void run() {
+                mRequestsRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
+                       mRequestFragment, R.layout.layout_requests_list_item, getContext());
+                mRequestsRecyclerView.setAdapter(mRequestsRecyclerAdapter);
+                mRequestsRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
+                DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
+                mRequestsRecyclerView.addItemDecoration(itemDecor);
+                mRequestsRecyclerAdapter.notifyDataSetChanged();
             }
         });
     }
