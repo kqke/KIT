@@ -30,8 +30,11 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.maps.android.MarkerManager;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.EventListener;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -99,10 +102,28 @@ public class ChatsFragment extends DBGeoFragment implements
         mId2Contact = getContactsData.getId2Contact();
         mContacts = getContactsData.getContacts();
         mChatrooms = getChatroomsData.getChatrooms();
+        Collections.sort(mChatrooms, new Comparator<UChatroom>() {
+            @Override
+            public int compare(UChatroom u1, UChatroom u2) {
+
+                if (u1.getTime_last_sent().getTime() < u2.getTime_last_sent().getTime())
+                    return 1;
+                if (u1.getTime_last_sent().getTime() > u2.getTime_last_sent().getTime())
+                    return -1;
+                return 0;
+            }
+        });
+        Collections.reverse(mChatrooms);
         mChatroomIds = getChatroomsData.getChatroomIds();
         mUserLocation = getChatroomsData.getUserLocation();
         listener = this;
         initListener();
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mChatsEventListener.remove();
     }
 
     @Override
@@ -169,11 +190,22 @@ public class ChatsFragment extends DBGeoFragment implements
                 if (queryDocumentSnapshots != null) {
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
 
-                        UChatroom uChatroom = doc.toObject(UChatroom.class);
+                        final UChatroom uChatroom = doc.toObject(UChatroom.class);
                         if (!mChatroomIds.contains(uChatroom.getChatroom_id())) {
                             mChatrooms.add(uChatroom);
                             mChatroomIds.add(uChatroom.getChatroom_id());
                             notifyRecyclerAdapter();
+                        }
+                        else {
+                            for (int i = 0; i < mChatrooms.size() ; i++) {
+                                UChatroom uChat = mChatrooms.get(i);
+                                if (uChat.getChatroom_id().equals(uChatroom.getChatroom_id())){
+                                    mChatrooms.remove(i);
+                                    mChatrooms.add(uChatroom);
+                                    notifyRecyclerAdapter();
+                                }
+                            }
+
                         }
 
                         Log.d(TAG, "onEvent: number of contacts: " + mContacts.size());
@@ -187,6 +219,16 @@ public class ChatsFragment extends DBGeoFragment implements
     private void notifyRecyclerAdapter(){
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             public void run() {
+                Collections.sort(mChatrooms, new Comparator<UChatroom>() {
+                    @Override
+                    public int compare(UChatroom u1, UChatroom u2) {
+                        if (u1.getTime_last_sent().getTime() < u2.getTime_last_sent().getTime())
+                            return 1;
+                        if (u1.getTime_last_sent().getTime() > u2.getTime_last_sent().getTime())
+                            return -1;
+                        return 0;
+                    }
+                });
                 mChatroomRecyclerAdapter = new ChatroomRecyclerAdapter(mChatrooms, listener);
                 mChatroomRecyclerView.setAdapter(mChatroomRecyclerAdapter);
                 mChatroomRecyclerAdapter.notifyDataSetChanged();
