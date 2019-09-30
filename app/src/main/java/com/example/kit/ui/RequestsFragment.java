@@ -176,7 +176,7 @@ public class RequestsFragment extends DBGeoFragment implements
 
     @Override
     public void onContactSelected(final int position) {
-        initContactFragment.initContactFragment(mRequests.get(position).getCid());
+        initContactFragment.initContactFragment(mRecyclerList.get(position).getCid());
     }
 //        android.app.AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
 //        builder.setTitle("Accept Friend Request?");

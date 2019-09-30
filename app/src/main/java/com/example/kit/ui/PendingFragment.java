@@ -158,7 +158,7 @@ public class PendingFragment extends DBGeoFragment implements
 
     @Override
     public void onContactSelected(final int position) {
-        initContactFragment.initContactFragment(mPending.get(position).getCid());
+        initContactFragment.initContactFragment(mRecyclerList.get(position).getCid());
     }
 //        android.app.AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
 //        builder.setTitle("Accept Friend Request?");
