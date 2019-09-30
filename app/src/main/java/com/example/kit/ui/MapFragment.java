@@ -71,12 +71,12 @@ public class MapFragment extends DBGeoFragment implements
     private static final String TAG = "MapFragment";
 
     //Map
-    protected GoogleMap mGoogleMap;
-    protected LatLngBounds mMapBoundary;
-    protected ClusterManager<ClusterMarker> mClusterManager;
-    protected MyClusterManagerRenderer mClusterManagerRenderer;
-    protected ArrayList<ClusterMarker> mClusterMarkers = new ArrayList<>();
-    private GeoApiContext mGeoApiContext = null;
+    GoogleMap mGoogleMap;
+    LatLngBounds mMapBoundary;
+    ClusterManager<ClusterMarker> mClusterManager;
+    MyClusterManagerRenderer mClusterManagerRenderer;
+    ArrayList<ClusterMarker> mClusterMarkers = new ArrayList<>();
+    GeoApiContext mGeoApiContext = null;
     private ArrayList<PolylineData> mPolyLinesData = new ArrayList<>();
     private Marker mSelectedMarker = null;
     private Marker mTripMarker = null;
@@ -289,7 +289,7 @@ public class MapFragment extends DBGeoFragment implements
         mGoogleMap.setOnPolylineClickListener(this);
     }
 
-    private void addMapMarkers() {
+    void addMapMarkers() {
         if (mGoogleMap != null) {
             resetMap();
 
@@ -348,6 +348,29 @@ public class MapFragment extends DBGeoFragment implements
             double lb = lon - .1;
             double tb = lat + .1;
             double rb = lon + .1;
+            double cur_lat, cur_long;
+            for (UserLocation loc: mContactLocations){
+                cur_lat = loc.getGeo_point().getLatitude();
+                cur_long = loc.getGeo_point().getLongitude();
+                if (cur_lat < bb) {
+                    bb = cur_lat - 0.1;
+                    tb = lat + Math.abs(lat - bb);
+                }
+                else if (cur_lat > tb){
+                    tb = cur_lat + 0.1;
+                    bb = lat - Math.abs(lat - tb);
+
+                }
+
+                if (cur_long < lb) {
+                    lb = cur_long - 0.1;
+                    rb = lon + Math.abs(lon - lb);
+                }
+                else if (cur_long > rb){
+                    rb = cur_long + 0.1;
+                    lb = lon - Math.abs(lon - rb);
+                }
+            }
             int width = getResources().getDisplayMetrics().widthPixels;
             int height = getResources().getDisplayMetrics().heightPixels;
             int padding = 4;
