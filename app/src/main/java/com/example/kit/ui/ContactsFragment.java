@@ -230,6 +230,10 @@ public class ContactsFragment extends DBGeoFragment implements
     public void onContactLongClick(int pos) {
         // TODO
         // will it have any significance here?
+//        ContactsDialogFragment contactsFragment = new ContactsDialogFragment(Constants.GET_REMOVE_REQUEST, mRecyclerList.get(pos),
+//                getActivity(), mContactFragment);
+//        contactsFragment.setTargetFragment(ContactsFragment.this, 1);
+//        contactsFragment.show(getFragmentManager(), "ContactsDialogFragment");
     }
 
     @Override
