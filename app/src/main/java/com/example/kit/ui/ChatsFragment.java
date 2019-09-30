@@ -170,8 +170,9 @@ public class ChatsFragment extends DBGeoFragment implements
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
 
                         UChatroom uChatroom = doc.toObject(UChatroom.class);
-                        if (mChatroomIds.contains(uChatroom.getChatroom_id())) {
+                        if (!mChatroomIds.contains(uChatroom.getChatroom_id())) {
                             mChatrooms.add(uChatroom);
+                            mChatroomIds.add(uChatroom.getChatroom_id());
                             notifyRecyclerAdapter();
                         }
 
