@@ -106,7 +106,7 @@ public class RequestsFragment extends DBGeoFragment implements
     private void initView(View v){
         mRequestsRecyclerView = v.findViewById(R.id.requests_recycler_view);
         mRequestsRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
-                this, R.layout.layout_requests_list_item);
+                this, R.layout.layout_requests_list_item, getContext());
         mRequestsRecyclerView.setAdapter(mRequestsRecyclerAdapter);
         mRequestsRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
         DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
@@ -153,7 +153,7 @@ public class RequestsFragment extends DBGeoFragment implements
                         new Handler(Looper.getMainLooper()).post(new Runnable() {
                             public void run() {
                                 mRequestsRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
-                                       mRequestFragment, R.layout.layout_requests_list_item);
+                                       mRequestFragment, R.layout.layout_requests_list_item, getContext());
                                 mRequestsRecyclerView.setAdapter(mRequestsRecyclerAdapter);
                                 mRequestsRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
                                 DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
@@ -232,7 +232,7 @@ public class RequestsFragment extends DBGeoFragment implements
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     public void run() {
                         mRequestsRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
-                                mRequestFragment, R.layout.layout_requests_list_item);
+                                mRequestFragment, R.layout.layout_requests_list_item, getContext());
                         mRequestsRecyclerView.setAdapter(mRequestsRecyclerAdapter);
                         mRequestsRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
                         DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
@@ -253,7 +253,7 @@ public class RequestsFragment extends DBGeoFragment implements
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     public void run() {
                         mRequestsRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
-                                mRequestFragment, R.layout.layout_requests_list_item);
+                                mRequestFragment, R.layout.layout_requests_list_item, getContext());
                         mRequestsRecyclerView.setAdapter(mRequestsRecyclerAdapter);
                         mRequestsRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
                         DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
