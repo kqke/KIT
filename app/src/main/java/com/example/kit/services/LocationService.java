@@ -149,7 +149,6 @@ public class LocationService extends Service {
                         if (CONTACTS != null && CONTACTS.isEmpty()){
                             getContacts();
                         }
-
                     }
                 }
             });
@@ -290,7 +289,7 @@ public class LocationService extends Service {
                                 notificationManager.notify(12345, builder.build());
 
                                 Contact nContact = new Contact(contact.getName(), contact.getUsername(), contact.getAvatar(),
-                                        contact.getCid());
+                                        contact.getCid(), contact.getStatus());
                                 nContact.setInArea(true);
                                 nContact.setLast_sent(new Date());
                                 CONTACTS.get(contact.getCid()).setLast_sent(new Date());

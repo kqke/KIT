@@ -48,9 +48,7 @@ import java.util.Set;
 
 import static android.widget.LinearLayout.HORIZONTAL;
 
-/**
- * A simple {@link Fragment} subclass.
- */
+
 public class ChatFragment extends DBGeoFragment implements
         View.OnClickListener,
         ChatMessageRecyclerAdapter.MessageRecyclerClickListener

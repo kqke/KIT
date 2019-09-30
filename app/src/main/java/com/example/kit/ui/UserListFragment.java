@@ -133,7 +133,7 @@ public class UserListFragment extends MapFragment
                 }
             }
             if (!found){
-                mContactList.add(new Contact(user.getUsername(), user.getEmail(), user.getAvatar(), user.getUser_id()));
+                mContactList.add(new Contact(user.getUsername(), user.getEmail(), user.getAvatar(), user.getUser_id(), user.getStatus()));
             }
         }
         mUserRecyclerAdapter = new ContactRecyclerAdapter(mContactList,
