@@ -19,11 +19,13 @@ public class UserLocation implements Parcelable{
     private GeoPoint geo_point;
     private double latitude, longitude;
     private @ServerTimestamp Date timestamp;
+    private boolean incognito;
 
     public UserLocation(User user, GeoPoint geo_point, Date timestamp) {
         this.user = user;
         this.geo_point = geo_point;
         this.timestamp = timestamp;
+        incognito = false;
     }
 
     public UserLocation() {
@@ -34,6 +36,7 @@ public class UserLocation implements Parcelable{
         latitude = in.readDouble();
         longitude = in.readDouble();
         geo_point = new GeoPoint(latitude, longitude);
+        incognito = in.readInt() == 1;
     }
 
     public static final Creator<UserLocation> CREATOR = new Creator<UserLocation>() {
@@ -55,6 +58,7 @@ public class UserLocation implements Parcelable{
         longitude = geo_point.getLongitude();
         dest.writeDouble(latitude);
         dest.writeDouble(longitude);
+        dest.writeInt(incognito ? 1:0);
     }
 
     @Override
@@ -86,12 +90,21 @@ public class UserLocation implements Parcelable{
         this.timestamp = timestamp;
     }
 
+    public void setIncognito(boolean incognito) {
+        this.incognito = incognito;
+    }
+
+    public boolean isIncognito() {
+        return incognito;
+    }
+
     @Override
     public String toString() {
         return "UserLocation{" +
                 "user=" + user +
                 ", geo_point=" + geo_point +
                 ", timestamp=" + timestamp +
+                ", incognito= " + incognito +
                 '}';
     }
 
