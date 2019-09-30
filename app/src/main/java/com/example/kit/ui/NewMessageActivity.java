@@ -301,11 +301,11 @@ public class NewMessageActivity extends AppCompatActivity implements
             public void onComplete(@NonNull Task<Void> task) {
                 hideDialog();
                 if(task.isSuccessful()){
-                    addUserToGroupChatroom(chatroom_id, FirebaseAuth.getInstance().getUid(), FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
+                    addUserToGroupChatroom(chatroom_id, FirebaseAuth.getInstance().getUid(), display_name);
                     for(Contact member : members){
-                        addUserToGroupChatroom(chatroom_id, FirebaseAuth.getInstance().getUid(), member.getName());
+                        addUserToGroupChatroom(chatroom_id, member.getCid(), display_name);
                     }
-                    UChatroom uchat = new UChatroom(display_name, chatroom_id, false, chatroom.getNumUsers());
+                    UChatroom uchat = new UChatroom(display_name, chatroom_id, true, chatroom.getNumUsers());
                     navChatActivity(uchat);
                 }else{
                     View parentLayout = findViewById(android.R.id.content);
