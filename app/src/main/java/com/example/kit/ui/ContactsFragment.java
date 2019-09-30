@@ -285,14 +285,14 @@ public class ContactsFragment extends DBGeoFragment implements
     @Override
     public void addContact(String display_name, final User contactUser) {
         final User user = ((UserClient) (getActivity().getApplicationContext())).getUser();
-        Contact contact = new Contact(display_name, contactUser.getUsername(), null, contactUser.getUser_id());
+        Contact contact = new Contact(display_name, contactUser.getUsername(), null, contactUser.getUser_id(), contactUser.getStatus());
         mDb.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_pending)).document(contactUser.getUser_id()).set(contact).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
                 Log.d(TAG, "DocumentSnapshot successfully written!");
                 DocumentReference contactRef =
                         mDb.collection(getString(R.string.collection_users)).document(contactUser.getUser_id()).collection(getString(R.string.collection_requests)).document(user.getUser_id());
-                contactRef.set(new Contact(user.getUsername(), user.getEmail(), user.getAvatar(), user.getUser_id())).addOnCompleteListener(new OnCompleteListener<Void>() {
+                contactRef.set(new Contact(user.getUsername(), user.getEmail(), user.getAvatar(), user.getUser_id(), user.getStatus())).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         FCM.send_FCM_Notification(contactUser.getToken(), "Friend Request", user.getUsername() + " has sent " +
