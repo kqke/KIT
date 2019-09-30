@@ -40,6 +40,9 @@ public class ChatroomRecyclerAdapter extends RecyclerView.Adapter<ChatroomRecycl
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ((ViewHolder)holder).chatroomTitle.setText(mChatrooms.get(position).getDisplay_name());
+        holder.last_message.setText(mChatrooms.get(position).getLast_message());
+        holder.last_sent.setText(mChatrooms.get(position).getTime_last_sent().toString());
+
     }
 
     @Override
@@ -51,11 +54,15 @@ public class ChatroomRecyclerAdapter extends RecyclerView.Adapter<ChatroomRecycl
             View.OnClickListener
     {
         TextView chatroomTitle;
+        TextView last_message;
+        TextView last_sent;
         ChatroomRecyclerClickListener clickListener;
 
         public ViewHolder(View itemView, ChatroomRecyclerClickListener clickListener) {
             super(itemView);
             chatroomTitle = itemView.findViewById(R.id.chatroom_title);
+            last_message = itemView.findViewById(R.id.chatroom_last_message);
+            last_sent = itemView.findViewById(R.id.chatroom_last_sent);
             this.clickListener = clickListener;
             itemView.setOnClickListener(this);
         }
