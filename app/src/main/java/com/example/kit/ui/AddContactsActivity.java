@@ -73,7 +73,7 @@ public class AddContactsActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int which) {
                 if (!input.getText().toString().equals("")) {
                     m_Text = input.getText().toString();
-                    Contact contact = new Contact(m_Text, contactUser.getUsername(), null, contactUser.getUser_id());
+                    Contact contact = new Contact(m_Text, contactUser.getUsername(), null, contactUser.getUser_id(), contactUser.getStatus());
                     userRef.collection(getString(R.string.collection_pending)).document(contactUser.getUser_id()).set(contact).addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
@@ -81,7 +81,7 @@ public class AddContactsActivity extends AppCompatActivity {
                             m_Text = "";
                             DocumentReference contactRef =
                                     fs.collection(getString(R.string.collection_users)).document(contactUser.getUser_id()).collection(getString(R.string.collection_requests)).document(uid);
-                            contactRef.set(new Contact(user.getUsername(), user.getEmail(), user.getAvatar(), user.getUser_id())).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            contactRef.set(new Contact(user.getUsername(), user.getEmail(), user.getAvatar(), user.getUser_id(), user.getStatus())).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
                                     FCM.send_FCM_Notification(contactUser.getToken(), "Friend Request", user.getUsername() +" has sent " +

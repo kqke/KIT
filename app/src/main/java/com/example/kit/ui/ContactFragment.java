@@ -1,17 +1,22 @@
 package com.example.kit.ui;
 
+import android.content.Context;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,8 +26,17 @@ import com.example.kit.Constants;
 import com.example.kit.R;
 import com.example.kit.UserClient;
 import com.example.kit.models.Contact;
+import com.example.kit.models.User;
 import com.example.kit.util.UsernameValidator;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import static android.view.View.VISIBLE;
 import static com.example.kit.Constants.CONTACT;
@@ -43,6 +57,7 @@ public class ContactFragment extends DBGeoFragment implements
     private TextView mProfileName, mUserName, mProfileStatus;
     private Button mSendReqBtn, mAcceptBtn,
             mDeclineBtn, mDeleteReqBtn, mDeleteBtn;
+    private LinearLayout mTheirReqPending;
     private ImageView mEditBtn, mEditDoneBtn;
     private EditText mEditDisplayName;
 
@@ -89,6 +104,7 @@ public class ContactFragment extends DBGeoFragment implements
         mAvatarImage = v.findViewById(R.id.image_choose_avatar);
         mProfileName = v.findViewById(R.id.profile_displayName);
         mProfileName.setText(mContact.getName());
+        mProfileName.setOnClickListener(this);
         mUserName = v.findViewById(R.id.profile_userName);
         if(mCurrent_state.equals(FRIENDS)){
             mUserName.setText(mContact.getUsername());
@@ -98,6 +114,7 @@ public class ContactFragment extends DBGeoFragment implements
         }
         mProfileStatus = v.findViewById(R.id.profile_status);
         mSendReqBtn = v.findViewById(R.id.profile_send_req_btn);
+        mTheirReqPending = v.findViewById(R.id.request_btns);
         mAcceptBtn = v.findViewById(R.id.profile_accept_req_btn);
         mDeclineBtn = v.findViewById(R.id.profile_decline_btn);
         mDeleteReqBtn = v.findViewById(R.id.profile_delete_request_btn);
@@ -111,10 +128,22 @@ public class ContactFragment extends DBGeoFragment implements
         if(mCurrent_state.equals(FRIENDS)){
             mEditDisplayName = v.findViewById(R.id.profile_editDisplayName);
             mEditDisplayName.setVisibility(View.GONE);
-            mEditDisplayName.setHint(mContact.getName());
+            mEditDisplayName.setText(mContact.getName());
             mEditBtn = v.findViewById(R.id.edit_btn);
             mEditBtn.setVisibility(VISIBLE);
             mEditBtn.setOnClickListener(this);
+            mEditDisplayName.setOnKeyListener(new View.OnKeyListener() {
+                  public boolean onKey(View v, int keyCode, KeyEvent event) {
+                      // If the event is a key-down event on the "enter" button
+                      if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
+                              (keyCode == KeyEvent.KEYCODE_ENTER)) {
+                          // Perform action on key press
+                          doneEditDisplayName();
+                          return true;
+                      }
+                      return false;
+                  }
+              });
             mEditDoneBtn = v.findViewById(R.id.edit_done_btn);
         }
     }
@@ -137,8 +166,7 @@ public class ContactFragment extends DBGeoFragment implements
                 break;
             }
             case THEIR_REQUEST_PENDING:{
-                mAcceptBtn.setVisibility(VISIBLE);
-                mDeclineBtn.setVisibility(VISIBLE);
+                mTheirReqPending.setVisibility(VISIBLE);
                 mAcceptBtn.setOnClickListener(this);
                 mDeclineBtn.setOnClickListener(this);
                 break;
@@ -172,14 +200,16 @@ public class ContactFragment extends DBGeoFragment implements
     }
 
     private void doneEditDisplayName(){
+        //TODO
+        // what is a valid display name?
         UsernameValidator validator = new UsernameValidator();
         if(validator.validate(mEditDisplayName.getText().toString())){
             mEditDisplayName.setVisibility(View.GONE);
             mProfileName.setVisibility(VISIBLE);
             mProfileName.setText(mEditDisplayName.getText().toString());
-            mEditDisplayName.setText("");
             mEditBtn.setVisibility(VISIBLE);
             mEditDoneBtn.setVisibility(View.GONE);
+            changeDisplayName(mEditDisplayName.getText().toString());
         }
         else{
             Log.d(TAG, "edit done: invalid display name");
@@ -196,6 +226,7 @@ public class ContactFragment extends DBGeoFragment implements
     @Override
     public void onClick(View v) {
         switch(v.getId()){
+            case R.id.profile_displayName:
             case R.id.edit_btn:{
                 editDisplayName();
                 break;
@@ -276,5 +307,77 @@ public class ContactFragment extends DBGeoFragment implements
         mDb.collection(getString(R.string.collection_users)).document(uid).collection(getString(R.string.collection_requests)).document(contact.getCid()).delete();
         mDeleteReqBtn.setClickable(false);
         mDeleteReqBtn.setVisibility(View.INVISIBLE);
+    }
+
+    public void changeDisplayName(final String name){
+        DocumentReference contactRef = FirebaseFirestore.getInstance()
+                .collection(getString(R.string.collection_users))
+                .document(FirebaseAuth.getInstance().getUid())
+                .collection(getString(R.string.collection_contacts))
+                .document(mContact.getCid());
+        contactRef.update("name", name);
+        final String first, second, chatroom_id;
+        if (stringCompare(mContact.getCid(), FirebaseAuth.getInstance().getUid()) > 0) {
+            first = mContact.getCid();
+            second = FirebaseAuth.getInstance().getUid();
+        } else {
+            first = FirebaseAuth.getInstance().getUid();
+            second = mContact.getCid();
+        }
+        chatroom_id = first + second;
+        CollectionReference chatroomRef = FirebaseFirestore.getInstance()
+                .collection(getString(R.string.collection_users))
+                .document(FirebaseAuth.getInstance().getUid())
+                .collection("user_chatrooms");
+        Query query = chatroomRef.whereEqualTo("chatroom_id", chatroom_id);
+        query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if(task.isSuccessful()){
+                    if (task.getResult() != null) {
+                        DocumentReference chatroomRef = FirebaseFirestore.getInstance()
+                                .collection(getString(R.string.collection_users))
+                                .document(FirebaseAuth.getInstance().getUid())
+                                .collection("user_chatrooms")
+                                .document(chatroom_id);
+                        chatroomRef.update("display_name", name);
+                    }
+                }
+            }
+        });
+    }
+
+    /*
+    ----------------------------- utils ---------------------------------
+    */
+
+    private void hideSoftKeyboard(){
+        final InputMethodManager imm = (InputMethodManager) mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
+    }
+
+    public static int stringCompare(String str1, String str2)
+    {
+        int l1 = str1.length();
+        int l2 = str2.length();
+        int lmin = Math.min(l1, l2);
+
+        for (int i = 0; i < lmin; i++) {
+            int str1_ch = (int)str1.charAt(i);
+            int str2_ch = (int)str2.charAt(i);
+            if (str1_ch != str2_ch) {
+                return str1_ch - str2_ch;
+            }
+        }
+        // Edge case for strings like
+        // String 1="Geeks" and String 2="Geeksforgeeks"
+        if (l1 != l2) {
+            return l1 - l2;
+        }
+        // If none of the above conditions is true,
+        // it implies both the strings are equal
+        else {
+            return 0;
+        }
     }
 }
