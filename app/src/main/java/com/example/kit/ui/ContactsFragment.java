@@ -203,7 +203,7 @@ public class ContactsFragment extends DBGeoFragment implements
 
     @Override
     public void onContactSelected(int position) {
-        getData.initContactFragment(mContacts.get(position).getCid());
+        getData.initContactFragment(mRecyclerList.get(position).getCid());
     }
 
     @Override
