@@ -3,6 +3,7 @@ package com.example.kit.ui;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -12,7 +13,9 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import de.hdodenhof.circleimageview.CircleImageView;
 
+import android.provider.CalendarContract;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -21,13 +24,17 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.kit.R;
 import com.example.kit.UserClient;
 import com.example.kit.adapters.ChatMessageRecyclerAdapter;
 import com.example.kit.models.ChatMessage;
+import com.example.kit.models.Contact;
 import com.example.kit.models.UChatroom;
 import com.example.kit.models.User;
 import com.example.kit.models.UserLocation;
@@ -47,6 +54,7 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -98,6 +106,8 @@ public class ChatFragment extends DBGeoFragment implements
     private ArrayList<UserLocation> mUserLocations = new ArrayList<>();
     private ArrayList<String> mUserTokens = new ArrayList<>();
 
+    private ChatroomCallback getData;
+
      /*
     ----------------------------- Lifecycle ---------------------------------
     */
@@ -134,7 +144,7 @@ public class ChatFragment extends DBGeoFragment implements
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        ChatroomCallback getData =  (ChatroomCallback)context;
+        getData =  (ChatroomCallback)context;
         mChatroom = getData.getChatroom();
         mUserList = getData.getUserList();
         mUserLocations = getData.getUserLocations();
@@ -239,7 +249,7 @@ public class ChatFragment extends DBGeoFragment implements
                 break;
             }
             case R.id.lets_meet:{
-                getDate();
+                getDate(null);
                 break;
             }
         }
@@ -247,32 +257,56 @@ public class ChatFragment extends DBGeoFragment implements
 
     @Override
     public void onMessageSelected(int position) {
-        ChatMessage message = mMessages.get(position);
-        if(message.getUser().getUser_id()
+        final ChatMessage message = mMessages.get(position);
+        if(message.isExpired()){
+            Toast.makeText(mActivity, "This invite has expired...", Toast.LENGTH_SHORT).show();
+
+        }
+        else if(message.getUser().getUser_id()
                 .equals(((UserClient)mActivity.getApplicationContext()).getUser().getUser_id())){
-            if(message.isExpired()){
-                Toast.makeText(mActivity, "This invite has expired...", Toast.LENGTH_SHORT).show();
-            }
-            else {
-                Toast.makeText(mActivity, "Waiting for approval", Toast.LENGTH_SHORT).show();
-            }
+            Toast.makeText(mActivity, "Waiting for approval", Toast.LENGTH_SHORT).show();
         }
         else {
             final View dialogView = View.inflate(mActivity, R.layout.dialog_schedule, null);
             final AlertDialog alertDialog = new AlertDialog.Builder(mActivity).create();
-
+            Contact contact = getData.getContact(message.getUser().getUser_id());
+            ((TextView)dialogView.findViewById(R.id.profile_displayName)).setText(contact.getUsername());
+            SimpleDateFormat formatter = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss z");
+            ((TextView)dialogView.findViewById(R.id.date)).setText(formatter.format(message.getMeeting_time()));
+            RequestOptions requestOptions = new RequestOptions()
+                    .error(R.drawable.cartman_cop)
+                    .placeholder(R.drawable.cartman_cop);
+            Glide.with(this)
+                    .setDefaultRequestOptions(requestOptions)
+                    .load(contact.getAvatar())
+                    .into((CircleImageView)dialogView.findViewById(R.id.avatar));
             dialogView.findViewById(R.id.set).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-
+                    message.setExpired(true);
+                    DocumentReference messageRef = mDb
+                            .collection(getString(R.string.collection_chatrooms))
+                            .document(mChatroom.getChatroom_id())
+                            .collection(getString(R.string.collection_chat_messages))
+                            .document(message.getMessage_id());
+                    messageRef.update("expired", true);
                     alertDialog.dismiss();
+                    Intent intent = new Intent(Intent.ACTION_INSERT)
+                            .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME,
+                                    message.getMeeting_time())
+                            .setData(CalendarContract.Events.CONTENT_URI)
+                            .putExtra(CalendarContract.Events.TITLE, "KIT: ")
+                            .putExtra(CalendarContract.Events.DESCRIPTION, "meeting")
+                            .putExtra(CalendarContract.Events.AVAILABILITY, CalendarContract.Events.AVAILABILITY_BUSY);
+                    startActivity(intent);
                 }
             });
 
             dialogView.findViewById(R.id.reschedule).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
+                    alertDialog.dismiss();
+                    getDate(message);
                 }
             });
             alertDialog.setView(dialogView);
@@ -286,7 +320,7 @@ public class ChatFragment extends DBGeoFragment implements
         // some deletion dialog
     }
 
-    public void getDate(){
+    public void getDate(final ChatMessage message){
         final View dialogView = View.inflate(mActivity, R.layout.date_time_picker, null);
         final AlertDialog alertDialog = new AlertDialog.Builder(mActivity).create();
 
@@ -303,6 +337,15 @@ public class ChatFragment extends DBGeoFragment implements
                         timePicker.getCurrentHour(),
                         timePicker.getCurrentMinute());
                 insertMeetInvite(new Date(calendar.getTimeInMillis()));
+                if(message != null){
+                    message.setExpired(true);
+                    DocumentReference messageRef = mDb
+                            .collection(getString(R.string.collection_chatrooms))
+                            .document(mChatroom.getChatroom_id())
+                            .collection(getString(R.string.collection_chat_messages))
+                            .document(message.getMessage_id());
+                    messageRef.update("expired", true);
+                }
                 alertDialog.dismiss();
             }});
         alertDialog.setView(dialogView);
@@ -469,6 +512,7 @@ public class ChatFragment extends DBGeoFragment implements
         ArrayList<UserLocation>getUserLocations();
         ArrayList<String>getUserTokens();
         UserLocation getUserLocation();
+        Contact getContact(String id);
     }
 
 }
