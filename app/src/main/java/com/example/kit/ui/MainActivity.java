@@ -25,9 +25,13 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import de.hdodenhof.circleimageview.CircleImageView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.kit.Constants;
 import com.example.kit.R;
+import com.example.kit.UserClient;
 import com.example.kit.models.Contact;
 import com.example.kit.models.UChatroom;
 import com.example.kit.models.User;
@@ -71,6 +75,7 @@ import static com.example.kit.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 import static com.example.kit.Constants.THEIR_REQUEST_PENDING;
 
 public class MainActivity extends AppCompatActivity implements
+        View.OnClickListener,
         ContactsFragment.ContactsCallback,
         ChatsFragment.ChatroomsCallback,
         RequestsFragment.RequestsCallback,
@@ -106,6 +111,8 @@ public class MainActivity extends AppCompatActivity implements
     //  make Contacts recycler adapter compatible with request and pending views
     //TODO
     // empty display names are accepted
+    //TODO
+    // don't change fragments to the same fragment currently displayed
 
     //Tag
     private static final String TAG = "MainActivity";
@@ -167,13 +174,6 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.action_bar, menu);
-        return true;
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
         if (checkMapServices()) {
@@ -206,8 +206,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private void initLoadingView () {
         setContentView(R.layout.activity_main);
-        setSupportActionBar((Toolbar) findViewById(R.id.upper_toolbar));
-        setTitle(R.string.fragment_chats);
+        initToolbar();
         if(!isDestroyed() && !isFinishing()) {
             ft = getSupportFragmentManager().beginTransaction();
             ft.add(R.id.fragment_container, LoadingFragment.newInstance(), LOADING_FRAG)
@@ -215,7 +214,32 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+    private void initToolbar(){
+        Toolbar toolbar = findViewById(R.id.upper_toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+//        findViewById(R.id.image_choose_avatar).setOnClickListener(this);
+    }
+
+    private void retrieveProfileImage(){
+        RequestOptions requestOptions = new RequestOptions()
+                .error(R.drawable.cartman_cop)
+                .placeholder(R.drawable.cartman_cop);
+        int avatar = 0;
+        try{
+            avatar = Integer.parseInt(((UserClient)getApplicationContext()).getUser().getAvatar());
+        }catch (NumberFormatException e){
+            Log.e(TAG, "retrieveProfileImage: no avatar image. Setting default. " + e.getMessage() );
+        }
+
+        Glide.with(this)
+                .setDefaultRequestOptions(requestOptions)
+                .load(avatar)
+                .into((CircleImageView)findViewById(R.id.image_choose_avatar));
+    }
+
     private void initView() {
+        retrieveProfileImage();
         initNavigationBar();
     }
 
@@ -243,11 +267,11 @@ public class MainActivity extends AppCompatActivity implements
                                 setTitle(R.string.fragment_contacts);
                                 return true;
                             }
-                            case R.id.action_profile: {
-                                replaceFragment(ProfileFragment.newInstance(), PROFLE_FRAG);
-                                setTitle(R.string.fragment_profile);
-                                return true;
-                            }
+//                            case R.id.action_profile: {
+//                                replaceFragment(ProfileFragment.newInstance(), PROFLE_FRAG);
+//                                setTitle(R.string.fragment_profile);
+//                                return true;
+//                            }
                         }
                         return false;
                     }
@@ -303,17 +327,12 @@ public class MainActivity extends AppCompatActivity implements
     */
 
     @Override
-    public boolean onOptionsItemSelected (MenuItem item){
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
+    public void onClick(View v) {
+        if(v.getId() == R.id.image_choose_avatar){
             navSettingsActivity();
-            return true;
         }
-        return super.onOptionsItemSelected(item);
     }
+
 
     /*
     ----------------------------- ContactsCallback ---------------------------------
@@ -409,7 +428,7 @@ public class MainActivity extends AppCompatActivity implements
     ----------------------------- nav ---------------------------------
     */
 
-    private void navSettingsActivity () {
+    private void navSettingsActivity(){
         Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
     }

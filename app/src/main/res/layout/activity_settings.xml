@@ -1,9 +1,86 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="10dp">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:id="@+id/image_choose_avatar"
+            android:src="@drawable/cartman_cop"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true"
+            android:paddingTop="20dp"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            />
+
+        <TextView
+            android:id="@+id/edit_image_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/image_choose_avatar"
+            android:layout_alignStart="@+id/image_choose_avatar"
+            android:layout_marginStart="56dp"
+            android:textColor="@color/colorPrimary"
+            android:text="Edit"/>
+
+        <TextView
+            android:id="@+id/profile_userName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/image_choose_avatar"
+            android:layout_marginBottom="70dp"
+            android:layout_marginStart="10dp"
+            android:layout_toEndOf="@+id/image_choose_avatar"
+            android:layout_marginTop="5dp"
+            android:text="User Name"
+            android:textSize="24sp"/>
+
+        <TextView
+            android:id="@+id/profile_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/image_choose_avatar"
+            android:background="@drawable/status"
+            android:padding="8dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginStart="20dp"
+            android:text="Hey, I'm using KIT"
+            android:textSize="16sp" />
+
+        <ImageView
+            android:id="@+id/edit_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@+id/profile_status"
+            android:layout_alignTop="@id/profile_status"
+            android:paddingTop="5dp"
+            android:paddingStart="10dp"
+            android:src="@drawable/ic_edit"/>
+
+        <ImageView
+            android:id="@+id/edit_done_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@+id/profile_status"
+            android:layout_alignTop="@id/profile_status"
+            android:paddingTop="5dp"
+            android:paddingStart="10dp"
+            android:src="@drawable/ic_accept"
+            android:visibility="gone"
+            />
+
+    </RelativeLayout>
 
     <FrameLayout
         android:id="@+id/settings"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="wrap_content" />
+
 </LinearLayout>

@@ -29,11 +29,47 @@
             android:text="Display Name"
             android:textSize="24sp" />
 
+        <EditText
+            android:id="@+id/profile_editDisplayName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@+id/image_choose_avatar"
+            android:layout_marginTop="40dp"
+            android:layout_marginStart="16dp"
+            android:hint="HINT"
+            android:visibility="gone"
+            android:textSize="24sp"/>
+
+        <ImageView
+            android:id="@+id/edit_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignTop="@+id/profile_displayName"
+            android:paddingTop="5dp"
+            android:paddingEnd="35dp"
+            android:paddingStart="0dp"
+            android:src="@drawable/ic_edit"/>
+
+        <ImageView
+            android:id="@+id/edit_done_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignTop="@+id/profile_displayName"
+            android:paddingTop="5dp"
+            android:paddingEnd="35dp"
+            android:paddingStart="0dp"
+            android:src="@drawable/ic_accept"
+            android:visibility="gone"
+            />
+
         <TextView
             android:id="@+id/profile_userName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/profile_displayName"
+            android:layout_alignBottom="@id/image_choose_avatar"
+            android:paddingBottom="40dp"
             android:layout_alignStart="@+id/profile_displayName"
             android:layout_marginTop="5dp"
             android:text="User Name"
@@ -47,7 +83,7 @@
             android:background="@drawable/status"
             android:padding="8dp"
             android:layout_marginTop="8dp"
-            android:layout_marginStart="50dp"
+            android:layout_marginStart="20dp"
             android:text="Hey, I'm using KIT"
             android:textSize="16sp" />
 
@@ -97,7 +133,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_marginBottom="12dp"
-            android:layout_toEndOf="@+id/profile_accept_req_btn"
+            android:layout_centerHorizontal="true"
             android:drawableTop="@drawable/ic_person_add_disabled"
             android:text="DELETE FRIEND REQUEST"
             android:visibility="gone"
@@ -108,9 +144,9 @@
             android:id="@+id/profile_delete_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
             android:layout_alignParentBottom="true"
             android:layout_marginBottom="12dp"
-            android:layout_toEndOf="@+id/profile_accept_req_btn"
             android:drawableTop="@drawable/ic_delete"
             android:text="DELETE CONTACT"
             android:visibility="gone"
