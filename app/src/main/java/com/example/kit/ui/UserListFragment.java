@@ -274,6 +274,8 @@ public class UserListFragment extends MapFragment
 
         recyclerAnimation.start();
         mapAnimation.start();
+
+        Log.d(TAG, "expandMapAnimation: map weight ");
     }
 
     private void contractMapAnimation(){
