@@ -22,14 +22,20 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.kit.Constants;
 import com.example.kit.R;
+import com.example.kit.UserClient;
 import com.example.kit.adapters.ContactRecyclerAdapter;
 import com.example.kit.models.Contact;
 import com.example.kit.models.User;
+import com.example.kit.util.FCM;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -50,7 +56,8 @@ import static android.widget.LinearLayout.HORIZONTAL;
 
 public class ContactsFragment extends DBGeoFragment implements
         ContactRecyclerAdapter.ContactsRecyclerClickListener,
-        View.OnClickListener
+        View.OnClickListener,
+        ContactsDialogFragment.OnInputSelected
 {
 
     //TODO
@@ -211,7 +218,11 @@ public class ContactsFragment extends DBGeoFragment implements
         if(v.getId() == R.id.fab){
             //TODO
             // add a new contact dialog (Fragment?/some sort of a bubble?)
-            newContactDialog();
+            User user = ((UserClient) (getActivity().getApplicationContext())).getUser();
+            ContactsDialogFragment contactsFragment = new ContactsDialogFragment(Constants.GET_SEARCH_REQUEST, user,
+                    getActivity(), mContactFragment);
+            contactsFragment.setTargetFragment(ContactsFragment.this, 1);
+            contactsFragment.show(getFragmentManager(), "ContactsDialogFragment");
         }
     }
 
@@ -254,43 +265,45 @@ public class ContactsFragment extends DBGeoFragment implements
         startActivityForResult(intent, 0);
     }
 
-    //TODO
-    // is this sufficient UI wise?
-    private void newContactDialog(){
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
-        builder.setTitle("Enter a username");
-
-        final EditText input = new EditText(mActivity);
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-        builder.setView(input);
-
-        builder.setPositiveButton("CREATE", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if(!input.getText().toString().equals("")){
-                    search(input.getText().toString());
-                }
-                else {
-                    Toast.makeText(mActivity, "Enter a username", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-
-        builder.show();
-    }
+//    //TODO
+//    // is this sufficient UI wise?
+//    private void newContactDialog(){
+//        ContactsFragment contactsFragment = new ContactsFragment(Constants.GET_REMOVE_REQUEST, ,
+//                getActivity(), mContactFragment);
+//        contactsFragment.setTargetFragment(ContactsFragment.this, 1);
+//        contactsFragment.show(getFragmentManager(), "RequestsDialogFragment");
+//    }
 
     /*
     ----------------------------- DB ---------------------------------
     */
 
-    protected void search(final String username){
+    @Override
+    public void addContact(String display_name, final User contactUser) {
+        final User user = ((UserClient) (getActivity().getApplicationContext())).getUser();
+        Contact contact = new Contact(display_name, contactUser.getUsername(), null, contactUser.getUser_id());
+        mDb.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_pending)).document(contactUser.getUser_id()).set(contact).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.d(TAG, "DocumentSnapshot successfully written!");
+                DocumentReference contactRef =
+                        mDb.collection(getString(R.string.collection_users)).document(contactUser.getUser_id()).collection(getString(R.string.collection_requests)).document(user.getUser_id());
+                contactRef.set(new Contact(user.getUsername(), user.getEmail(), user.getAvatar(), user.getUser_id())).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        FCM.send_FCM_Notification(contactUser.getToken(), "Friend Request", user.getUsername() + " has sent " +
+                                "you a friend request");
+
+                    }
+                });
+
+
+            }
+        });
+    }
+
+    @Override
+    public void search(final String username){
         CollectionReference usersRef = mDb.collection("Users");
         Query query = usersRef.whereEqualTo("username", username);
         query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -303,13 +316,43 @@ public class ContactsFragment extends DBGeoFragment implements
                             Log.d(TAG, "User Exists");
                             User user = documentSnapshot.toObject(User.class);
                             Log.d(TAG, "onComplete: Barak contact id" + user.getUser_id());
-                            navAddContactActivity(user);
+                            ContactsDialogFragment contactsDialog = new ContactsDialogFragment(Constants.GET_DISPLAY_NAME,
+                                    user, getActivity(), mContactFragment);
+                            contactsDialog.setTargetFragment(ContactsFragment.this, 1);
+                            contactsDialog.show(getFragmentManager(), "RequestsDialogFragment");
                         }
                     }
                 }
             }
         });
     }
+
+    @Override
+    public void remove(final Contact contact) {
+        mDb.collection(getString(R.string.collection_users)).document(contact.getCid()).collection(getString(R.string.collection_contacts)).document(FirebaseAuth.getInstance().getUid()).delete();
+        mDb.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_contacts)).document(contact.getCid()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                mContacts.remove(contact.getCid());
+                mRecyclerList = new ArrayList<>(mContacts.values());
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    public void run() {
+                        mContactRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
+                                mContactFragment, R.layout.layout_contact_list_item);
+                        mContactRecyclerView.setAdapter(mContactRecyclerAdapter);
+                        mContactRecyclerAdapter.notifyDataSetChanged();
+                        mContactRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
+                        DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
+                        mContactRecyclerView.addItemDecoration(itemDecor);
+                        mContactRecyclerAdapter.notifyDataSetChanged();
+                    }
+                });
+            }
+        });
+
+    }
+
+
 
     /*
     ----------------------------- Contacts Callback ---------------------------------

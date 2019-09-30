@@ -19,6 +19,7 @@ public class Constants {
     public static final String CONTACTS_LIST = "contacts_list";
     public static final int GET_DISPLAY_NAME = 1;
     public static final String DISPLAY_NAME = "Enter a Display Name";
+    public static final int GET_SEARCH_REQUEST = 2;
     public static final int GET_ACCEPT_REQUEST = 2;
     public static final String ACCEPT_REQUEST = "Are You Sure You Want to Accept the Request?";
     public static final int GET_REMOVE_REQUEST = 3;
