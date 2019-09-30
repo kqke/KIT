@@ -326,9 +326,14 @@ public class ChatroomActivity extends AppCompatActivity implements
         return userPos;
     }
 
+    @Override
+    public Contact getContact(String id) {
+        return mContacts.get(id);
+    }
+
     /*
-        ----------------------------- ViewPagerAdapter ---------------------------------
-        */
+            ----------------------------- ViewPagerAdapter ---------------------------------
+            */
     public static class ChatMapViewPagerAdapter extends FragmentPagerAdapter {
 
         private String[] mTitles = new String[] {

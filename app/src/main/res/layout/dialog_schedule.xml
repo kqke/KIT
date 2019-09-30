@@ -5,8 +5,8 @@
     android:padding="30dp">
 
     <de.hdodenhof.circleimageview.CircleImageView
-        android:layout_width="200dp"
-        android:layout_height="200dp"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
         android:id="@+id/avatar"
         android:src="@drawable/cartman_cop"
         android:layout_alignParentTop="true"
@@ -29,7 +29,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/profile_displayName"
         android:layout_centerHorizontal="true"
-        android:text="WANTS TO MEET YOU"
+        android:text="WANTS TO MEET YOU ON:"
         />
 
     <TextView
