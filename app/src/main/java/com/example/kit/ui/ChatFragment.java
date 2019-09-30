@@ -8,8 +8,6 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -154,6 +152,17 @@ public class ChatFragment extends DBGeoFragment implements
             mChatMessageEventListener.remove();
         }
         if(mUserListEventListener != null){
+            mUserListEventListener.remove();
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        if (mChatMessageEventListener != null) {
+            mChatMessageEventListener.remove();
+        }
+        if (mUserListEventListener != null){
             mUserListEventListener.remove();
         }
     }
