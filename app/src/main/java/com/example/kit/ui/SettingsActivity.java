@@ -266,9 +266,9 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         RequestOptions requestOptions = new RequestOptions()
                 .error(R.drawable.cartman_cop)
                 .placeholder(R.drawable.cartman_cop);
-        int avatar = 0;
+        String avatar = "";
         try{
-            avatar = Integer.parseInt(((UserClient)getApplicationContext()).getUser().getAvatar());
+            avatar = (((UserClient)getApplicationContext()).getUser().getAvatar());
         }catch (NumberFormatException e){
             Log.e(TAG, "retrieveProfileImage: no avatar image. Setting default. " + e.getMessage() );
         }

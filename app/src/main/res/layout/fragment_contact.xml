@@ -154,7 +154,6 @@
                 style="?android:attr/borderlessButtonStyle"
                 android:textColor="@android:color/holo_red_dark" />
 
-
         </RelativeLayout>
 
 </LinearLayout>

@@ -24,6 +24,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -41,10 +42,13 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.example.kit.services.LocationService;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -56,14 +60,20 @@ import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import static com.example.kit.Constants.AUTH;
+import static com.example.kit.Constants.BACK_STACK_ROOT_TAG;
 import static com.example.kit.Constants.CONTACT;
 import static com.example.kit.Constants.CONTACT_STATE;
 import static com.example.kit.Constants.ERROR_DIALOG_REQUEST;
@@ -121,13 +131,13 @@ public class MainActivity extends AppCompatActivity implements
     private static final String LOADING_FRAG = "LOADING_FRAG";
     private static final String CHATS_FRAG = "CHATS_FRAG";
     private static final String MAP_FRAG = "MAP_FRAG";
-    private static final String CONATCTS_FRAG = "CONTACTS_FRAG";
-    private static final String PROFLE_FRAG = "PROFILE_FRAG";
+    private static final String CONTACTS_FRAG = "CONTACTS_FRAG";
     private static final String CONTACT_FRAG = "CONTACT_FRAG";
     private FragmentTransaction ft;
 
     //Firebase
     protected FirebaseFirestore mDb;
+    private FirebaseAuth mAuth;
 
     //Location
     private static boolean mLocationPermissionGranted = false;
@@ -166,11 +176,10 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        initFullLoadingView();
         mDb = FirebaseFirestore.getInstance();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        getLocationPermission();
-        initLoadingView();
-        initMessageService();
+        setupFirebaseAuth();
     }
 
     @Override
@@ -179,6 +188,10 @@ public class MainActivity extends AppCompatActivity implements
         if (checkMapServices()) {
             if (isLocationPermissionGranted()) {
                 getUserDetails();
+                fetchContacts();
+                fetchRequests();
+                fetchPending();
+                fetchChatrooms();
             }
         }
     }
@@ -204,6 +217,62 @@ public class MainActivity extends AppCompatActivity implements
     ----------------------------- init ---------------------------------
     */
 
+    private void initFullLoadingView(){
+        // TODO
+        //  We can put here the logo of the app with loading animation or smth.
+    }
+
+    private void setupFirebaseAuth(){
+        Log.d(TAG, "setupFirebaseAuth: started.");
+        FirebaseApp.initializeApp(this);
+        mAuth = FirebaseAuth.getInstance();
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
+                    .build();
+            mDb.setFirestoreSettings(settings);
+
+            DocumentReference userRef = mDb.collection(getString(R.string.collection_users))
+                    .document(user.getUid());
+
+            userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if(task.isSuccessful()){
+                        User user = task.getResult().toObject(User.class);
+                        System.out.println(user);
+                        if(user == null || user.getUsername() == null)
+                        {
+                            Log.d(TAG, "FirebaseAuth: no username defined");
+                            navLoginActivity(true);
+                        }
+                        else {
+                            Log.d(TAG, "FirebaseAuth:signed_in:" + user.getUser_id());
+                            setCurrentUser(user);
+                            initLoadingView();
+                            updateToken();
+                            getLocationPermission();
+                            initMessageService();
+                        }
+                    }
+                }
+            });
+        }
+        else {
+            // User is signed out
+            Log.d(TAG, "FirebaseAuth:signed_out");
+            navLoginActivity(false);
+        }
+    }
+
+    private void setCurrentUser(User user){
+        Toast.makeText(MainActivity.this,
+                "Authenticated with: " + user.getEmail(),
+                Toast.LENGTH_SHORT).show();
+        ((UserClient) (getApplicationContext())).setUser(user);
+        Log.d(TAG, "setCurrentUser: successfully set the user client.");
+    }
+
     private void initLoadingView () {
         setContentView(R.layout.activity_main);
         initToolbar();
@@ -218,7 +287,6 @@ public class MainActivity extends AppCompatActivity implements
         Toolbar toolbar = findViewById(R.id.upper_toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
-//        findViewById(R.id.image_choose_avatar).setOnClickListener(this);
     }
 
     private void retrieveProfileImage(){
@@ -246,46 +314,54 @@ public class MainActivity extends AppCompatActivity implements
     private void initNavigationBar () {
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navi_bar);
         bottomNav.setVisibility(View.VISIBLE);
-        replaceFragment(ChatsFragment.newInstance(), CHATS_FRAG);
+        replaceFragment(ChatsFragment.newInstance(), CHATS_FRAG, false);
         bottomNav.setOnNavigationItemSelectedListener
                 (new BottomNavigationView.OnNavigationItemSelectedListener() {
                     @Override
                     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                        Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
                         switch (item.getItemId()) {
                             case R.id.action_chats: {
-                                replaceFragment(ChatsFragment.newInstance(), CHATS_FRAG);
-                                setTitle(R.string.fragment_chats);
+                                if(!(currentFragment instanceof ChatsFragment)) {
+                                    replaceFragment(ChatsFragment.newInstance(), CHATS_FRAG, false);
+                                    setTitle(R.string.fragment_chats);
+                                }
                                 return true;
                             }
                             case R.id.action_map: {
-                                replaceFragment(MapFragment.newInstance(), MAP_FRAG);
-                                setTitle(R.string.fragment_map);
+                                if(!(currentFragment instanceof MapFragment)) {
+                                    replaceFragment(MapFragment.newInstance(), MAP_FRAG, false);
+                                    setTitle(R.string.fragment_map);
+                                }
                                 return true;
                             }
                             case R.id.action_contacts: {
-                                replaceFragment(ContactsRequestsPendingFragment.newInstance(), CONATCTS_FRAG);
-                                setTitle(R.string.fragment_contacts);
+                                if(!(currentFragment instanceof ContactsFragment)) {
+                                    replaceFragment(ContactsRequestsPendingFragment.newInstance(), CONTACTS_FRAG, false);
+                                    setTitle(R.string.fragment_contacts);
+                                }
                                 return true;
                             }
-//                            case R.id.action_profile: {
-//                                replaceFragment(ProfileFragment.newInstance(), PROFLE_FRAG);
-//                                setTitle(R.string.fragment_profile);
-//                                return true;
-//                            }
                         }
                         return false;
                     }
                 });
     }
 
-    private void replaceFragment (Fragment newFragment, String tag){
+    private void replaceFragment (Fragment newFragment, String tag, boolean stack){
         if(!isDestroyed() && !isFinishing()) {
             mChatroomEventListener.remove();
             mContactEventListener.remove();
             mRequestEventListener.remove();
             mPendingEventListener.remove();
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            ft.replace(R.id.fragment_container, newFragment, tag).commit();
+            if(stack) {
+                ft.replace(R.id.fragment_container, newFragment, tag).addToBackStack(BACK_STACK_ROOT_TAG).commit();
+            }
+//                getSupportFragmentManager().popBackStack(BACK_STACK_ROOT_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            else {
+                ft.replace(R.id.fragment_container, newFragment, tag).commit();
+            }
         }
     }
 
@@ -312,6 +388,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void checkReady () {
+
         if (mContactsFetched &&
                 mLocationFetched &&
                 mChatroomsFetched &&
@@ -355,11 +432,6 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void initContactFragment(String contactID) {
-        if(!isDestroyed() && !isFinishing()) {
-            ft = getSupportFragmentManager().beginTransaction();
-            ft.add(R.id.fragment_container, LoadingFragment.newInstance(), LOADING_FRAG)
-                    .commit();
-        }
         fetchUser(contactID);
     }
 
@@ -428,6 +500,12 @@ public class MainActivity extends AppCompatActivity implements
     ----------------------------- nav ---------------------------------
     */
 
+    private void navLoginActivity(boolean isAuth){
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.putExtra(AUTH, isAuth);
+        startActivity(intent);
+    }
+
     private void navSettingsActivity(){
         Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
@@ -439,18 +517,48 @@ public class MainActivity extends AppCompatActivity implements
         args.putParcelable(CONTACT, contact);
         args.putString(CONTACT_STATE, state);
         contactFrag.setArguments(args);
-        replaceFragment(contactFrag, CONTACT_FRAG);
+        replaceFragment(contactFrag, CONTACT_FRAG, true);
     }
 
     /*
     ----------------------------- DB ---------------------------------
     */
 
+    private void updateToken(){
+        FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
+            @Override
+            public void onSuccess(InstanceIdResult instanceIdResult) {
+                String newToken = instanceIdResult.getToken();
+                Log.e("newToken", newToken);
+                sendRegistrationToServer(newToken);
+            }
+        });
+    }
+
+    private void sendRegistrationToServer(String token){
+        try{
+            Map<String, Object> data = new HashMap<>();
+            data.put("token", token);
+            DocumentReference usersRef = FirebaseFirestore.getInstance()
+                    .collection(getString(R.string.collection_users))
+                    .document(mAuth.getUid());
+            usersRef.set(data, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    Log.d(TAG, "TOKEN successfully written!");
+                }
+            });
+        }catch (NullPointerException e){
+            Log.e(TAG, "User instance is null, stopping notification service.");
+            Log.e(TAG, "saveToken: NullPointerException: "  + e.getMessage() );
+        }
+    }
+
     protected void getUserDetails () {
         if (mUserLocation == null) {
             mUserLocation = new UserLocation();
             DocumentReference userRef = mDb.collection(getString(R.string.collection_users))
-                    .document(FirebaseAuth.getInstance().getUid());
+                    .document(mAuth.getUid());
 
             userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
@@ -472,7 +580,7 @@ public class MainActivity extends AppCompatActivity implements
         if (mUserLocation != null) {
             DocumentReference locationRef = mDb
                     .collection(getString(R.string.collection_user_locations))
-                    .document(FirebaseAuth.getInstance().getUid());
+                    .document(mAuth.getUid());
 
             locationRef.set(mUserLocation).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
@@ -496,7 +604,7 @@ public class MainActivity extends AppCompatActivity implements
         mDb.setFirestoreSettings(settings);
         CollectionReference contactsCollection = mDb
                 .collection(getString(R.string.collection_users))
-                .document(FirebaseAuth.getInstance().getUid())
+                .document(mAuth.getUid())
                 .collection(getString(R.string.collection_contacts));
         mContactEventListener = contactsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -552,7 +660,7 @@ public class MainActivity extends AppCompatActivity implements
         mDb.setFirestoreSettings(settings);
         CollectionReference requestsCollection = mDb
                 .collection(getString(R.string.collection_users))
-                .document(FirebaseAuth.getInstance().getUid())
+                .document(mAuth.getUid())
                 .collection(getString(R.string.collection_requests));
         mRequestEventListener = requestsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -580,7 +688,7 @@ public class MainActivity extends AppCompatActivity implements
         mDb.setFirestoreSettings(settings);
         CollectionReference chatroomsCollection = mDb
                 .collection(getString(R.string.collection_users))
-                .document(FirebaseAuth.getInstance().getUid())
+                .document(mAuth.getUid())
                 .collection(getString(R.string.collection_user_chatrooms));
         mChatroomEventListener = chatroomsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -612,7 +720,7 @@ public class MainActivity extends AppCompatActivity implements
         mDb.setFirestoreSettings(settings);
         CollectionReference pendingCollection = mDb
                 .collection(getString(R.string.collection_users))
-                .document(FirebaseAuth.getInstance().getUid())
+                .document(mAuth.getUid())
                 .collection(getString(R.string.collection_pending));
         mPendingEventListener = pendingCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -684,10 +792,6 @@ public class MainActivity extends AppCompatActivity implements
         return mLocationPermissionGranted;
     }
 
-    protected void setLocationPermissionGranted(boolean permissionGranted) {
-        mLocationPermissionGranted = permissionGranted;
-    }
-
     private boolean isLocationServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
@@ -709,7 +813,7 @@ public class MainActivity extends AppCompatActivity implements
         if (ContextCompat.checkSelfPermission(getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-            setLocationPermissionGranted(true);
+            mLocationPermissionGranted = true;
             startLocationService();
             getUserDetails();
             fetchContacts();
@@ -807,10 +911,22 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    private void handleRequest ( final Contact contact, final String display_name,
-        final boolean accepted){
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        Log.d(TAG, "onRequestPermissionsResult: called.");
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+                getLocationPermission();
+                break;
+            }
+        }
+    }
+
+    private void handleRequest (final Contact contact, final String display_name,
+                                final boolean accepted){
         final FirebaseFirestore fs = FirebaseFirestore.getInstance();
-        final String uid = FirebaseAuth.getInstance().getUid();
+        final String uid = mAuth.getUid();
         final DocumentReference userRef = fs.collection(Constants.COLLECTION_USERS).document(uid);
         if (accepted) {
             userRef.collection(Constants.COLLECTION_CONTACTS).document(contact.getCid()).set(new Contact(display_name,
@@ -820,7 +936,7 @@ public class MainActivity extends AppCompatActivity implements
                     userRef.collection(Constants.COLLECTION_REQUESTS).document(contact.getCid()).delete();
                     final DocumentReference contactRef =
                             fs.collection(Constants.COLLECTION_USERS).document(contact.getCid());
-                    contactRef.collection(Constants.COLLECTION_PENDING).document(FirebaseAuth.getInstance().getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    contactRef.collection(Constants.COLLECTION_PENDING).document(mAuth.getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                         @Override
                         public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                             if (!task.isSuccessful()) {
@@ -834,14 +950,8 @@ public class MainActivity extends AppCompatActivity implements
                                         return;
                                     }
                                     contactRef.collection(Constants.COLLECTION_PENDING).document(ucontact.getCid()).delete();
-                                    mRequests.remove(contact);
-//                                        Contact nContact = new Contact(display_name, contact.getUsername(), contact.getAvatar(),
-//                                            contact.getCid());
-//                                    mContacts.add(nContact);
-//                                    mContactIds.add(contact.getCid());
-//                                    mId2Contact.put(contact.getCid(), nContact);
-//                                    updateAdapters();
-                                    replaceFragment(ContactsRequestsPendingFragment.newInstance(), CONATCTS_FRAG);
+                                    mRequests.remove(contact.getCid());
+                                    replaceFragment(ContactsRequestsPendingFragment.newInstance(), CONTACTS_FRAG, false);
                                     setTitle(R.string.fragment_contacts);
                                 }
                             });
@@ -853,8 +963,8 @@ public class MainActivity extends AppCompatActivity implements
         } else {
             userRef.collection(Constants.COLLECTION_REQUESTS).document(contact.getCid()).delete();
             fs.collection(Constants.COLLECTION_USERS).document(contact.getCid()).collection(Constants.COLLECTION_PENDING).document(uid).delete();
-            mRequests.remove(contact);
-            replaceFragment(ContactsRequestsPendingFragment.newInstance(), CONATCTS_FRAG);
+            mRequests.remove(contact.getCid());
+            replaceFragment(ContactsRequestsPendingFragment.newInstance(), CONTACTS_FRAG, false);
             setTitle(R.string.fragment_contacts);
 
         }
