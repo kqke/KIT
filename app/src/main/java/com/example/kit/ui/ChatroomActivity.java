@@ -40,6 +40,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import static com.example.kit.Constants.CHATROOM;
 import static com.example.kit.Constants.CONTACTS_HASH_MAP;
@@ -333,26 +334,22 @@ public class ChatroomActivity extends AppCompatActivity implements
                 "Map"
         };
 
-        private UChatroom uChatroom;
+        private List<Fragment> fragments;
 
         private ChatMapViewPagerAdapter(FragmentManager manager, UChatroom uChatroom) {
             super(manager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
-            this.uChatroom = uChatroom;
+            this.fragments = new ArrayList<>();
+            this.fragments.add(0, ChatFragment.newInstance());
+            if(uChatroom.isGroup())
+                this.fragments.add(1, UserListFragment.newInstance());
+            else
+                this.fragments.add(1, MapFragment.newInstance());
         }
 
         @Override
         @NonNull
         public Fragment getItem(int position) {
-            switch(position){
-                case 0:
-                    return ChatFragment.newInstance();
-                case 1:
-                    if (uChatroom.isGroup()) { return UserListFragment.newInstance(); }
-                    else {
-                        return MapFragment.newInstance();
-                    }
-            }
-            return null; // not reachable
+            return fragments.get(position);
         }
 
         @Override

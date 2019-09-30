@@ -178,16 +178,9 @@ public class ContactFragment extends DBGeoFragment implements
         RequestOptions requestOptions = new RequestOptions()
                 .error(R.drawable.cartman_cop)
                 .placeholder(R.drawable.cartman_cop);
-        String avatar = "";
-        try{
-            avatar = mContact.getAvatar();
-        }catch (NumberFormatException e){
-            Log.e(TAG, "retrieveProfileImage: no avatar image. Setting default. " + e.getMessage() );
-        }
-
-        Glide.with(mActivity)
+        Glide.with(this)
                 .setDefaultRequestOptions(requestOptions)
-                .load(avatar)
+                .load(mContact.getAvatar())
                 .into(mAvatarImage);
     }
 

@@ -10,15 +10,24 @@ public class ChatMessage {
     private String message;
     private String message_id;
     private boolean invite;
-    private @ServerTimestamp
-    Date timestamp;
+    private @ServerTimestamp Date timestamp;
+    private Date meeting_time;
+    private boolean expired;
 
-    public ChatMessage(User user, String message, String message_id, Date timestamp) {
+
+    public ChatMessage(User user,
+                       String message,
+                       String message_id,
+                       Date timestamp,
+                       Date meeting_time,
+                       boolean expired) {
         this.user = user;
         this.message = message;
         this.message_id = message_id;
         this.timestamp = timestamp;
         this.invite = false;
+        this.meeting_time = meeting_time;
+        this.expired = expired;
     }
 
     public ChatMessage() {
@@ -63,6 +72,22 @@ public class ChatMessage {
 
     public void setInvite(boolean invite) {
         this.invite = invite;
+    }
+
+    public Date getMeeting_time() {
+        return meeting_time;
+    }
+
+    public void setMeeting_time(Date meeting_time) {
+        this.meeting_time = meeting_time;
+    }
+
+    public boolean isExpired() {
+        return expired;
+    }
+
+    public void setExpired(boolean expired) {
+        this.expired = expired;
     }
 
     @Override
