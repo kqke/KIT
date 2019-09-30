@@ -59,6 +59,10 @@ public class LocationService extends Service {
     private static HashMap<String, Contact> CONTACTS = new HashMap<>();
     private static Location location = new Location("");
     private static ListenerRegistration mContactEventListener;
+    static String CHANNEL_ID = "my_channel_01";
+    static String PROX_CHANNEL_ID = "proximity_channel_01";
+    private NotificationChannel mNotificationChannel;
+    private NotificationChannel mProxyNotificationChannel;
 
     @Nullable
     @Override
@@ -72,14 +76,22 @@ public class LocationService extends Service {
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         if (Build.VERSION.SDK_INT >= 26) {
             Log.d(TAG, "onCreate: BARAK SERVICE");
-            String CHANNEL_ID = "my_channel_01";
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
+            mNotificationChannel = new NotificationChannel(CHANNEL_ID,
                     "My Channel",
                     NotificationManager.IMPORTANCE_DEFAULT);
-            ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
+            mNotificationChannel.setSound(null, null);
+
+            ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(mNotificationChannel);
+
+            mProxyNotificationChannel = new NotificationChannel(PROX_CHANNEL_ID,
+                    "My Channel",
+                    NotificationManager.IMPORTANCE_DEFAULT);
+
+            ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(mProxyNotificationChannel);
+
             Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                     .setContentTitle("")
-                    .setContentText("").build();
+                    .setContentText("").setSound(null).build();
             getContacts();
             startForeground(1, notification);
         }
@@ -268,7 +280,8 @@ public class LocationService extends Service {
                                         .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
                                 if (Build.VERSION.SDK_INT >= 26) {
-                                    builder.setChannelId("my_channel_01");
+                                    builder.setChannelId(PROX_CHANNEL_ID);
+
                                 }
 
                                 NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
