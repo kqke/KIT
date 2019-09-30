@@ -128,6 +128,8 @@ public class ChatroomActivity extends AppCompatActivity implements
         }
         if(intent.hasExtra(CHATROOM)){
             mChatroom = getIntent().getParcelableExtra(CHATROOM);
+            mDb.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_user_chatrooms)).document(mChatroom.getChatroom_id()).update("read_last_message", true);
+
         }
 //        joinChatroom();
     }
