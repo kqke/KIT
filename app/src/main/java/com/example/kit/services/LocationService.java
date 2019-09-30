@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
@@ -19,6 +20,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.example.kit.Constants;
 import com.example.kit.R;
 import com.example.kit.UserClient;
 import com.example.kit.models.Contact;
@@ -63,6 +65,8 @@ public class LocationService extends Service {
     static String PROX_CHANNEL_ID = "proximity_channel_01";
     private NotificationChannel mNotificationChannel;
     private NotificationChannel mProxyNotificationChannel;
+    private SharedPreferences sharedPreferences;
+    private boolean incognito;
 
     @Nullable
     @Override
@@ -72,6 +76,8 @@ public class LocationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        sharedPreferences = getSharedPreferences(Constants.MY_PREFERENCES, Context.MODE_PRIVATE);
+        incognito = sharedPreferences.getBoolean(Constants.INCOGNITO, false);
         Log.d(TAG, "onCreate: CARLLLLLLLLL");
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         if (Build.VERSION.SDK_INT >= 26) {
@@ -241,64 +247,67 @@ public class LocationService extends Service {
                 if (task.isSuccessful()){
                     final UserLocation userLocation = task.getResult().toObject(UserLocation.class);
                     if (userLocation != null){
+                        if (!userLocation.isIncognito()) {
 //                        CONTACT_LOCATIONS.put(userLocation.getUser().getUser_id(), userLocation);
-                        Location loc1 = new Location("");
-                        loc1.setLatitude(userLocation.getGeo_point().getLatitude());
-                        loc1.setLongitude(userLocation.getGeo_point().getLongitude());
-                        if (location.distanceTo(loc1) <= 10000){ //todo set preference
+                            Location loc1 = new Location("");
+                            loc1.setLatitude(userLocation.getGeo_point().getLatitude());
+                            loc1.setLongitude(userLocation.getGeo_point().getLongitude());
+                            if (location.distanceTo(loc1) <= 10000) { //todo set preference
 
-                            Long cur_time = new Date().getTime();
-                            if (!contact.isInArea() && cur_time - contact.getLast_sent().getTime() >= 3600000) {
-                                final User user = ((UserClient) (getApplicationContext())).getUser();
-                                FirebaseFirestore fs = FirebaseFirestore.getInstance();
-                                final DocumentReference uContactRef =
-                                        fs.collection(getString(R.string.collection_users)).document(contact.getCid()).collection(getString(R.string.collection_contacts)).document(user.getUser_id());
-                                uContactRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                        if (!task.isSuccessful()) {
-                                            return;
+                                Long cur_time = new Date().getTime();
+                                if (!contact.isInArea() && cur_time - contact.getLast_sent().getTime() >= 3600000) {
+                                    final User user = ((UserClient) (getApplicationContext())).getUser();
+                                    FirebaseFirestore fs = FirebaseFirestore.getInstance();
+                                    final DocumentReference uContactRef =
+                                            fs.collection(getString(R.string.collection_users)).document(contact.getCid()).collection(getString(R.string.collection_contacts)).document(user.getUser_id());
+                                    uContactRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                            if (!task.isSuccessful()) {
+                                                return;
+                                            }
+                                            Contact uContact = task.getResult().toObject(Contact.class);
+                                            incognito = sharedPreferences.getBoolean(Constants.INCOGNITO, false);
+                                            if (uContact != null && !incognito) {
+                                                FCM.send_FCM_Notification(userLocation.getUser().getToken(), "Proximity Alert",
+                                                        "you are close to: " + uContact.getName());
+
+                                                uContact.setLast_sent(new Date());
+                                                uContact.setInArea(true);
+                                                uContactRef.set(uContact);
+                                                uContactRef.update("inArea", true);
+                                            }
                                         }
-                                        Contact uContact = task.getResult().toObject(Contact.class);
-                                        if (uContact != null) {
+                                    });
+                                    NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "1234")
+                                            .setContentTitle("Proximity Alert")
+                                            .setContentText("you are near " + contact.getName())
+                                            .setSmallIcon(R.drawable.chef)
+                                            .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
-                                            FCM.send_FCM_Notification(userLocation.getUser().getToken(), "Proximity Alert",
-                                                    "you are close to: " + uContact.getName());
+                                    if (Build.VERSION.SDK_INT >= 26) {
+                                        builder.setChannelId(PROX_CHANNEL_ID);
 
-                                            uContact.setLast_sent(new Date());
-                                            uContact.setInArea(true);
-                                            uContactRef.set(uContact);
-                                            uContactRef.update("inArea", true);
-                                        }
                                     }
-                                });
-                                NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "1234")
-                                        .setContentTitle("Proximity Alert")
-                                        .setContentText("you are near " + contact.getName())
-                                        .setSmallIcon(R.drawable.chef)
-                                        .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
-                                if (Build.VERSION.SDK_INT >= 26) {
-                                    builder.setChannelId(PROX_CHANNEL_ID);
+                                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
+
+// notificationId is a unique int for each notification that you must define
+                                    notificationManager.notify(12345, builder.build());
+
+                                    Contact nContact = new Contact(contact.getName(), contact.getUsername(), contact.getAvatar(),
+                                            contact.getCid(), contact.getStatus());
+                                    nContact.setInArea(true);
+                                    nContact.setLast_sent(new Date());
+                                    CONTACTS.get(contact.getCid()).setLast_sent(new Date());
+                                    fs.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_contacts)).document(contact.getCid()).set(nContact);
 
                                 }
 
-                                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
-
-// notificationId is a unique int for each notification that you must define
-                                notificationManager.notify(12345, builder.build());
-
-                                Contact nContact = new Contact(contact.getName(), contact.getUsername(), contact.getAvatar(),
-                                        contact.getCid(), contact.getStatus());
-                                nContact.setInArea(true);
-                                nContact.setLast_sent(new Date());
-                                CONTACTS.get(contact.getCid()).setLast_sent(new Date());
-                                fs.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_contacts)).document(contact.getCid()).set(nContact);
-
+                            } else {
+                                FirebaseFirestore.getInstance().collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_contacts)).document(contact.getCid()).update("inArea", false);
                             }
 
-                        } else {
-                            FirebaseFirestore.getInstance().collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_contacts)).document(contact.getCid()).update("inArea", false);
                         }
 
 //                        if (mContactLocations.size() == numTotal){

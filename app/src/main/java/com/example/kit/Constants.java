@@ -36,4 +36,6 @@ public class Constants {
     public static final String CONTACT = "contact";
     public static final String CONTACT_STATE = "contact_state";
     public static final String BACK_STACK_ROOT_TAG = "root_fragment";
+    public static final String MY_PREFERENCES = "MyPref";
+    public static final String INCOGNITO = "incognito";
 }

@@ -9,8 +9,6 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -164,6 +162,17 @@ public class ChatFragment extends DBGeoFragment implements
             mChatMessageEventListener.remove();
         }
         if(mUserListEventListener != null){
+            mUserListEventListener.remove();
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        if (mChatMessageEventListener != null) {
+            mChatMessageEventListener.remove();
+        }
+        if (mUserListEventListener != null){
             mUserListEventListener.remove();
         }
     }
@@ -478,6 +487,32 @@ public class ChatFragment extends DBGeoFragment implements
                 if(task.isSuccessful()){
                     String uid = user.getUser_id();
                     for (final User u: mUserList){
+                        mDb.collection(getString(R.string.collection_users))
+                                .document(u.getUser_id()).collection(getString(R.string.collection_user_chatrooms))
+                                .document(mChatroom.getChatroom_id()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                if (task.isSuccessful()){
+                                    UChatroom uChatroom = task.getResult().toObject(UChatroom.class);
+                                    uChatroom.setLast_message("lets meet!");
+                                    uChatroom.setTime_last_sent(new Date());
+                                    if (!u.getUser_id().equals(user.getUser_id())){
+                                        uChatroom.setRead_last_message(false);
+                                    }
+                                    DocumentReference chatRef =
+                                            mDb.collection(getString(R.string.collection_users)).document(u.getUser_id()).collection(getString(R.string.collection_user_chatrooms)).document(mChatroom.getChatroom_id());
+                                    mDb.collection(getString(R.string.collection_users)).document(u.getUser_id()).collection(getString(R.string.collection_user_chatrooms)).document(mChatroom.getChatroom_id()).set(uChatroom).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (u.getUser_id().equals(user.getUser_id())) {return;}
+                                            FCM.send_FCM_Notification(u.getToken(), "message", newChatMessage.getMessage());
+                                        }
+                                    });
+
+                                }
+                            }
+                        });
+
                         if (u.getUser_id().equals(uid)) {continue;}
                         FCM.send_FCM_Notification(u.getToken(), "message", "MEET INVITE");
                     }
