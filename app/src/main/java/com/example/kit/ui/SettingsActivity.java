@@ -111,6 +111,9 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
             proximityRange = findPreference(Constants.PROXIMITY_RANGE);
             proximityRange.setOnPreferenceChangeListener(this);
             proximityRange.setValue(sp.getInt(Constants.PROXIMITY_RANGE, 10000));
+            final int progress = Integer.valueOf(String.valueOf(proximityRange.getValue()));
+            proximityRange.setSummary(String.format("set to: %dm", progress));
+            proximityRange.setShowSeekBarValue(true);
         }
 
         @Override
@@ -163,6 +166,8 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
                 }
 
                 case Constants.PROXIMITY_RANGE:{
+                    final int progress = Integer.valueOf(String.valueOf(newValue));
+                    proximityRange.setSummary(String.format("set to: %dm", progress));
                     sp.edit().putInt(Constants.PROXIMITY_RANGE, (int)newValue).apply();
                     proximityRange.setValue((int)newValue);
                     return true;
