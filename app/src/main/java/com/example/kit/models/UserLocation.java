@@ -20,12 +20,14 @@ public class UserLocation implements Parcelable{
     private double latitude, longitude;
     private @ServerTimestamp Date timestamp;
     private boolean incognito;
+    private boolean proximity_alert;
 
     public UserLocation(User user, GeoPoint geo_point, Date timestamp) {
         this.user = user;
         this.geo_point = geo_point;
         this.timestamp = timestamp;
         incognito = false;
+        proximity_alert = true;
     }
 
     public UserLocation() {
@@ -37,6 +39,7 @@ public class UserLocation implements Parcelable{
         longitude = in.readDouble();
         geo_point = new GeoPoint(latitude, longitude);
         incognito = in.readInt() == 1;
+        proximity_alert = in.readInt() == 1;
     }
 
     public static final Creator<UserLocation> CREATOR = new Creator<UserLocation>() {
@@ -59,6 +62,7 @@ public class UserLocation implements Parcelable{
         dest.writeDouble(latitude);
         dest.writeDouble(longitude);
         dest.writeInt(incognito ? 1:0);
+        dest.writeInt(proximity_alert ? 1:0);
     }
 
     @Override
@@ -98,6 +102,14 @@ public class UserLocation implements Parcelable{
         return incognito;
     }
 
+    public boolean isProximity_alert() {
+        return proximity_alert;
+    }
+
+    public void setProximity_alert(boolean proximity_alert) {
+        this.proximity_alert = proximity_alert;
+    }
+
     @Override
     public String toString() {
         return "UserLocation{" +
@@ -105,6 +117,7 @@ public class UserLocation implements Parcelable{
                 ", geo_point=" + geo_point +
                 ", timestamp=" + timestamp +
                 ", incognito= " + incognito +
+                ", proximity_alert= " + proximity_alert +
                 '}';
     }
 

@@ -38,4 +38,5 @@ public class Constants {
     public static final String BACK_STACK_ROOT_TAG = "root_fragment";
     public static final String MY_PREFERENCES = "MyPref";
     public static final String INCOGNITO = "incognito";
+    public static final String PROXIMITY = "proximity";
 }

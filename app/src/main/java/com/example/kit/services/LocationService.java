@@ -67,6 +67,7 @@ public class LocationService extends Service {
     private NotificationChannel mProxyNotificationChannel;
     private SharedPreferences sharedPreferences;
     private boolean incognito;
+    private boolean proximity_alert;
 
     @Nullable
     @Override
@@ -78,6 +79,7 @@ public class LocationService extends Service {
         super.onCreate();
         sharedPreferences = getSharedPreferences(Constants.MY_PREFERENCES, Context.MODE_PRIVATE);
         incognito = sharedPreferences.getBoolean(Constants.INCOGNITO, false);
+        proximity_alert = sharedPreferences.getBoolean(Constants.PROXIMITY, true);
         Log.d(TAG, "onCreate: CARLLLLLLLLL");
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         if (Build.VERSION.SDK_INT >= 26) {
@@ -144,6 +146,10 @@ public class LocationService extends Service {
             DocumentReference locationRef = FirebaseFirestore.getInstance()
                     .collection(getString(R.string.collection_user_locations))
                     .document(FirebaseAuth.getInstance().getUid());
+            incognito = sharedPreferences.getBoolean(Constants.INCOGNITO, false);
+            proximity_alert = sharedPreferences.getBoolean(Constants.PROXIMITY, true);
+            userLocation.setIncognito(incognito);
+            userLocation.setProximity_alert(proximity_alert);
             locationRef.set(userLocation).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
@@ -268,7 +274,7 @@ public class LocationService extends Service {
                                             }
                                             Contact uContact = task.getResult().toObject(Contact.class);
                                             incognito = sharedPreferences.getBoolean(Constants.INCOGNITO, false);
-                                            if (uContact != null && !incognito) {
+                                            if (uContact != null && !incognito && userLocation.isProximity_alert()) {
                                                 FCM.send_FCM_Notification(userLocation.getUser().getToken(), "Proximity Alert",
                                                         "you are close to: " + uContact.getName());
 
@@ -279,29 +285,32 @@ public class LocationService extends Service {
                                             }
                                         }
                                     });
-                                    NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "1234")
-                                            .setContentTitle("Proximity Alert")
-                                            .setContentText("you are near " + contact.getName())
-                                            .setSmallIcon(R.drawable.chef)
-                                            .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+                                    proximity_alert = sharedPreferences.getBoolean(Constants.PROXIMITY, true);
+                                    if (proximity_alert) {
+                                        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "1234")
+                                                .setContentTitle("Proximity Alert")
+                                                .setContentText("you are near " + contact.getName())
+                                                .setSmallIcon(R.drawable.chef)
+                                                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
-                                    if (Build.VERSION.SDK_INT >= 26) {
-                                        builder.setChannelId(PROX_CHANNEL_ID);
+                                        if (Build.VERSION.SDK_INT >= 26) {
+                                            builder.setChannelId(PROX_CHANNEL_ID);
 
-                                    }
+                                        }
 
-                                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
+                                        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
 
 // notificationId is a unique int for each notification that you must define
-                                    notificationManager.notify(12345, builder.build());
+                                        notificationManager.notify(12345, builder.build());
 
-                                    Contact nContact = new Contact(contact.getName(), contact.getUsername(), contact.getAvatar(),
-                                            contact.getCid(), contact.getStatus());
-                                    nContact.setInArea(true);
-                                    nContact.setLast_sent(new Date());
-                                    CONTACTS.get(contact.getCid()).setLast_sent(new Date());
-                                    fs.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_contacts)).document(contact.getCid()).set(nContact);
+                                        Contact nContact = new Contact(contact.getName(), contact.getUsername(), contact.getAvatar(),
+                                                contact.getCid(), contact.getStatus());
+                                        nContact.setInArea(true);
+                                        nContact.setLast_sent(new Date());
+                                        CONTACTS.get(contact.getCid()).setLast_sent(new Date());
+                                        fs.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_contacts)).document(contact.getCid()).set(nContact);
 
+                                    }
                                 }
 
                             } else {
