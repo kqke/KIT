@@ -1,31 +1,24 @@
 package com.example.kit.ui;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import de.hdodenhof.circleimageview.CircleImageView;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 import com.example.kit.Constants;
 import com.example.kit.R;
 import com.example.kit.UserClient;
@@ -35,7 +28,6 @@ import com.example.kit.models.User;
 import com.example.kit.models.UserLocation;
 import com.example.kit.util.FCM;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -51,7 +43,6 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -61,12 +52,8 @@ import static android.widget.LinearLayout.HORIZONTAL;
 
 public class ContactsFragment extends DBGeoFragment implements
         ContactRecyclerAdapter.ContactsRecyclerClickListener,
-        View.OnClickListener,
-        ContactsDialogFragment.OnInputSelected
+        View.OnClickListener
 {
-
-    //TODO
-    // fix Contacts recycler adapter so it wont check the unseen checkbox onlongclick
 
     //Tag
     private static final String TAG = "ContactsFragment";
@@ -87,6 +74,8 @@ public class ContactsFragment extends DBGeoFragment implements
 
     //Vars
     private ContactsFragment mContactFragment;
+
+    private AlertDialog alertDialog;
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -228,25 +217,16 @@ public class ContactsFragment extends DBGeoFragment implements
 
     @Override
     public void onClick(View v) {
-        if(v.getId() == R.id.fab){
-            //TODO
-            // add a new contact dialog (Fragment?/some sort of a bubble?)
-            User user = ((UserClient) (getActivity().getApplicationContext())).getUser();
-            ContactsDialogFragment contactsFragment = new ContactsDialogFragment(Constants.GET_SEARCH_REQUEST, user,
-                    getActivity(), mContactFragment);
-            contactsFragment.setTargetFragment(ContactsFragment.this, 1);
-            contactsFragment.show(getFragmentManager(), "ContactsDialogFragment");
+        switch(v.getId()){
+            case R.id.fab:
+                newContactDialog();
+                break;
         }
     }
 
     @Override
     public void onContactLongClick(int pos) {
-        // TODO
-        // will it have any significance here?
-//        ContactsDialogFragment contactsFragment = new ContactsDialogFragment(Constants.GET_REMOVE_REQUEST, mRecyclerList.get(pos),
-//                getActivity(), mContactFragment);
-//        contactsFragment.setTargetFragment(ContactsFragment.this, 1);
-//        contactsFragment.show(getFragmentManager(), "ContactsDialogFragment");
+
     }
 
     @Override
@@ -268,108 +248,55 @@ public class ContactsFragment extends DBGeoFragment implements
     ----------------------------- nav ---------------------------------
     */
 
-    private void navContactActivity(Contact contact){
-        //TODO
-        // ContactActivity is deprecated
-//        Intent intent = new Intent(mActivity, ContactActivity.class);
-//        intent.putExtra(getString(R.string.intent_contact), contact);
-//        startActivityForResult(intent, 0);
+    private void newContactDialog(){
+        final View dialogView = View.inflate(mActivity, R.layout.dialog_new_contact, null);
+        alertDialog = new AlertDialog.Builder(mActivity).create();
+        final EditText inputUsername = dialogView.findViewById(R.id.dialog_input);
+        dialogView.findViewById(R.id.go_profile_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                checkExistingUsername(inputUsername.getText().toString());
+            }
+        });
+        alertDialog.setView(dialogView);
+        alertDialog.show();
     }
 
-    private void navAddContactActivity(User user){
-        Intent intent = new Intent(mActivity, AddContactsActivity.class);
-        intent.putExtra(getString(R.string.intent_contact), user);
-        startActivityForResult(intent, 0);
-    }
-
-//    //TODO
-//    // is this sufficient UI wise?
-//    private void newContactDialog(){
-//        ContactsFragment contactsFragment = new ContactsFragment(Constants.GET_REMOVE_REQUEST, ,
-//                getActivity(), mContactFragment);
-//        contactsFragment.setTargetFragment(ContactsFragment.this, 1);
-//        contactsFragment.show(getFragmentManager(), "RequestsDialogFragment");
-//    }
 
     /*
     ----------------------------- DB ---------------------------------
     */
 
-    @Override
-    public void addContact(String display_name, final User contactUser) {
-        final User user = ((UserClient) (getActivity().getApplicationContext())).getUser();
-        Contact contact = new Contact(display_name, contactUser.getUsername(), null, contactUser.getUser_id(), contactUser.getStatus());
-        mDb.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_pending)).document(contactUser.getUser_id()).set(contact).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                Log.d(TAG, "DocumentSnapshot successfully written!");
-                DocumentReference contactRef =
-                        mDb.collection(getString(R.string.collection_users)).document(contactUser.getUser_id()).collection(getString(R.string.collection_requests)).document(user.getUser_id());
-                contactRef.set(new Contact(user.getUsername(), user.getEmail(), user.getAvatar(), user.getUser_id(), user.getStatus())).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        FCM.send_FCM_Notification(contactUser.getToken(), "Friend Request", user.getUsername() + " has sent " +
-                                "you a friend request");
-
-                    }
-                });
-
-
-            }
-        });
-    }
-
-    @Override
-    public void search(final String username){
+    private void checkExistingUsername(final String userName)
+    {
         CollectionReference usersRef = mDb.collection("Users");
-        Query query = usersRef.whereEqualTo("username", username);
+        Query query = usersRef.whereEqualTo("username", userName);
         query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()) {
-                    for (DocumentSnapshot documentSnapshot : task.getResult()) {
-                        String uname = documentSnapshot.getString("username");
-                        if (uname.equals(username)) {
-                            Log.d(TAG, "User Exists");
-                            User user = documentSnapshot.toObject(User.class);
-                            Log.d(TAG, "onComplete: Barak contact id" + user.getUser_id());
-                            ContactsDialogFragment contactsDialog = new ContactsDialogFragment(Constants.GET_DISPLAY_NAME,
-                                    user, getActivity(), mContactFragment);
-                            contactsDialog.setTargetFragment(ContactsFragment.this, 1);
-                            contactsDialog.show(getFragmentManager(), "RequestsDialogFragment");
+                if(task.isSuccessful()){
+                    if (task.getResult() != null) {
+                        for (DocumentSnapshot documentSnapshot : task.getResult()) {
+                            String user = documentSnapshot.getString("username");
+                            if (user.equals(userName)) {
+                                Log.d(TAG, "chcekExisting: User Exists");
+                                String userId = documentSnapshot.getString("user_id");
+                                getData.initContactFragment(userId);
+                                alertDialog.dismiss();
+                                return;
+                            }
+                        }
+                        if(task.getResult().size() == 0 ){
+                            Log.d(TAG, "checkExisting: User chose a unique username");
+                            Toast.makeText(mActivity,
+                                    "This username does not exist",
+                                    Toast.LENGTH_SHORT).show();
                         }
                     }
                 }
             }
         });
     }
-
-    @Override
-    public void remove(final Contact contact) {
-        mDb.collection(getString(R.string.collection_users)).document(contact.getCid()).collection(getString(R.string.collection_contacts)).document(FirebaseAuth.getInstance().getUid()).delete();
-        mDb.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_contacts)).document(contact.getCid()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                mContacts.remove(contact.getCid());
-                mRecyclerList = new ArrayList<>(mContacts.values());
-                new Handler(Looper.getMainLooper()).post(new Runnable() {
-                    public void run() {
-                        mContactRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
-                                mContactFragment, R.layout.layout_contact_list_item, getContext());
-                        mContactRecyclerView.setAdapter(mContactRecyclerAdapter);
-                        mContactRecyclerAdapter.notifyDataSetChanged();
-                        mContactRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
-                        DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
-                        mContactRecyclerView.addItemDecoration(itemDecor);
-                        mContactRecyclerAdapter.notifyDataSetChanged();
-                    }
-                });
-            }
-        });
-
-    }
-
-
 
     /*
     ----------------------------- Contacts Callback ---------------------------------

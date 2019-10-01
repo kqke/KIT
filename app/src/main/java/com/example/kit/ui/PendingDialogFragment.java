@@ -20,7 +20,7 @@ import com.example.kit.models.Contact;
 import com.example.kit.models.User;
 
 public class PendingDialogFragment extends DialogFragment {
-    private static final String TAG = "ContactsDialogFragment";
+    private static final String TAG = "PendingDialogFragment";
 
     public interface OnInputSelected{
         void remove(Contact contact);

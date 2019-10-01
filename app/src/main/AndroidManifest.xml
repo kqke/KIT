@@ -21,7 +21,7 @@
 
         <activity
             android:name=".ui.MainActivity"
-            android:launchMode="singleTop"
+            android:launchMode="singleInstance"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,7 +30,6 @@
         </activity>
         <activity android:name=".ui.ChatroomActivity" />
         <activity android:name=".ui.AddContactsActivity" />
-        <activity android:name=".ui.NewMessageActivity" />
         <activity android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat"/>
         <meta-data
