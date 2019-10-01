@@ -90,6 +90,12 @@ public class ContactFragment extends DBGeoFragment implements
     }
 
     @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
@@ -431,5 +437,9 @@ public class ContactFragment extends DBGeoFragment implements
         else {
             return 0;
         }
+    }
+
+    public interface ContactCallback{
+        void initContactFragment(String id);
     }
 }
