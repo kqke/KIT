@@ -1,6 +1,7 @@
 package com.example.kit.ui;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -122,6 +123,8 @@ public class RequestsFragment extends DBGeoFragment implements
 
     private void initSearchView(View v){
         SearchView searchView = v.findViewById(R.id.requests_search_view);
+        ImageView icon = searchView.findViewById(R.id.search_button);
+        icon.setColorFilter(Color.BLACK);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String queryString) {
@@ -242,7 +245,7 @@ public class RequestsFragment extends DBGeoFragment implements
 
     @Override
     public void onContactSelected(final int position) {
-        initContactFragment.initContactFragment(mRecyclerList.get(position).getCid());
+        initContactFragment.initContactFragment(mRecyclerList.get(position).getCid(), null);
     }
 //        android.app.AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
 //        builder.setTitle("Accept Friend Request?");

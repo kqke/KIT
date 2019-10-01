@@ -1,6 +1,7 @@
 package com.example.kit.ui;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -17,6 +18,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.example.kit.Constants;
 import com.example.kit.R;
@@ -126,6 +128,8 @@ public class PendingFragment extends DBGeoFragment implements
 
     private void initSearchView(View v){
         SearchView searchView = v.findViewById(R.id.pending_search_view);
+        ImageView icon = searchView.findViewById(R.id.search_button);
+        icon.setColorFilter(Color.BLACK);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String queryString) {
@@ -240,7 +244,7 @@ public class PendingFragment extends DBGeoFragment implements
 
     @Override
     public void onContactSelected(final int position) {
-        getData.initContactFragment(mRecyclerList.get(position).getCid());
+        getData.initContactFragment(mRecyclerList.get(position).getCid(), null);
     }
 //        android.app.AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
 //        builder.setTitle("Accept Friend Request?");
@@ -312,7 +316,7 @@ public class PendingFragment extends DBGeoFragment implements
 
     public interface PendingCallback {
         HashMap<String, Contact> getPending();
-        void initContactFragment(String contactID);
+        void initContactFragment(String contactID, String state);
     }
 
 }

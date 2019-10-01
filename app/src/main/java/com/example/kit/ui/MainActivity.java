@@ -454,8 +454,8 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void initContactFragment(String contactID) {
-        fetchUser(contactID);
+    public void initContactFragment(String contactID, String state) {
+        fetchUser(contactID, state);
     }
 
     /*
@@ -534,13 +534,13 @@ public class MainActivity extends AppCompatActivity implements
         startActivity(intent);
     }
 
-    private void navContactFragment(Contact contact, String state){
+    private void navContactFragment(Contact contact, String state, boolean stack){
         ContactFragment contactFrag = ContactFragment.newInstance();
         Bundle args = new Bundle();
         args.putParcelable(CONTACT, contact);
         args.putString(CONTACT_STATE, state);
         contactFrag.setArguments(args);
-        replaceFragment(contactFrag, CONTACT_FRAG, true);
+        replaceFragment(contactFrag, CONTACT_FRAG, stack);
     }
 
     /*
@@ -750,23 +750,43 @@ public class MainActivity extends AppCompatActivity implements
         });
     }
 
-    private void fetchUser(final String userID){
+    private void fetchUser(final String userID, final String state){
+        if(state != null){
+            final Contact contact = new Contact();
+            DocumentReference userRef = mDb.collection(getString(R.string.collection_users))
+                    .document(userID);
+            userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "onComplete: successfully found contact.");
+                        User user = task.getResult().toObject(User.class);
+                        contact.setCid(userID);
+                        contact.setName(user.getUsername());
+                        contact.setAvatar(user.getAvatar());
+                        contact.setStatus(user.getStatus());
+                        contact.setToken(user.getToken());
+                        navContactFragment(contact, state, false);
+                    }
+                }
+            });
+        }
         if(mContactIds.contains(userID)){
             Contact contact = mId2Contact.get(userID);
-            navContactFragment(contact, FRIENDS);
+            navContactFragment(contact, FRIENDS, true);
             return;
         }
 
         for(Contact request : mRequests.values()){
             if(request.getCid().equals(userID)){
-                navContactFragment(request, THEIR_REQUEST_PENDING);
+                navContactFragment(request, THEIR_REQUEST_PENDING, true);
                 return;
             }
         }
 
         for(Contact pending : mPending.values()){
             if(pending.getCid().equals(userID)){
-                navContactFragment(pending, MY_REQUEST_PENDING);
+                navContactFragment(pending, MY_REQUEST_PENDING, true);
                 return;
             }
         }
@@ -785,7 +805,7 @@ public class MainActivity extends AppCompatActivity implements
                     contact.setAvatar(user.getAvatar());
                     contact.setStatus(user.getStatus());
                     contact.setToken(user.getToken());
-                    navContactFragment(contact, NOT_FRIENDS);
+                    navContactFragment(contact, NOT_FRIENDS, true);
                 }
             }
         });
