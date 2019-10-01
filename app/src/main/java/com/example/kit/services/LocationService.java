@@ -63,11 +63,14 @@ public class LocationService extends Service {
     private static ListenerRegistration mContactEventListener;
     static String CHANNEL_ID = "my_channel_01";
     static String PROX_CHANNEL_ID = "proximity_channel_01";
-    private NotificationChannel mNotificationChannel;
-    private NotificationChannel mProxyNotificationChannel;
-    private SharedPreferences sharedPreferences;
-    private boolean incognito;
-    private boolean proximity_alert;
+    private static NotificationChannel mNotificationChannel;
+    private static NotificationChannel mProxyNotificationChannel;
+    private static SharedPreferences sharedPreferences;
+    private static boolean incognito;
+    private static boolean proximity_alert;
+    private static boolean notifications;
+    private static int proximity_range;
+
 
     @Nullable
     @Override
@@ -80,6 +83,7 @@ public class LocationService extends Service {
         sharedPreferences = getSharedPreferences(Constants.MY_PREFERENCES, Context.MODE_PRIVATE);
         incognito = sharedPreferences.getBoolean(Constants.INCOGNITO, false);
         proximity_alert = sharedPreferences.getBoolean(Constants.PROXIMITY, true);
+        notifications = sharedPreferences.getBoolean(Constants.NOTIFICATIONS, true);
         Log.d(TAG, "onCreate: CARLLLLLLLLL");
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         if (Build.VERSION.SDK_INT >= 26) {
@@ -148,8 +152,10 @@ public class LocationService extends Service {
                     .document(FirebaseAuth.getInstance().getUid());
             incognito = sharedPreferences.getBoolean(Constants.INCOGNITO, false);
             proximity_alert = sharedPreferences.getBoolean(Constants.PROXIMITY, true);
+            proximity_range = sharedPreferences.getInt(Constants.PROXIMITY_RANGE, 10000);
             userLocation.setIncognito(incognito);
             userLocation.setProximity_alert(proximity_alert);
+            userLocation.setProximity_range(proximity_range);
             locationRef.set(userLocation).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
@@ -255,10 +261,11 @@ public class LocationService extends Service {
                     if (userLocation != null){
                         if (!userLocation.isIncognito()) {
 //                        CONTACT_LOCATIONS.put(userLocation.getUser().getUser_id(), userLocation);
-                            Location loc1 = new Location("");
+                            final Location loc1 = new Location("");
                             loc1.setLatitude(userLocation.getGeo_point().getLatitude());
                             loc1.setLongitude(userLocation.getGeo_point().getLongitude());
-                            if (location.distanceTo(loc1) <= 10000) { //todo set preference
+                            proximity_range = sharedPreferences.getInt(Constants.PROXIMITY_RANGE, 10000);
+                            if (location.distanceTo(loc1) <= proximity_range) { //todo set preference
 
                                 Long cur_time = new Date().getTime();
                                 if (!contact.isInArea() && cur_time - contact.getLast_sent().getTime() >= 3600000) {
@@ -274,7 +281,7 @@ public class LocationService extends Service {
                                             }
                                             Contact uContact = task.getResult().toObject(Contact.class);
                                             incognito = sharedPreferences.getBoolean(Constants.INCOGNITO, false);
-                                            if (uContact != null && !incognito && userLocation.isProximity_alert()) {
+                                            if (uContact != null && !incognito && userLocation.getUser().isNotifications() && userLocation.isProximity_alert() && location.distanceTo(loc1) <= userLocation.getProximity_range()) {
                                                 FCM.send_FCM_Notification(userLocation.getUser().getToken(), "Proximity Alert",
                                                         "you are close to: " + uContact.getName());
 
@@ -286,7 +293,8 @@ public class LocationService extends Service {
                                         }
                                     });
                                     proximity_alert = sharedPreferences.getBoolean(Constants.PROXIMITY, true);
-                                    if (proximity_alert) {
+                                    notifications = sharedPreferences.getBoolean(Constants.NOTIFICATIONS, true);
+                                    if (proximity_alert && notifications) {
                                         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "1234")
                                                 .setContentTitle("Proximity Alert")
                                                 .setContentText("you are near " + contact.getName())

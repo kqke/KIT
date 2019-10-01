@@ -21,6 +21,7 @@ public class UserLocation implements Parcelable{
     private @ServerTimestamp Date timestamp;
     private boolean incognito;
     private boolean proximity_alert;
+    private int proximity_range;
 
     public UserLocation(User user, GeoPoint geo_point, Date timestamp) {
         this.user = user;
@@ -28,6 +29,7 @@ public class UserLocation implements Parcelable{
         this.timestamp = timestamp;
         incognito = false;
         proximity_alert = true;
+        proximity_range = 10000;
     }
 
     public UserLocation() {
@@ -40,6 +42,7 @@ public class UserLocation implements Parcelable{
         geo_point = new GeoPoint(latitude, longitude);
         incognito = in.readInt() == 1;
         proximity_alert = in.readInt() == 1;
+        proximity_range = in.readInt();
     }
 
     public static final Creator<UserLocation> CREATOR = new Creator<UserLocation>() {
@@ -63,6 +66,7 @@ public class UserLocation implements Parcelable{
         dest.writeDouble(longitude);
         dest.writeInt(incognito ? 1:0);
         dest.writeInt(proximity_alert ? 1:0);
+        dest.writeInt(proximity_range);
     }
 
     @Override
@@ -110,6 +114,14 @@ public class UserLocation implements Parcelable{
         this.proximity_alert = proximity_alert;
     }
 
+    public int getProximity_range() {
+        return proximity_range;
+    }
+
+    public void setProximity_range(int proximity_range) {
+        this.proximity_range = proximity_range;
+    }
+
     @Override
     public String toString() {
         return "UserLocation{" +
@@ -118,6 +130,7 @@ public class UserLocation implements Parcelable{
                 ", timestamp=" + timestamp +
                 ", incognito= " + incognito +
                 ", proximity_alert= " + proximity_alert +
+                ", proximity_range= " + proximity_range +
                 '}';
     }
 

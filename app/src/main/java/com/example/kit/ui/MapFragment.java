@@ -91,6 +91,7 @@ public class MapFragment extends DBGeoFragment implements
     protected ArrayList<UserLocation> mContactLocations = new ArrayList<>();
     protected ListenerRegistration mContactListEventListener;
 
+
     //Widgets
     protected MapView mMapView;
     ImageButton mapRefreshButton;
@@ -234,6 +235,9 @@ public class MapFragment extends DBGeoFragment implements
                             for (int i = 0; i < mClusterMarkers.size(); i++) {
                                 try {
                                     if (mClusterMarkers.get(i).getUser().getUser_id().equals(updatedUserLocation.getUser().getUser_id())) {
+                                        if (updatedUserLocation.isIncognito()){
+
+                                        }
                                         LatLng updatedLatLng = new LatLng(
                                                 updatedUserLocation.getGeo_point().getLatitude(),
                                                 updatedUserLocation.getGeo_point().getLongitude()
@@ -307,7 +311,9 @@ public class MapFragment extends DBGeoFragment implements
             System.out.println(mContactLocations.toString());
             for (UserLocation userLocation : mContactLocations) {
 
-                if (userLocation.isIncognito()) { continue; }
+                if (userLocation.isIncognito()) {
+                    continue;
+                }
 
                 Log.d(TAG, "addMapMarkers: location: " + userLocation.getGeo_point().toString());
                 try {

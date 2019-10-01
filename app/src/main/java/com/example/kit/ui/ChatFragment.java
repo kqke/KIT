@@ -432,21 +432,32 @@ public class ChatFragment extends DBGeoFragment implements
                                 @Override
                                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                                     if (task.isSuccessful()){
-                                        UChatroom uChatroom = task.getResult().toObject(UChatroom.class);
+                                        final UChatroom uChatroom = task.getResult().toObject(UChatroom.class);
                                         uChatroom.setLast_message(newChatMessage.getMessage());
                                         uChatroom.setTime_last_sent(new Date());
                                         if (!u.getUser_id().equals(user.getUser_id())){
                                             uChatroom.setRead_last_message(false);
                                         }
-                                        DocumentReference chatRef =
-                                                mDb.collection(getString(R.string.collection_users)).document(u.getUser_id()).collection(getString(R.string.collection_user_chatrooms)).document(mChatroom.getChatroom_id());
-                                        mDb.collection(getString(R.string.collection_users)).document(u.getUser_id()).collection(getString(R.string.collection_user_chatrooms)).document(mChatroom.getChatroom_id()).set(uChatroom).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        mDb.collection(getString(R.string.collection_users)).document(u.getUser_id()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                                             @Override
-                                            public void onComplete(@NonNull Task<Void> task) {
-                                                if (u.getUser_id().equals(user.getUser_id())) {return;}
-                                                FCM.send_FCM_Notification(u.getToken(), "message", newChatMessage.getMessage());
+                                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                if (task.isSuccessful()){
+                                                    final User contactUser = task.getResult().toObject(User.class);
+                                                    DocumentReference chatRef =
+                                                            mDb.collection(getString(R.string.collection_users)).document(u.getUser_id()).collection(getString(R.string.collection_user_chatrooms)).document(mChatroom.getChatroom_id());
+                                                    mDb.collection(getString(R.string.collection_users)).document(u.getUser_id()).collection(getString(R.string.collection_user_chatrooms)).document(mChatroom.getChatroom_id()).set(uChatroom).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                        @Override
+                                                        public void onComplete(@NonNull Task<Void> task) {
+                                                            if (u.getUser_id().equals(user.getUser_id())) {return;}
+                                                            if (contactUser.isNotifications()) {
+                                                                FCM.send_FCM_Notification(u.getToken(), "message", newChatMessage.getMessage());
+                                                            }
+                                                        }
+                                                    });
+                                                }
                                             }
                                         });
+
 
                                     }
                                 }
