@@ -7,8 +7,7 @@ import java.util.Date;
 
 
 public class Contact implements Parcelable
-
-    {
+{
 
     private String name;
     private String username;
@@ -17,6 +16,7 @@ public class Contact implements Parcelable
     private String status = "Hey, I'm using KIT!";
     private Date last_sent;
     private boolean inArea;
+    private String token;
 
 
     public Contact(String name, String username, String avatar, String cid, String status) {
@@ -27,6 +27,7 @@ public class Contact implements Parcelable
         this.status = status;
         last_sent = new Date(System.currentTimeMillis() - 3600000);
         inArea = false;
+        token = "";
     }
 
     public Contact() {
@@ -41,6 +42,7 @@ public class Contact implements Parcelable
         status = in.readString();
         last_sent = new Date(in.readLong());
         inArea = in.readInt() == 1;
+        token = in.readString();
     }
 
     public static final Creator<Contact> CREATOR = new Creator<Contact>() {
@@ -111,6 +113,14 @@ public class Contact implements Parcelable
         this.inArea = notification_sent;
     }
 
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
         @Override
     public String toString() {
         return "Contact{" +
@@ -121,6 +131,7 @@ public class Contact implements Parcelable
                 ", status='" + status + '\'' +
                 ", last_sent='" + last_sent + '\'' +
                 ", inArea='" + inArea + '\'' +
+                ", token='" + token + '\'' +
                 '}';
     }
 
@@ -138,5 +149,6 @@ public class Contact implements Parcelable
         dest.writeString(status);
         dest.writeLong(last_sent.getTime());
         dest.writeInt(inArea ? 1:0);
+        dest.writeString(token);
     }
 }
