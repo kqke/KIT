@@ -70,7 +70,7 @@ public class ChatsFragment extends DBGeoFragment implements
 
     //Chat rooms
     private ArrayList<UChatroom> mChatrooms = new ArrayList<>();
-    private Set<String> mChatroomIds = new HashSet<>();
+    private HashSet<String> mChatroomIds = new HashSet<>();
 
     //Contacts
     private ArrayList<Contact> mContacts = new ArrayList<>();
@@ -82,12 +82,23 @@ public class ChatsFragment extends DBGeoFragment implements
     ListenerRegistration mChatsEventListener;
     ChatroomRecyclerAdapter.ChatroomRecyclerClickListener listener;
 
+    private static int adapterPostition;
+
+    private static ChatsFragment instance;
+
     /*
     ----------------------------- Lifecycle ---------------------------------
     */
 
     public ChatsFragment() {
         super();
+    }
+
+    public static ChatsFragment getInstance(){
+        if (instance == null){
+            instance = new ChatsFragment();
+        }
+        return instance;
     }
 
     public static ChatsFragment newInstance() {
@@ -130,6 +141,11 @@ public class ChatsFragment extends DBGeoFragment implements
     public void onCreate(@androidx.annotation.Nullable Bundle savedInstanceState) {
         Log.d(TAG, "onCreate: ");
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null){
+            mChatroomIds = (HashSet<String>)savedInstanceState.getSerializable("chatids");
+            mChatrooms = (ArrayList<UChatroom>)savedInstanceState.getSerializable("mChatrooms");
+            mId2Contact = (HashMap<String, Contact>)savedInstanceState.getSerializable("locs");
+        }
     }
 
     @Override
@@ -140,6 +156,28 @@ public class ChatsFragment extends DBGeoFragment implements
         View view = inflater.inflate(R.layout.fragment_chats, container, false);
         initView(view);
         return view;
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable("mChatrooms",mChatrooms);
+        outState.putSerializable("chatids", mChatroomIds);
+        outState.putSerializable("users", mId2Contact);
+
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        adapterPostition = ((LinearLayoutManager)mChatroomRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mChatroomRecyclerView.getLayoutManager().scrollToPosition(adapterPostition);
     }
 
     /*
@@ -280,7 +318,7 @@ public class ChatsFragment extends DBGeoFragment implements
 
     public interface ChatroomsCallback{
         ArrayList<UChatroom> getChatrooms();
-        Set<String> getChatroomIds();
+        HashSet<String> getChatroomIds();
         UserLocation getUserLocation();
     }
 }

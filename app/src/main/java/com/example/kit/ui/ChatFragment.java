@@ -91,6 +91,8 @@ public class ChatFragment extends DBGeoFragment implements
     //Firebase
     private FirebaseFirestore mDb;
 
+    private int adapterPostition;
+
     //widgets
     private EditText mMessage;
     private View v;
@@ -105,6 +107,7 @@ public class ChatFragment extends DBGeoFragment implements
     private ArrayList<String> mUserTokens = new ArrayList<>();
 
     private ChatroomCallback getData;
+    private static ChatFragment instance;
 
      /*
     ----------------------------- Lifecycle ---------------------------------
@@ -114,6 +117,13 @@ public class ChatFragment extends DBGeoFragment implements
         // Required empty public constructor
     }
 
+    public static ChatFragment getInstance() {
+        if (instance == null){
+            instance = new ChatFragment();
+        }
+        return instance;
+    }
+
     public static ChatFragment newInstance() {
         return new ChatFragment();
     }
@@ -121,12 +131,20 @@ public class ChatFragment extends DBGeoFragment implements
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null){
+            adapterPostition = savedInstanceState.getInt("pos");
+            mMessages = (ArrayList<ChatMessage>)savedInstanceState.getSerializable("mMessages");
+        }
         init();
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        if (mChatroom == null) {
+            mChatroom = ((ChatroomActivity)getActivity()).getChatroom();
+        }
+        ((LinearLayoutManager) mChatMessageRecyclerView.getLayoutManager()).scrollToPosition(adapterPostition);
         getChatMessages();
     }
 
@@ -152,6 +170,7 @@ public class ChatFragment extends DBGeoFragment implements
     @Override
     public void onPause() {
         super.onPause();
+        adapterPostition = ((LinearLayoutManager)mChatMessageRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
         hideSoftKeyboard();
     }
 
@@ -175,6 +194,14 @@ public class ChatFragment extends DBGeoFragment implements
         if (mUserListEventListener != null){
             mUserListEventListener.remove();
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("pos", adapterPostition);
+        outState.putSerializable("mMessages", mMessages);
+
     }
 
     /*

@@ -20,6 +20,8 @@ import java.util.List;
 
 public class ContactsRequestsPendingFragment extends Fragment {
 
+    private static ContactsRequestsPendingFragment instance;
+
     //TODO
     // pending fragment
     //TODO
@@ -31,6 +33,13 @@ public class ContactsRequestsPendingFragment extends Fragment {
 
     public ContactsRequestsPendingFragment() {
         // Required empty public constructor
+    }
+
+    public static ContactsRequestsPendingFragment getInstance() {
+        if (instance == null){
+            instance = new ContactsRequestsPendingFragment();
+        }
+        return instance;
     }
 
     public static ContactsRequestsPendingFragment newInstance() {

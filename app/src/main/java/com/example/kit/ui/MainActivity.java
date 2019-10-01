@@ -134,6 +134,9 @@ public class MainActivity extends AppCompatActivity implements
     private static final String CONTACTS_FRAG = "CONTACTS_FRAG";
     private static final String CONTACT_FRAG = "CONTACT_FRAG";
     private FragmentTransaction ft;
+    private ChatsFragment mChatsFragment;
+    private ContactsRequestsPendingFragment mContactsFragment;
+    private MapFragment mMapFragment;
 
     //Firebase
     protected FirebaseFirestore mDb;
@@ -165,9 +168,12 @@ public class MainActivity extends AppCompatActivity implements
 
     //Chatrooms
     private ArrayList<UChatroom> mChatrooms = new ArrayList<>();
-    private Set<String> mChatroomIds = new HashSet<>();
+    private HashSet<String> mChatroomIds = new HashSet<>();
     private ListenerRegistration mChatroomEventListener;
     private boolean mChatroomsFetched;
+
+    private static Fragment curFragment;
+    private static String curString;
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -176,6 +182,12 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (curFragment == null){
+            curFragment = ChatsFragment.getInstance();
+        }
+        if (curString == null){
+            curString = CHATS_FRAG;
+        }
         initFullLoadingView();
         mDb = FirebaseFirestore.getInstance();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -211,6 +223,12 @@ public class MainActivity extends AppCompatActivity implements
         if (mPendingEventListener != null) {
             mPendingEventListener.remove();
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+
     }
 
     /*
@@ -314,7 +332,10 @@ public class MainActivity extends AppCompatActivity implements
     private void initNavigationBar () {
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navi_bar);
         bottomNav.setVisibility(View.VISIBLE);
-        replaceFragment(ChatsFragment.newInstance(), CHATS_FRAG, false);
+        if (curString == MAP_FRAG){
+            curFragment = MapFragment.newInstance();
+        }
+        replaceFragment(curFragment, curString, false);
         bottomNav.setOnNavigationItemSelectedListener
                 (new BottomNavigationView.OnNavigationItemSelectedListener() {
                     @Override
@@ -323,26 +344,33 @@ public class MainActivity extends AppCompatActivity implements
                         switch (item.getItemId()) {
                             case R.id.action_chats: {
                                 if(!(currentFragment instanceof ChatsFragment)) {
-                                    replaceFragment(ChatsFragment.newInstance(), CHATS_FRAG, false);
+                                    curFragment = ChatsFragment.getInstance();
+                                    curString = CHATS_FRAG;
                                     setTitle(R.string.fragment_chats);
+                                    replaceFragment(curFragment, curString, false);
                                 }
                                 return true;
                             }
                             case R.id.action_map: {
                                 if(!(currentFragment instanceof MapFragment)) {
-                                    replaceFragment(MapFragment.newInstance(), MAP_FRAG, false);
+                                    curFragment = MapFragment.newInstance();
+                                    curString = MAP_FRAG;
                                     setTitle(R.string.fragment_map);
+                                    replaceFragment(curFragment, curString, false);
                                 }
                                 return true;
                             }
                             case R.id.action_contacts: {
                                 if(!(currentFragment instanceof ContactsFragment)) {
-                                    replaceFragment(ContactsRequestsPendingFragment.newInstance(), CONTACTS_FRAG, false);
+                                    curFragment = ContactsRequestsPendingFragment.getInstance();
+                                    curString = CONTACTS_FRAG;
                                     setTitle(R.string.fragment_contacts);
+                                    replaceFragment(curFragment, curString, false);
                                 }
                                 return true;
                             }
                         }
+
                         return false;
                     }
                 });
@@ -440,7 +468,7 @@ public class MainActivity extends AppCompatActivity implements
     */
 
     @Override
-    public Set<String> getChatroomIds() {
+    public HashSet<String> getChatroomIds() {
         return mChatroomIds;
     }
 
