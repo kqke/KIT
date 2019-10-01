@@ -95,36 +95,6 @@ public class MainActivity extends AppCompatActivity implements
         PendingFragment.PendingCallback,
         ContactFragment.ContactCallback
 {
-    //TODO
-    // chat crashes on orientation change
-    //TODO
-    // actionbar functionality - additional menu options if necessary
-    //TODO
-    // should we make this the launcher activity that redirects to login if necessary?
-    //TODO
-    // add functionality to invite message type
-    //TODO
-    // Login activity isn't perfect yet
-    //TODO
-    // fix ImageListFragment (as a part of ProfileFragment)
-    //TODO
-    // does the AddContactsActivity only contain an AlertDialog?
-    // if so, why is it an Activity? should be more than a dialog, fragment probably
-    // TODO
-    //  merge activity_login.xml & activity_username.xml
-    //TODO
-    // transitions between activities
-    //TODO
-    // what is the convention for sharing UserLocation between activities and fragments?
-    // should we store all major data at application level? shared preferences?
-    //TODO
-    // make a nicer toolbar
-    // TODO
-    //  make Contacts recycler adapter compatible with request and pending views
-    //TODO
-    // empty display names are accepted
-    //TODO
-    // don't change fragments to the same fragment currently displayed
 
     //Tag
     private static final String TAG = "MainActivity";
@@ -319,7 +289,7 @@ public class MainActivity extends AppCompatActivity implements
             Log.e(TAG, "retrieveProfileImage: no avatar image. Setting default. " + e.getMessage() );
         }
 
-        Glide.with(this)
+        Glide.with(getApplicationContext())
                 .setDefaultRequestOptions(requestOptions)
                 .load(avatar)
                 .into((CircleImageView)findViewById(R.id.image_choose_avatar));
