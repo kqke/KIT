@@ -13,4 +13,17 @@
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
 
+    <style name="AuthenticationTheme" parent="FirebaseUI">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="colorPrimary">@android:color/holo_green_dark</item>
+        <item name="colorPrimaryDark">@android:color/darker_gray</item>
+        <item name="colorAccent">@android:color/darker_gray</item>
+        <item name="colorControlNormal">@android:color/darker_gray</item>
+        <item name="colorControlActivated">@android:color/white</item>
+        <item name="colorControlHighlight">@color/lightGrey</item>
+        <item name="android:windowBackground">@android:color/holo_green_dark</item>
+    </style>
+
+
 </resources>
