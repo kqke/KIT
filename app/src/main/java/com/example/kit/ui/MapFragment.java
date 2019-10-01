@@ -243,9 +243,9 @@ public class MapFragment extends DBGeoFragment implements
                                 boolean toReset = false;
                                 // update the location
                                 if (updatedUserLocation.isIncognito() != id2ContactsLocations.get(updatedUserLocation.getUser().getUser_id()).isIncognito()) {
-                                    id2ContactsLocations.put(updatedUserLocation.getUser().getUser_id(), updatedUserLocation);
                                     toReset = true;
                                 }
+                                id2ContactsLocations.put(updatedUserLocation.getUser().getUser_id(), updatedUserLocation);
                                 for (int i = 0; i < mClusterMarkers.size(); i++) {
                                     try {
                                         if (mClusterMarkers.get(i).getUser().getUser_id().equals(updatedUserLocation.getUser().getUser_id())) {
@@ -264,7 +264,7 @@ public class MapFragment extends DBGeoFragment implements
                                     }
                                 }
                                 if (toReset) {
-                                    resetMap();
+                                    addMapMarkers();
                                 }
                             }
                         }
