@@ -1,7 +1,9 @@
 package com.example.kit.ui;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -40,11 +42,16 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceManager;
+import androidx.preference.SwitchPreference;
+import androidx.preference.SwitchPreferenceCompat;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
+import static com.example.kit.Constants.MY_PREFERENCES;
 
 public class SettingsActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -78,13 +85,36 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         init();
     }
 
-    public static class SettingsFragment extends PreferenceFragmentCompat {
+    public static class SettingsFragment extends PreferenceFragmentCompat
+            implements Preference.OnPreferenceChangeListener{
+
+        SwitchPreferenceCompat incognito;
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
+            SharedPreferences sp = this.getActivity().getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE);
+            incognito = findPreference("incognito");
+            incognito.setOnPreferenceChangeListener(this);
+            incognito.setChecked(sp.getBoolean("incognito", false));
         }
 
-
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            if(preference.getKey().equals("incognito")){
+                boolean switched = ((SwitchPreferenceCompat) preference).isChecked();
+                SharedPreferences sp = this.getActivity().getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE);
+                if(switched){
+                    sp.edit().putBoolean("incognito", false).apply();
+                    incognito.setChecked(false);
+                }
+                else{
+                    sp.edit().putBoolean("incognito", true).apply();
+                    incognito.setChecked(true);
+                }
+                return true;
+            }
+            return false;
+        }
     }
 
     /*
