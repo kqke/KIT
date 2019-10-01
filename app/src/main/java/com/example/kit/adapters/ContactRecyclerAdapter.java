@@ -239,6 +239,7 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
                 mFilteredContacts = (ArrayList<Contact>)results.values;
+                notifyDataSetChanged();
             }
         };
     }
