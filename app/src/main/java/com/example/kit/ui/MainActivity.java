@@ -144,6 +144,7 @@ public class MainActivity extends AppCompatActivity implements
     private static String curString;
 
     SharedPreferences.OnSharedPreferenceChangeListener spChanged;
+    private static boolean incognito;
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -182,10 +183,24 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
+    protected void onRestart() {
+        if (getSharedPreferences(MY_PREFERENCES, MODE_PRIVATE).getBoolean(INCOGNITO, incognito) != incognito){
+            incognito = !incognito;
+            recreate();
+        }
+        super.onRestart();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         SharedPreferences sp = getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE);
         sp.unregisterOnSharedPreferenceChangeListener(spChanged);
+        super.onSaveInstanceState(outState);
     }
 
     /*
