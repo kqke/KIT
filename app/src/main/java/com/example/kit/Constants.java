@@ -41,4 +41,5 @@ public class Constants {
     public static final String PROXIMITY = "proximity";
     public static final String NOTIFICATIONS = "notifications";
     public static final String PROXIMITY_RANGE = "proximity_range";
+    public static final String PROXIMITY_ALERT = "proximity_alert";
 }
