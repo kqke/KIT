@@ -37,7 +37,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="top"
-            android:background="?attr/colorPrimary"/>
+            android:background="?attr/colorPrimary"
+            app:tabTextColor="?android:textColorSecondary"/>
     </androidx.viewpager.widget.ViewPager>
 
 </RelativeLayout>
