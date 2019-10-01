@@ -106,6 +106,10 @@ public class ContactFragment extends DBGeoFragment implements
         return v;
     }
 
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+
+    }
 
 
     /*
