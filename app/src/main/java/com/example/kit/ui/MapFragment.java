@@ -55,6 +55,7 @@ import com.google.maps.model.DirectionsResult;
 import com.google.maps.model.DirectionsRoute;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.example.kit.Constants.MAPVIEW_BUNDLE_KEY;
@@ -88,6 +89,7 @@ public class MapFragment extends DBGeoFragment implements
 
     //Contacts
     protected ArrayList<Contact> mContactList = new ArrayList<>();
+    HashMap<String, UserLocation> id2ContactsLocations = new HashMap<>();
     protected ArrayList<UserLocation> mContactLocations = new ArrayList<>();
     protected ListenerRegistration mContactListEventListener;
 
@@ -114,6 +116,10 @@ public class MapFragment extends DBGeoFragment implements
         super.onAttach(context);
         MapCallBack getData = (MapCallBack)context;
         mContactLocations = getData.getUserLocations();
+        for (UserLocation contactLoc: mContactLocations){
+            id2ContactsLocations.put(contactLoc.getUser().getUser_id(), contactLoc);
+        }
+
         mUserLocation = getData.getUserLocation();
     }
 
@@ -222,42 +228,76 @@ public class MapFragment extends DBGeoFragment implements
     private void retrieveUserLocations() {
         Log.d(TAG, "retrieveUserLocations: retrieving location of all users in the chatroom");
         try {
-            for (final ClusterMarker clusterMarker : mClusterMarkers) {
-                DocumentReference userLocationRef = FirebaseFirestore.getInstance()
-                        .collection(getString(R.string.collection_user_locations))
-                        .document(clusterMarker.getUser().getUser_id());
-                userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            final UserLocation updatedUserLocation = task.getResult().toObject(UserLocation.class);
-                            // update the location
-                            for (int i = 0; i < mClusterMarkers.size(); i++) {
-                                try {
-                                    if (mClusterMarkers.get(i).getUser().getUser_id().equals(updatedUserLocation.getUser().getUser_id())) {
-                                        if (updatedUserLocation.isIncognito()){
+            if (mClusterMarkers.isEmpty()){
+                updateUserLocs();
+            } else {
+                for (final ClusterMarker clusterMarker : mClusterMarkers) {
+                    DocumentReference userLocationRef = FirebaseFirestore.getInstance()
+                            .collection(getString(R.string.collection_user_locations))
+                            .document(clusterMarker.getUser().getUser_id());
+                    userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                final UserLocation updatedUserLocation = task.getResult().toObject(UserLocation.class);
+                                boolean toReset = false;
+                                // update the location
+                                if (updatedUserLocation.isIncognito() != id2ContactsLocations.get(updatedUserLocation.getUser().getUser_id()).isIncognito()) {
+                                    toReset = true;
+                                }
+                                id2ContactsLocations.put(updatedUserLocation.getUser().getUser_id(), updatedUserLocation);
+                                for (int i = 0; i < mClusterMarkers.size(); i++) {
+                                    try {
+                                        if (mClusterMarkers.get(i).getUser().getUser_id().equals(updatedUserLocation.getUser().getUser_id())) {
 
+
+                                            LatLng updatedLatLng = new LatLng(
+                                                    updatedUserLocation.getGeo_point().getLatitude(),
+                                                    updatedUserLocation.getGeo_point().getLongitude()
+                                            );
+                                            mClusterMarkers.get(i).setPosition(updatedLatLng);
+                                            mClusterManagerRenderer.setUpdateMarker(mClusterMarkers.get(i));
                                         }
-                                        LatLng updatedLatLng = new LatLng(
-                                                updatedUserLocation.getGeo_point().getLatitude(),
-                                                updatedUserLocation.getGeo_point().getLongitude()
-                                        );
-                                        mClusterMarkers.get(i).setPosition(updatedLatLng);
-                                        mClusterManagerRenderer.setUpdateMarker(mClusterMarkers.get(i));
+
+                                    } catch (NullPointerException e) {
+                                        Log.e(TAG, "retrieveUserLocations: NullPointerException: " + e.getMessage());
                                     }
-                                } catch (NullPointerException e) {
-                                    Log.e(TAG, "retrieveUserLocations: NullPointerException: " + e.getMessage());
+                                }
+                                if (toReset) {
+                                    addMapMarkers();
                                 }
                             }
                         }
-                    }
-                });
+                    });
+                }
             }
         } catch (IllegalStateException e) {
             Log.e(TAG, "retrieveUserLocations: Fragment was destroyed during Firestore query. Ending query." + e.getMessage());
         }
     }
 
+    private void updateUserLocs(){
+        for (final UserLocation contactLoc : id2ContactsLocations.values()) {
+            DocumentReference userLocationRef = FirebaseFirestore.getInstance()
+                    .collection(getString(R.string.collection_user_locations))
+                    .document(contactLoc.getUser().getUser_id());
+            userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        final UserLocation updatedUserLocation = task.getResult().toObject(UserLocation.class);
+                        // update the location
+                        if (updatedUserLocation.isIncognito() != id2ContactsLocations.get(updatedUserLocation.getUser().getUser_id()).isIncognito()) {
+                            id2ContactsLocations.put(updatedUserLocation.getUser().getUser_id(), updatedUserLocation);
+                            if (!updatedUserLocation.isIncognito()) {
+                                addMapMarkers();
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
     /*
     ----------------------------- Map ---------------------------------
     */
@@ -309,7 +349,7 @@ public class MapFragment extends DBGeoFragment implements
                 mClusterManager.setRenderer(mClusterManagerRenderer);
             }
             System.out.println(mContactLocations.toString());
-            for (UserLocation userLocation : mContactLocations) {
+            for (UserLocation userLocation : id2ContactsLocations.values()) {
 
                 if (userLocation.isIncognito()) {
                     continue;
