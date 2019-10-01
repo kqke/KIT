@@ -220,7 +220,13 @@ public class ChatroomActivity extends AppCompatActivity implements
 
     }
 
-//    private void joinChatroom(){
+    @Override
+    protected void onResume() {
+        super.onResume();
+        findViewById(R.id.chatroom_container).setVisibility(View.INVISIBLE);
+    }
+
+    //    private void joinChatroom(){
 //        String uid = FirebaseAuth.getInstance().getUid();
 //        DocumentReference joinChatroomRef = mDb
 //                .collection(getString(R.string.collection_chatrooms))
