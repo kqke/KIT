@@ -2,9 +2,10 @@ package com.example.kit.models;
 
 import com.google.firebase.firestore.ServerTimestamp;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class ChatMessage {
+public class ChatMessage implements Serializable {
 
     private User user;
     private String message;
