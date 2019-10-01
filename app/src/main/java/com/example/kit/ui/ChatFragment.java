@@ -304,7 +304,7 @@ public class ChatFragment extends DBGeoFragment implements
                             .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME,
                                     message.getMeeting_time())
                             .setData(CalendarContract.Events.CONTENT_URI)
-                            .putExtra(CalendarContract.Events.TITLE, "KIT: ")
+                            .putExtra(CalendarContract.Events.TITLE, "Meeting with " + mChatroom.getDisplay_name())
                             .putExtra(CalendarContract.Events.DESCRIPTION, "meeting")
                             .putExtra(CalendarContract.Events.AVAILABILITY, CalendarContract.Events.AVAILABILITY_BUSY);
                     startActivity(intent);
