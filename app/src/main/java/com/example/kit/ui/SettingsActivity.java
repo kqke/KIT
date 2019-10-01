@@ -53,7 +53,11 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
+import static com.example.kit.Constants.INCOGNITO;
 import static com.example.kit.Constants.MY_PREFERENCES;
+import static com.example.kit.Constants.PROXIMITY;
+import static com.example.kit.Constants.PROXIMITY_ALERT;
+import static com.example.kit.Constants.PROXIMITY_RANGE;
 
 public class SettingsActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -130,6 +134,8 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
                         sp.edit().putBoolean(Constants.INCOGNITO, true).apply();
                         incognito.setChecked(true);
                     }
+                    FirebaseFirestore.getInstance().collection(getString(R.string.collection_user_locations))
+                            .document(FirebaseAuth.getInstance().getUid()).update(INCOGNITO, sp.getBoolean(INCOGNITO, false));
                     return true;
                 }
 
@@ -143,6 +149,8 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
                         sp.edit().putBoolean(Constants.PROXIMITY, true).apply();
                         proximity.setChecked(false);
                     }
+                    FirebaseFirestore.getInstance().collection(getString(R.string.collection_user_locations))
+                            .document(FirebaseAuth.getInstance().getUid()).update(PROXIMITY_ALERT, sp.getBoolean(PROXIMITY, false));
                     return true;
                 }
 
@@ -170,6 +178,7 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
                     proximityRange.setSummary(String.format("set to: %dm", progress));
                     sp.edit().putInt(Constants.PROXIMITY_RANGE, (int)newValue).apply();
                     proximityRange.setValue((int)newValue);
+                    FirebaseFirestore.getInstance().collection(getString(R.string.collection_user_locations)).document(FirebaseAuth.getInstance().getUid()).update(PROXIMITY_RANGE, sp.getInt(PROXIMITY_RANGE, 10000));
                     return true;
                 }
 
