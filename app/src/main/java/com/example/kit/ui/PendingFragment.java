@@ -54,9 +54,6 @@ public class PendingFragment extends DBGeoFragment implements
     //Pending
     private HashMap<String, Contact> mPending;
 
-    //Contacts Callback
-    ContactsFragment.ContactsCallback initContactFragment;
-
     //Pending Callback
     PendingCallback getData;
 
@@ -87,7 +84,6 @@ public class PendingFragment extends DBGeoFragment implements
         getData = (PendingCallback)context;
         mPending = getData.getPending();
         mRecyclerList = new ArrayList<>(mPending.values());
-        initContactFragment = (ContactsFragment.ContactsCallback)context;
         initListener();
     }
 
@@ -104,6 +100,12 @@ public class PendingFragment extends DBGeoFragment implements
     public void onDetach() {
         super.onDetach();
         mPendingEventListener.remove();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        initListener();
     }
 
     /*
@@ -238,7 +240,7 @@ public class PendingFragment extends DBGeoFragment implements
 
     @Override
     public void onContactSelected(final int position) {
-        initContactFragment.initContactFragment(mRecyclerList.get(position).getCid());
+        getData.initContactFragment(mRecyclerList.get(position).getCid());
     }
 //        android.app.AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
 //        builder.setTitle("Accept Friend Request?");
@@ -310,6 +312,7 @@ public class PendingFragment extends DBGeoFragment implements
 
     public interface PendingCallback {
         HashMap<String, Contact> getPending();
+        void initContactFragment(String contactID);
     }
 
 }
