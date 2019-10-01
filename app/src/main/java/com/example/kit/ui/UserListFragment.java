@@ -42,7 +42,9 @@ import com.google.maps.GeoApiContext;
 
 import java.util.ArrayList;
 
+import static com.example.kit.Constants.FRIENDS;
 import static com.example.kit.Constants.MAPVIEW_BUNDLE_KEY;
+import static com.example.kit.Constants.NOT_FRIENDS;
 
 public class UserListFragment extends MapFragment
         implements OnMapReadyCallback,
@@ -59,6 +61,7 @@ public class UserListFragment extends MapFragment
 
     //Callback
     ChatFragment.ChatroomCallback callback;
+    UserListCallback ulCallback;
 
     //map
     RelativeLayout mMapContainer;
@@ -99,7 +102,9 @@ public class UserListFragment extends MapFragment
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         callback = (ChatFragment.ChatroomCallback) context;
+        ulCallback = (UserListCallback) context;
         mUserList = callback.getUserList();
+        mContactList = ulCallback.getContacts();
     }
 
     @Nullable
@@ -124,6 +129,7 @@ public class UserListFragment extends MapFragment
         super.onSaveInstanceState(outState);
         outState.putInt("mstate", mMapLayoutState);
         outState.putSerializable("userList", mUserList);
+        outState.putSerializable("contactList", mContactList);
     }
 
     /*
@@ -149,7 +155,7 @@ public class UserListFragment extends MapFragment
                 }
             }
             if (!found){
-                mContactList.add(new Contact(user.getUsername(), user.getEmail(), user.getAvatar(), user.getUser_id(), user.getStatus()));
+                mContactList.add(new Contact(user.getUsername(), user.getEmail(), user.getAvatar(), user.getUser_id(), NOT_FRIENDS));
             }
         }
         mUserRecyclerAdapter = new ContactRecyclerAdapter(mContactList,
@@ -172,9 +178,20 @@ public class UserListFragment extends MapFragment
 
     @Override
     public void onContactSelected(int position) {
-        //TODO
-        // ContactActivity is deprecated
-        navContactActivity(mContactList.get(position));
+        String state = "";
+        Contact cont = mContactList.get(position);
+        if (cont.getCid().equals(FirebaseAuth.getInstance().getUid())){
+            ulCallback.navSettingsActivity();
+            return;
+
+        }
+        if (cont.getStatus().equals(NOT_FRIENDS)){
+            state = NOT_FRIENDS;
+        }
+        else {
+            state = FRIENDS;
+        }
+        ulCallback.navContactFragment(mContactList.get(position), state);
     }
 
     @Override
@@ -340,5 +357,11 @@ public class UserListFragment extends MapFragment
                 addMapMarkers();
             }
         }
+    }
+
+    public interface UserListCallback{
+        void navContactFragment(Contact contact, String state);
+        ArrayList<Contact> getContacts();
+        void navSettingsActivity();
     }
 }

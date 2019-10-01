@@ -100,9 +100,12 @@ public class ContactFragment extends DBGeoFragment implements
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_contact, container, false);
+        container.setVisibility(VISIBLE);
         initView(v);
         return v;
     }
+
+
 
     /*
     ----------------------------- init ---------------------------------
