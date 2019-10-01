@@ -29,6 +29,7 @@ import com.example.kit.adapters.ContactRecyclerAdapter;
 import com.example.kit.models.Contact;
 import com.example.kit.models.UserLocation;
 import com.example.kit.util.ViewWeightAnimationWrapper;
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -82,6 +83,10 @@ public class UserListFragment extends MapFragment
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null){
+            mMapLayoutState = savedInstanceState.getInt("mstate");
+            mUserList = (ArrayList<User>)savedInstanceState.getSerializable("userList");
+        }
         if (mContactLocations.size() == 0) {
             if (getArguments() != null) {
                 mContactList = getArguments().getParcelableArrayList(getString(R.string.intent_user_list));
@@ -112,6 +117,13 @@ public class UserListFragment extends MapFragment
         initGoogleMap(savedInstanceState);
         setUserPosition();
         return view;
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("mstate", mMapLayoutState);
+        outState.putSerializable("userList", mUserList);
     }
 
     /*
@@ -299,6 +311,14 @@ public class UserListFragment extends MapFragment
 
         recyclerAnimation.start();
         mapAnimation.start();
+    }
+
+    @Override
+    public void onMapReady(GoogleMap map) {
+        super.onMapReady(map);
+        if (mMapLayoutState == MAP_LAYOUT_STATE_EXPANDED){
+            expandMapAnimation();
+        }
     }
 
     @Override
