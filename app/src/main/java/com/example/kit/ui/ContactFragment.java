@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 import android.util.Log;
@@ -27,13 +28,14 @@ import com.example.kit.R;
 import com.example.kit.UserClient;
 import com.example.kit.models.Contact;
 import com.example.kit.models.User;
+import com.example.kit.util.FCM;
 import com.example.kit.util.UsernameValidator;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -106,13 +108,19 @@ public class ContactFragment extends DBGeoFragment implements
         mProfileName.setText(mContact.getName());
         mProfileName.setOnClickListener(this);
         mUserName = v.findViewById(R.id.profile_userName);
+        mProfileStatus = v.findViewById(R.id.profile_status);
         if(mCurrent_state.equals(FRIENDS)){
             mUserName.setText(mContact.getUsername());
+            if(mContact.getStatus() != null)
+                mProfileStatus.setText(mContact.getStatus());
+            else
+                mProfileStatus.setVisibility(View.INVISIBLE);
         }
         else{
+            mProfileStatus.setVisibility(View.INVISIBLE);
             mUserName.setVisibility(View.GONE);
+            mEditBtn.setVisibility(View.GONE);
         }
-        mProfileStatus = v.findViewById(R.id.profile_status);
         mSendReqBtn = v.findViewById(R.id.profile_send_req_btn);
         mTheirReqPending = v.findViewById(R.id.request_btns);
         mAcceptBtn = v.findViewById(R.id.profile_accept_req_btn);
@@ -212,6 +220,29 @@ public class ContactFragment extends DBGeoFragment implements
         }
     }
 
+    private void getDisplayName(){
+        final View dialogView = View.inflate(mActivity, R.layout.dialog_display_name, null);
+        final AlertDialog alertDialog = new AlertDialog.Builder(mActivity).create();
+        dialogView.findViewById(R.id.go_profile_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String displayName = ((EditText)dialogView.findViewById(R.id.dialog_input)).getText().toString();
+                UsernameValidator validator = new UsernameValidator();
+                if(validator.validate(displayName)){
+                    addContact(displayName, mContact);
+                    alertDialog.dismiss();
+                }
+                else{
+                    Toast.makeText(mActivity,
+                            "Enter a valid display name",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        alertDialog.setView(dialogView);
+        alertDialog.show();
+    }
+
     /*
     ----------------------------- onClick ---------------------------------
     */
@@ -256,7 +287,7 @@ public class ContactFragment extends DBGeoFragment implements
     */
 
     private void sendRequest(){
-
+        getDisplayName();
     }
 
     private void acceptRequest(){
@@ -282,6 +313,27 @@ public class ContactFragment extends DBGeoFragment implements
         contactDialogFragment.setTargetFragment(ContactFragment.this, 1);
         contactDialogFragment.show(getFragmentManager(), "RequestsDialogFragment");
 
+    }
+
+    public void addContact(String display_name, final Contact contact) {
+        final User user = ((UserClient) (getActivity().getApplicationContext())).getUser();
+        Contact newContact = new Contact(display_name, contact.getUsername(), null, contact.getCid(), contact.getStatus());
+        mDb.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_pending)).document(contact.getCid()).set(contact).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.d(TAG, "DocumentSnapshot successfully written!");
+                DocumentReference contactRef =
+                        mDb.collection(getString(R.string.collection_users)).document(contact.getCid()).collection(getString(R.string.collection_requests)).document(user.getUser_id());
+                contactRef.set(new Contact(user.getUsername(), user.getEmail(), user.getAvatar(), user.getUser_id(), user.getStatus())).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+//                FCM.send_FCM_Notification(contact.getToken(), "Friend Request", user.getUsername() + " has sent " +
+//                        "you a friend request");
+
+                    }
+                });
+            }
+        });
     }
 
     @Override

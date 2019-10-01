@@ -20,11 +20,6 @@ import java.util.List;
 
 public class ContactsRequestsPendingFragment extends Fragment {
 
-    //TODO
-    // pending fragment
-    //TODO
-    // update recycler item views to have functionality to accept/send/revoke pairing requests
-
     /*
     ----------------------------- Lifecycle ---------------------------------
     */

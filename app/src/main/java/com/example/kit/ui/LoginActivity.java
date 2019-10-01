@@ -163,6 +163,8 @@ public class LoginActivity extends AppCompatActivity
             startActivityForResult(AuthUI.getInstance()
                     .createSignInIntentBuilder()
                     .setAvailableProviders(idps)
+                    .setTheme(R.style.AuthenticationTheme)
+                    .setLogo(R.mipmap.ic_launcher)
                     .build(), RC_SIGN_IN);
         }
         else{
