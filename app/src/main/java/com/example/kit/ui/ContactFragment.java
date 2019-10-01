@@ -321,17 +321,21 @@ public class ContactFragment extends DBGeoFragment implements
     public void addContact(String display_name, final Contact contact) {
         final User user = ((UserClient) (getActivity().getApplicationContext())).getUser();
         Contact newContact = new Contact(display_name, contact.getName(), contact.getAvatar(), contact.getCid(), contact.getStatus());
+        newContact.setToken(contact.getToken());
         mDb.collection(getString(R.string.collection_users)).document(user.getUser_id()).collection(getString(R.string.collection_pending)).document(contact.getCid()).set(newContact).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
                 Log.d(TAG, "DocumentSnapshot successfully written!");
                 DocumentReference contactRef =
                         mDb.collection(getString(R.string.collection_users)).document(contact.getCid()).collection(getString(R.string.collection_requests)).document(user.getUser_id());
-                contactRef.set(new Contact(user.getUsername(), user.getEmail(), user.getAvatar(), user.getUser_id(), user.getStatus())).addOnCompleteListener(new OnCompleteListener<Void>() {
+                Contact userContact = new Contact(user.getUsername(), user.getEmail(), user.getAvatar(), user.getUser_id(),
+                        user.getStatus());
+                userContact.setToken(user.getToken());
+                contactRef.set(userContact).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
-//                FCM.send_FCM_Notification(contact.getToken(), "Friend Request", user.getUsername() + " has sent " +
-//                        "you a friend request");
+                FCM.send_FCM_Notification(contact.getToken(), "Friend Request", user.getUsername() + " has sent " +
+                        "you a friend request");
 
                     }
                 });

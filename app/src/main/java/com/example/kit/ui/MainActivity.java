@@ -752,6 +752,8 @@ public class MainActivity extends AppCompatActivity implements
                     contact.setCid(userID);
                     contact.setName(user.getUsername());
                     contact.setAvatar(user.getAvatar());
+                    contact.setStatus(user.getStatus());
+                    contact.setToken(user.getToken());
                     navContactFragment(contact, NOT_FRIENDS);
                 }
             }
