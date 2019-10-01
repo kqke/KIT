@@ -69,6 +69,8 @@ public class ContactFragment extends DBGeoFragment implements
     //vars
     private String mCurrent_state;
 
+    private ContactCallback recreate;
+
     /*
     ----------------------------- Lifecycle ---------------------------------
     */
@@ -92,7 +94,7 @@ public class ContactFragment extends DBGeoFragment implements
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-
+        recreate = (ContactCallback)context;
     }
 
     @Override
@@ -324,7 +326,7 @@ public class ContactFragment extends DBGeoFragment implements
 
     }
 
-    public void addContact(String display_name, final Contact contact) {
+    private void addContact(String display_name, final Contact contact) {
         final User user = ((UserClient) (getActivity().getApplicationContext())).getUser();
         Contact newContact = new Contact(display_name, contact.getName(), contact.getAvatar(), contact.getCid(), contact.getStatus());
         newContact.setToken(contact.getToken());
@@ -342,7 +344,7 @@ public class ContactFragment extends DBGeoFragment implements
                     public void onComplete(@NonNull Task<Void> task) {
                 FCM.send_FCM_Notification(contact.getToken(), "Friend Request", user.getUsername() + " has sent " +
                         "you a friend request");
-
+                recreate.initContactFragment(mContact.getCid(), MY_REQUEST_PENDING);
                     }
                 });
             }
@@ -354,8 +356,9 @@ public class ContactFragment extends DBGeoFragment implements
         String uid = FirebaseAuth.getInstance().getUid();
         mDb.collection(getString(R.string.collection_users)).document(contact.getCid()).collection(getString(R.string.collection_contacts)).document(uid).delete();
         mDb.collection(getString(R.string.collection_users)).document(uid).collection(getString(R.string.collection_contacts)).document(contact.getCid()).delete();
-        mDeleteBtn.setClickable(false);
-        mDeleteBtn.setVisibility(View.INVISIBLE);
+        recreate.initContactFragment(mContact.getCid(), NOT_FRIENDS);
+//        mDeleteBtn.setClickable(false);
+//        mDeleteBtn.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -363,8 +366,9 @@ public class ContactFragment extends DBGeoFragment implements
         String uid = FirebaseAuth.getInstance().getUid();
         mDb.collection(getString(R.string.collection_users)).document(contact.getCid()).collection(getString(R.string.collection_pending)).document(uid).delete();
         mDb.collection(getString(R.string.collection_users)).document(uid).collection(getString(R.string.collection_requests)).document(contact.getCid()).delete();
-        mDeleteReqBtn.setClickable(false);
-        mDeleteReqBtn.setVisibility(View.INVISIBLE);
+        recreate.initContactFragment(mContact.getCid(), NOT_FRIENDS);
+//        mDeleteReqBtn.setClickable(false);
+//        mDeleteReqBtn.setVisibility(View.INVISIBLE);
     }
 
     public void changeDisplayName(final String name){
@@ -440,6 +444,6 @@ public class ContactFragment extends DBGeoFragment implements
     }
 
     public interface ContactCallback{
-        void initContactFragment(String id);
+        void initContactFragment(String id, String state);
     }
 }

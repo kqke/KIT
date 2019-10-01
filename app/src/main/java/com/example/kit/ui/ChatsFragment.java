@@ -4,6 +4,8 @@ package com.example.kit.ui;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -22,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.example.kit.R;
@@ -221,6 +224,8 @@ public class ChatsFragment extends DBGeoFragment implements
 
     private void initSearchView(View v){
         SearchView searchView = v.findViewById(R.id.search_view);
+        ImageView icon = searchView.findViewById(R.id.search_button);
+        icon.setColorFilter(Color.BLACK);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String queryString) {

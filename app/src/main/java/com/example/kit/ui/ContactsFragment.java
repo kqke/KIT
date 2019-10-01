@@ -1,6 +1,7 @@
 package com.example.kit.ui;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -17,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.example.kit.Constants;
@@ -109,7 +111,6 @@ public class ContactsFragment extends DBGeoFragment implements
         if (mContactRecyclerAdapter != null){
             mContactRecyclerAdapter.notifyDataSetChanged();
         }
-
     }
 
     @Override
@@ -155,6 +156,8 @@ public class ContactsFragment extends DBGeoFragment implements
 
     private void initSearchView(View v){
         SearchView searchView = v.findViewById(R.id.search_view);
+        ImageView icon = searchView.findViewById(R.id.search_button);
+        icon.setColorFilter(Color.BLACK);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String queryString) {
@@ -217,7 +220,7 @@ public class ContactsFragment extends DBGeoFragment implements
 
     @Override
     public void onContactSelected(int position) {
-        getData.initContactFragment(mRecyclerList.get(position).getCid());
+        getData.initContactFragment(mRecyclerList.get(position).getCid(), null);
     }
 
     @Override
@@ -286,7 +289,7 @@ public class ContactsFragment extends DBGeoFragment implements
                             if (user.equals(userName)) {
                                 Log.d(TAG, "chcekExisting: User Exists");
                                 String userId = documentSnapshot.getString("user_id");
-                                getData.initContactFragment(userId);
+                                getData.initContactFragment(userId, null);
                                 alertDialog.dismiss();
                                 return;
                             }
@@ -312,6 +315,6 @@ public class ContactsFragment extends DBGeoFragment implements
         Set<String> getContactIds();
         HashMap<String, Contact> getId2Contact();
         ArrayList<UserLocation> getUserLocations();
-        void initContactFragment(String contactID);
+        void initContactFragment(String contactID, String state);
     }
 }
