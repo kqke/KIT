@@ -127,6 +127,9 @@ public class MapFragment extends DBGeoFragment implements
     public void onCreate(@Nullable Bundle savedInstanceState) {
         Log.d(TAG, "onCreate: ");
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null){
+            id2ContactsLocations = (HashMap<String, UserLocation>)savedInstanceState.getSerializable("locs");
+        }
         Log.d(TAG, "before: ");
         Log.d(TAG, "after: ");
     }
@@ -184,6 +187,7 @@ public class MapFragment extends DBGeoFragment implements
         if (mapViewBundle == null) {
             mapViewBundle = new Bundle();
             outState.putBundle(MAPVIEW_BUNDLE_KEY, mapViewBundle);
+            outState.putSerializable("locs", id2ContactsLocations);
         }
         mMapView.onSaveInstanceState(mapViewBundle);
     }
@@ -277,6 +281,7 @@ public class MapFragment extends DBGeoFragment implements
     }
 
     private void updateUserLocs(){
+        addMapMarkers();
         for (final UserLocation contactLoc : id2ContactsLocations.values()) {
             DocumentReference userLocationRef = FirebaseFirestore.getInstance()
                     .collection(getString(R.string.collection_user_locations))
@@ -398,7 +403,7 @@ public class MapFragment extends DBGeoFragment implements
             double tb = lat + .1;
             double rb = lon + .1;
             double cur_lat, cur_long;
-            for (UserLocation loc: mContactLocations){
+            for (UserLocation loc: id2ContactsLocations.values()){
                 cur_lat = loc.getGeo_point().getLatitude();
                 cur_long = loc.getGeo_point().getLongitude();
                 if (cur_lat < bb) {

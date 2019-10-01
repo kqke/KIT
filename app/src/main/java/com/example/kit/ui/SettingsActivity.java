@@ -209,6 +209,7 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
     }
 
     private void initView(){
+        mUser = ((UserClient)getApplicationContext()).getUser();
         mUserName.setText(mUser.getUsername());
         mProfileStatus.setText(mUser.getStatus());
         mEditAvatar.setOnClickListener(this);
