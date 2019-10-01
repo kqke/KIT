@@ -103,6 +103,7 @@ public class ContactFragment extends DBGeoFragment implements
     */
 
     private void initView(View v){
+        initEditText(v);
         mAvatarImage = v.findViewById(R.id.image_choose_avatar);
         mProfileName = v.findViewById(R.id.profile_displayName);
         mProfileName.setText(mContact.getName());
@@ -127,7 +128,6 @@ public class ContactFragment extends DBGeoFragment implements
         mDeclineBtn = v.findViewById(R.id.profile_decline_btn);
         mDeleteReqBtn = v.findViewById(R.id.profile_delete_request_btn);
         mDeleteBtn = v.findViewById(R.id.profile_delete_btn);
-        initEditText(v);
         initState();
         retrieveProfileImage();
     }
@@ -153,6 +153,9 @@ public class ContactFragment extends DBGeoFragment implements
                   }
               });
             mEditDoneBtn = v.findViewById(R.id.edit_done_btn);
+        }
+        else {
+            mEditBtn = v.findViewById(R.id.edit_btn);
         }
     }
 
@@ -317,8 +320,8 @@ public class ContactFragment extends DBGeoFragment implements
 
     public void addContact(String display_name, final Contact contact) {
         final User user = ((UserClient) (getActivity().getApplicationContext())).getUser();
-        Contact newContact = new Contact(display_name, contact.getUsername(), null, contact.getCid(), contact.getStatus());
-        mDb.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_pending)).document(contact.getCid()).set(contact).addOnSuccessListener(new OnSuccessListener<Void>() {
+        Contact newContact = new Contact(display_name, contact.getName(), contact.getAvatar(), contact.getCid(), contact.getStatus());
+        mDb.collection(getString(R.string.collection_users)).document(user.getUser_id()).collection(getString(R.string.collection_pending)).document(contact.getCid()).set(newContact).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
                 Log.d(TAG, "DocumentSnapshot successfully written!");

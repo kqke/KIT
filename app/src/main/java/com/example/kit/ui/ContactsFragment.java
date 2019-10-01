@@ -77,6 +77,8 @@ public class ContactsFragment extends DBGeoFragment implements
 
     private AlertDialog alertDialog;
 
+    private static View view;
+
     /*
     ----------------------------- Lifecycle ---------------------------------
     */
@@ -107,13 +109,15 @@ public class ContactsFragment extends DBGeoFragment implements
         if (mContactRecyclerAdapter != null){
             mContactRecyclerAdapter.notifyDataSetChanged();
         }
-        initListener();
+
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mContactEventListener.remove();
+        if (mContactEventListener != null) {
+            mContactEventListener.remove();
+        }
     }
 
     @Override
@@ -127,6 +131,7 @@ public class ContactsFragment extends DBGeoFragment implements
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_contacts, container, false);
         initView(view);
+        initListener();
         return view;
     }
 
