@@ -100,7 +100,6 @@ public class ContactFragment extends DBGeoFragment implements
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_contact, container, false);
-        container.setVisibility(VISIBLE);
         initView(v);
         return v;
     }
@@ -113,6 +112,7 @@ public class ContactFragment extends DBGeoFragment implements
 
     private void initView(View v){
         initEditText(v);
+        v.findViewById(R.id.contact_lin_lay).setBackgroundColor(getResources().getColor(R.color.White));
         mAvatarImage = v.findViewById(R.id.image_choose_avatar);
         mProfileName = v.findViewById(R.id.profile_displayName);
         mProfileName.setText(mContact.getName());
