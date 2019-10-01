@@ -11,6 +11,7 @@ public class User implements Parcelable{
     private String avatar;
     private String token;
     private String status = "Hey, I'm using KIT!";
+    private boolean notifications;
 
     public User(String email, String user_id, String username, String avatar, String token, String status) {
         this.email = email;
@@ -19,6 +20,7 @@ public class User implements Parcelable{
         this.avatar = avatar;
         this.token = token;
         this.status = status;
+        notifications = true;
     }
 
     public User() {
@@ -32,6 +34,7 @@ public class User implements Parcelable{
         avatar = in.readString();
         token = in.readString();
         status = in.readString();
+        notifications = in.readInt()==1;
     }
 
     public static final Creator<User> CREATOR = new Creator<User>() {
@@ -98,6 +101,14 @@ public class User implements Parcelable{
         this.status = status;
     }
 
+    public boolean isNotifications() {
+        return notifications;
+    }
+
+    public void setNotifications(boolean notifications) {
+        this.notifications = notifications;
+    }
+
     @Override
     public String toString() {
         return "User{" +
@@ -107,6 +118,7 @@ public class User implements Parcelable{
                 ", avatar='" + avatar + '\'' +
                 ", token='" + token + '\'' +
                 ", status='" + status + '\'' +
+                ", notifications='" + notifications + '\'' +
                 '}';
     }
 
@@ -123,6 +135,7 @@ public class User implements Parcelable{
         dest.writeString(avatar);
         dest.writeString(token);
         dest.writeString(status);
+        dest.writeInt(notifications ? 1:0);
     }
 }
 

@@ -19,6 +19,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.example.kit.Constants;
 import com.example.kit.R;
 import com.example.kit.UserClient;
 import com.example.kit.models.User;
@@ -45,6 +46,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
+import androidx.preference.SeekBarPreference;
 import androidx.preference.SwitchPreference;
 import androidx.preference.SwitchPreferenceCompat;
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -89,30 +91,98 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
             implements Preference.OnPreferenceChangeListener{
 
         SwitchPreferenceCompat incognito;
+        SwitchPreferenceCompat proximity;
+        SwitchPreferenceCompat notification;
+        SeekBarPreference proximityRange;
+
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
             SharedPreferences sp = this.getActivity().getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE);
-            incognito = findPreference("incognito");
+            incognito = findPreference(Constants.INCOGNITO);
             incognito.setOnPreferenceChangeListener(this);
-            incognito.setChecked(sp.getBoolean("incognito", false));
+            incognito.setChecked(sp.getBoolean(Constants.INCOGNITO, sp.getBoolean(Constants.INCOGNITO, false)));
+            proximity = findPreference(Constants.PROXIMITY);
+            proximity.setOnPreferenceChangeListener(this);
+            proximity.setChecked(sp.getBoolean(Constants.PROXIMITY, sp.getBoolean(Constants.PROXIMITY, true)));
+            notification = findPreference(Constants.NOTIFICATIONS);
+            notification.setOnPreferenceChangeListener(this);
+            notification.setChecked(sp.getBoolean(Constants.NOTIFICATIONS, sp.getBoolean(Constants.NOTIFICATIONS, true)));
+            proximityRange = findPreference(Constants.PROXIMITY_RANGE);
+            proximityRange.setOnPreferenceChangeListener(this);
+            proximityRange.setValue(sp.getInt(Constants.PROXIMITY_RANGE, 10000));
         }
 
         @Override
         public boolean onPreferenceChange(Preference preference, Object newValue) {
-            if(preference.getKey().equals("incognito")){
-                boolean switched = ((SwitchPreferenceCompat) preference).isChecked();
-                SharedPreferences sp = this.getActivity().getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE);
-                if(switched){
-                    sp.edit().putBoolean("incognito", false).apply();
-                    incognito.setChecked(false);
+            SharedPreferences sp = this.getActivity().getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE);
+            switch (preference.getKey()){
+                case Constants.INCOGNITO:{
+                    boolean switched = ((SwitchPreferenceCompat) preference).isChecked();
+                    if(switched){
+                        sp.edit().putBoolean(Constants.INCOGNITO, false).apply();
+                        incognito.setChecked(false);
+                    }
+                    else{
+                        sp.edit().putBoolean(Constants.INCOGNITO, true).apply();
+                        incognito.setChecked(true);
+                    }
+                    return true;
                 }
-                else{
-                    sp.edit().putBoolean("incognito", true).apply();
-                    incognito.setChecked(true);
+
+                case Constants.PROXIMITY:{
+                    boolean switched = ((SwitchPreferenceCompat) preference).isChecked();
+                    if(switched){
+                        sp.edit().putBoolean(Constants.PROXIMITY, false).apply();
+                        proximity.setChecked(true);
+                    }
+                    else{
+                        sp.edit().putBoolean(Constants.PROXIMITY, true).apply();
+                        proximity.setChecked(false);
+                    }
+                    return true;
                 }
-                return true;
+
+                case Constants.NOTIFICATIONS:{
+                    boolean switched = ((SwitchPreferenceCompat) preference).isChecked();
+                    final User user = ((UserClient) (getActivity().getApplicationContext())).getUser();
+                    User nUser = new User(user.getEmail(), user.getUser_id(), user.getUsername(), user.getAvatar(), user.getToken(),
+                            user.getStatus());
+                    if(switched){
+                        sp.edit().putBoolean(Constants.NOTIFICATIONS, false).apply();
+                        nUser.setNotifications(false);
+                        notification.setChecked(true);
+                    }
+                    else{
+                        sp.edit().putBoolean(Constants.NOTIFICATIONS, true).apply();
+                        nUser.setNotifications(true);
+                        notification.setChecked(false);
+                    }
+                    FirebaseFirestore.getInstance().collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).set(nUser);
+                    return true;
+                }
+
+                case Constants.PROXIMITY_RANGE:{
+                    sp.edit().putInt(Constants.PROXIMITY_RANGE, (int)newValue).apply();
+                    proximityRange.setValue((int)newValue);
+                    return true;
+                }
+
+
             }
+//            if(preference.getKey().equals("incognito")){
+//                boolean switched = ((SwitchPreferenceCompat) preference).isChecked();
+//                SharedPreferences sp = this.getActivity().getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE);
+//                if(switched){
+//                    sp.edit().putBoolean("incognito", false).apply();
+//                    incognito.setChecked(false);
+//                }
+//                else{
+//                    sp.edit().putBoolean("incognito", true).apply();
+//                    incognito.setChecked(true);
+//                }
+//                return true;
+//            }
             return false;
         }
     }

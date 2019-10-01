@@ -39,4 +39,6 @@ public class Constants {
     public static final String MY_PREFERENCES = "MyPref";
     public static final String INCOGNITO = "incognito";
     public static final String PROXIMITY = "proximity";
+    public static final String NOTIFICATIONS = "notifications";
+    public static final String PROXIMITY_RANGE = "proximity_range";
 }

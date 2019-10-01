@@ -18,14 +18,15 @@
             app:title="Enable message notifications"/>
 
         <SwitchPreferenceCompat
+            android:defaultValue="true"
             app:key="proximity"
             app:title="Enable proximity notifications"/>
 
         <SeekBarPreference
             android:key="proximity_range"
             android:title="Proximity notifications range"
-            android:max="3000"
-            android:defaultValue="500" />
+            android:max="30000"
+            android:defaultValue="10000" />
     </PreferenceCategory>
 
 </PreferenceScreen>
