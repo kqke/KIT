@@ -129,6 +129,7 @@ public class MapFragment extends DBGeoFragment implements
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null){
             id2ContactsLocations = (HashMap<String, UserLocation>)savedInstanceState.getSerializable("locs");
+            mContactList = (ArrayList<Contact>)savedInstanceState.getSerializable("conts");
         }
         Log.d(TAG, "before: ");
         Log.d(TAG, "after: ");
@@ -188,6 +189,7 @@ public class MapFragment extends DBGeoFragment implements
             mapViewBundle = new Bundle();
             outState.putBundle(MAPVIEW_BUNDLE_KEY, mapViewBundle);
             outState.putSerializable("locs", id2ContactsLocations);
+            outState.putSerializable("conts", mContactList);
         }
         mMapView.onSaveInstanceState(mapViewBundle);
     }
@@ -657,6 +659,7 @@ public class MapFragment extends DBGeoFragment implements
     public interface MapCallBack {
         ArrayList<UserLocation> getUserLocations();
         UserLocation getUserLocation();
+        ArrayList<Contact> getContacts();
     }
 }
 

@@ -43,8 +43,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static com.example.kit.Constants.BACK_STACK_ROOT_TAG;
 import static com.example.kit.Constants.CHATROOM;
+import static com.example.kit.Constants.CONTACT;
 import static com.example.kit.Constants.CONTACTS_HASH_MAP;
+import static com.example.kit.Constants.CONTACTS_LIST;
+import static com.example.kit.Constants.CONTACT_STATE;
 import static com.example.kit.Constants.INCOGNITO;
 import static com.example.kit.Constants.MY_PREFERENCES;
 import static com.example.kit.Constants.USER_LOCATION;
@@ -53,7 +57,8 @@ import static com.example.kit.Constants.USER_LOCATION;
 public class ChatroomActivity extends AppCompatActivity implements
         ChatFragment.ChatroomCallback,
         MapFragment.MapCallBack,
-        View.OnClickListener
+        View.OnClickListener,
+        UserListFragment.UserListCallback
 {
 
     //Tag
@@ -68,11 +73,11 @@ public class ChatroomActivity extends AppCompatActivity implements
     public UChatroom mChatroom;
     private HashMap<String, Contact> mContacts = new HashMap<>();
     private ArrayList<User> mUserList = new ArrayList<>();
+    private ArrayList<Contact> contacts = new ArrayList<>();
     private ArrayList<UserLocation> mUserLocations = new ArrayList<>();
     private ArrayList<String> mUserTokens = new ArrayList<>();
 
-    private FragmentTransaction ft;
-    private static final String LOADING_FRAG = "LOADING_FRAG";
+    private static final String CONTACT_FRAG = "CONTACT_FRAG";
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -114,7 +119,7 @@ public class ChatroomActivity extends AppCompatActivity implements
     }
 
     private void initView(){
-        ChatMapViewPagerAdapter mAdapter = new ChatMapViewPagerAdapter(getSupportFragmentManager(), mChatroom);
+        ChatMapViewPagerAdapter mAdapter = new ChatMapViewPagerAdapter(getSupportFragmentManager());
         ViewPager mPager = findViewById(R.id.chatroom_view_pager);
         findViewById(R.id.progressBar).setVisibility(View.GONE);
         mPager.setVisibility(View.VISIBLE);
@@ -122,8 +127,6 @@ public class ChatroomActivity extends AppCompatActivity implements
     }
 
     private void getIncomingIntent(){
-        //TODO
-        // this is entered upon orientation change
         Intent intent = getIntent();
         if(intent.hasExtra(CONTACTS_HASH_MAP)){
             mContacts = (HashMap<String, Contact>)getIntent().getSerializableExtra(CONTACTS_HASH_MAP);
@@ -136,7 +139,9 @@ public class ChatroomActivity extends AppCompatActivity implements
             mDb.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_user_chatrooms)).document(mChatroom.getChatroom_id()).update("read_last_message", true);
 
         }
-//        joinChatroom();
+        if (intent.hasExtra(CONTACTS_LIST)){
+            contacts = getIntent().getParcelableArrayListExtra(CONTACTS_LIST);
+        }
     }
 
     private void setChatroomName(){
@@ -209,9 +214,10 @@ public class ChatroomActivity extends AppCompatActivity implements
                     System.out.println("check34");
                     chatroom.delete();
                 }
+                left();
             }
         });
-        left();
+
     }
 
 //    private void joinChatroom(){
@@ -300,6 +306,38 @@ public class ChatroomActivity extends AppCompatActivity implements
     ----------------------------- utils ---------------------------------
     */
 
+    @Override
+    public void navSettingsActivity(){
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+    }
+
+
+    @Override
+    public void navContactFragment(Contact contact, String state){
+        ContactFragment contactFrag = ContactFragment.newInstance();
+        Bundle args = new Bundle();
+        args.putParcelable(CONTACT, contact);
+        args.putString(CONTACT_STATE, state);
+        contactFrag.setArguments(args);
+        replaceFragment(contactFrag, CONTACT_FRAG, true);
+    }
+
+    private void replaceFragment (Fragment newFragment, String tag, boolean stack){
+        if(!isDestroyed() && !isFinishing()) {
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            if(stack) {
+                findViewById(R.id.chatroom_container).setVisibility(View.VISIBLE);
+                ft.replace(R.id.chatroom_container, newFragment, tag).addToBackStack(BACK_STACK_ROOT_TAG).commit();
+            }
+        }
+    }
+
+    @Override
+    public ArrayList<Contact> getContacts() {
+        return contacts;
+    }
+
     private void hideSoftKeyboard(){
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
@@ -346,14 +384,11 @@ public class ChatroomActivity extends AppCompatActivity implements
 
         private List<Fragment> fragments;
 
-        private ChatMapViewPagerAdapter(FragmentManager manager, UChatroom uChatroom) {
+        private ChatMapViewPagerAdapter(FragmentManager manager) {
             super(manager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
             this.fragments = new ArrayList<>();
             this.fragments.add(0, ChatFragment.newInstance());
-            if(uChatroom.isGroup())
-                this.fragments.add(1, UserListFragment.newInstance());
-            else
-                this.fragments.add(1, MapFragment.newInstance());
+            this.fragments.add(1, UserListFragment.newInstance());
         }
 
         @Override

@@ -3,7 +3,9 @@ package com.example.kit.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class User implements Parcelable{
+import java.io.Serializable;
+
+public class User implements Parcelable, Serializable {
 
     private String email;
     private String user_id;
