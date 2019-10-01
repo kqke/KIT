@@ -7,6 +7,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
@@ -76,6 +77,8 @@ import static com.example.kit.Constants.CONTACT;
 import static com.example.kit.Constants.CONTACT_STATE;
 import static com.example.kit.Constants.ERROR_DIALOG_REQUEST;
 import static com.example.kit.Constants.FRIENDS;
+import static com.example.kit.Constants.INCOGNITO;
+import static com.example.kit.Constants.MY_PREFERENCES;
 import static com.example.kit.Constants.MY_REQUEST_PENDING;
 import static com.example.kit.Constants.NOT_FRIENDS;
 import static com.example.kit.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
@@ -89,7 +92,8 @@ public class MainActivity extends AppCompatActivity implements
         RequestsFragment.RequestsCallback,
         MapFragment.MapCallBack,
         RequestsDialogFragment.OnInputSelected,
-        PendingFragment.PendingCallback
+        PendingFragment.PendingCallback,
+        ContactFragment.ContactCallback
 {
     //TODO
     // chat crashes on orientation change
@@ -169,12 +173,16 @@ public class MainActivity extends AppCompatActivity implements
     private static Fragment curFragment;
     private static String curString;
 
+    SharedPreferences.OnSharedPreferenceChangeListener spChanged;
+
     /*
     ----------------------------- Lifecycle ---------------------------------
     */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if(getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE).getBoolean(INCOGNITO, false))
+            setTheme(R.style.AppThemeIncognito);
         super.onCreate(savedInstanceState);
         if (curFragment == null){
             curFragment = ChatsFragment.getInstance();
@@ -185,6 +193,7 @@ public class MainActivity extends AppCompatActivity implements
         initFullLoadingView();
         mDb = FirebaseFirestore.getInstance();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        initPreferenceListener();
         setupFirebaseAuth();
     }
 
@@ -202,12 +211,34 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        SharedPreferences sp = getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE);
+        sp.unregisterOnSharedPreferenceChangeListener(spChanged);
+    }
+
     /*
     ----------------------------- init ---------------------------------
     */
 
     private void initFullLoadingView(){
         setContentView(R.layout.layout_loading_screen);
+    }
+
+    private void initPreferenceListener(){
+        SharedPreferences sp = getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE);
+        spChanged = new
+                SharedPreferences.OnSharedPreferenceChangeListener() {
+                    @Override
+                    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
+                                                          String key) {
+                       if(key.equals(INCOGNITO)){
+                           recreate();
+                       }
+                    }
+                };
+        sp.registerOnSharedPreferenceChangeListener(spChanged);
     }
 
     private void setupFirebaseAuth(){
