@@ -26,7 +26,7 @@ import com.example.kit.Constants;
 import com.example.kit.models.Contact;
 
 public class RequestsDialogFragment extends DialogFragment {
-    private static final String TAG = "ContactsDialogFragment";
+    private static final String TAG = "RequestsDialogFragment";
 
     public interface OnInputSelected{
         void requestAccepted(String display_name, Contact contact);

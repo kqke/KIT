@@ -14,7 +14,6 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
@@ -24,7 +23,6 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -153,23 +151,19 @@ public class MainActivity extends AppCompatActivity implements
     private ArrayList<UserLocation> mContactLocations = new ArrayList<>();
     private HashMap<String, Contact> mId2Contact = new HashMap<>();
     private Set<String> mContactIds = new HashSet<>();
-    private ListenerRegistration mContactEventListener;
     private boolean mContactsFetched;
 
     //Requests
     private HashMap<String, Contact> mRequests = new HashMap<>();
-    private ListenerRegistration mRequestEventListener;
     private boolean mRequestsFetched;
 
     //Pending
     private HashMap<String, Contact> mPending = new HashMap<>();
-    private ListenerRegistration mPendingEventListener;
     private boolean mPendingFetched;
 
     //Chatrooms
     private ArrayList<UChatroom> mChatrooms = new ArrayList<>();
     private HashSet<String> mChatroomIds = new HashSet<>();
-    private ListenerRegistration mChatroomEventListener;
     private boolean mChatroomsFetched;
 
     private static Fragment curFragment;
@@ -208,36 +202,12 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (mContactEventListener != null) {
-            mContactEventListener.remove();
-        }
-        if (mChatroomEventListener != null) {
-            mChatroomEventListener.remove();
-        }
-        if (mRequestEventListener != null) {
-            mRequestEventListener.remove();
-        }
-        if (mPendingEventListener != null) {
-            mPendingEventListener.remove();
-        }
-    }
-
-    @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-    }
-
     /*
     ----------------------------- init ---------------------------------
     */
 
     private void initFullLoadingView(){
-        // TODO
-        //  We can put here the logo of the app with loading animation or smth.
+        setContentView(R.layout.layout_loading_screen);
     }
 
     private void setupFirebaseAuth(){
@@ -297,7 +267,7 @@ public class MainActivity extends AppCompatActivity implements
         if(!isDestroyed() && !isFinishing()) {
             ft = getSupportFragmentManager().beginTransaction();
             ft.add(R.id.fragment_container, LoadingFragment.newInstance(), LOADING_FRAG)
-                    .commit();
+                     .commit();
         }
     }
 
@@ -370,7 +340,6 @@ public class MainActivity extends AppCompatActivity implements
                                 return true;
                             }
                         }
-
                         return false;
                     }
                 });
@@ -378,15 +347,10 @@ public class MainActivity extends AppCompatActivity implements
 
     private void replaceFragment (Fragment newFragment, String tag, boolean stack){
         if(!isDestroyed() && !isFinishing()) {
-            mChatroomEventListener.remove();
-            mContactEventListener.remove();
-            mRequestEventListener.remove();
-            mPendingEventListener.remove();
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             if(stack) {
                 ft.replace(R.id.fragment_container, newFragment, tag).addToBackStack(BACK_STACK_ROOT_TAG).commit();
             }
-//                getSupportFragmentManager().popBackStack(BACK_STACK_ROOT_TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
             else {
                 ft.replace(R.id.fragment_container, newFragment, tag).commit();
             }
@@ -623,8 +587,6 @@ public class MainActivity extends AppCompatActivity implements
                 }
             });
         }
-//        mLocationFetched = true;
-//        checkReady();
     }
 
     private void fetchContacts () {
@@ -634,30 +596,26 @@ public class MainActivity extends AppCompatActivity implements
                 .collection(getString(R.string.collection_users))
                 .document(mAuth.getUid())
                 .collection(getString(R.string.collection_contacts));
-        mContactEventListener = contactsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
+        contactsCollection.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
-            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
-                Log.d(TAG, "onEvent: called.");
-                if (e != null) {
-                    Log.e(TAG, "onEvent: Listen failed.", e);
-                    return;
-                }
-                if (queryDocumentSnapshots != null) {
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-
-                        Contact contact = doc.toObject(Contact.class);
-                        if (!mContactIds.contains(contact.getCid())) {
-                            mContactIds.add(contact.getCid());
-                            mContacts.add(contact);
-                            mId2Contact.put(contact.getCid(), contact);
-                            getContactLocation(contact, queryDocumentSnapshots.size());
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if(task.isSuccessful()){
+                    if (task.getResult() != null) {
+                        for (QueryDocumentSnapshot doc : task.getResult()) {
+                            Contact contact = doc.toObject(Contact.class);
+                            if (!mContactIds.contains(contact.getCid())) {
+                                mContactIds.add(contact.getCid());
+                                mContacts.add(contact);
+                                mId2Contact.put(contact.getCid(), contact);
+                                getContactLocation(contact, task.getResult().size());
+                            }
                         }
+                        if(task.getResult().size() == 0){
+                            mContactsFetched = true;
+                            checkReady();
+                        }
+                        Log.d(TAG, "onEvent: number of contacts: " + mContacts.size());
                     }
-                    if(queryDocumentSnapshots.size() == 0){
-                        mContactsFetched = true;
-                        checkReady();
-                    }
-                    Log.d(TAG, "onEvent: number of contacts: " + mContacts.size());
                 }
             }
         });
@@ -690,23 +648,20 @@ public class MainActivity extends AppCompatActivity implements
                 .collection(getString(R.string.collection_users))
                 .document(mAuth.getUid())
                 .collection(getString(R.string.collection_requests));
-        mRequestEventListener = requestsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
+        requestsCollection.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
-            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
-                Log.d(TAG, "onEvent: called.");
-                if (e != null) {
-                    Log.e(TAG, "onEvent: Listen failed.", e);
-                    return;
-                }
-                if (queryDocumentSnapshots != null) {
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        Contact contact = doc.toObject(Contact.class);
-                        mRequests.put(contact.getCid(), contact);
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if(task.isSuccessful()){
+                    if(task.getResult() != null){
+                        for (QueryDocumentSnapshot doc : task.getResult()) {
+                            Contact contact = doc.toObject(Contact.class);
+                            mRequests.put(contact.getCid(), contact);
+                        }
+                        Log.d(TAG, "onEvent: number of contacts: " + mRequests.size());
+                        mRequestsFetched = true;
+                        checkReady();
                     }
-                    Log.d(TAG, "onEvent: number of contacts: " + mContacts.size());
                 }
-                mRequestsFetched = true;
-                checkReady();
             }
         });
     }
@@ -718,27 +673,23 @@ public class MainActivity extends AppCompatActivity implements
                 .collection(getString(R.string.collection_users))
                 .document(mAuth.getUid())
                 .collection(getString(R.string.collection_user_chatrooms));
-        mChatroomEventListener = chatroomsCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
+        chatroomsCollection.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
-            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
-                Log.d(TAG, "onEvent: called.");
-                if (e != null) {
-                    Log.e(TAG, "onEvent: Listen failed.", e);
-                    return;
-                }
-                if (queryDocumentSnapshots != null) {
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-
-                        UChatroom chatroom = doc.toObject(UChatroom.class);
-                        if (!mChatroomIds.contains(chatroom.getChatroom_id())) {
-                            mChatroomIds.add(chatroom.getChatroom_id());
-                            mChatrooms.add(chatroom);
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if(task.isSuccessful()){
+                    if(task.getResult() != null){
+                        for (QueryDocumentSnapshot doc : task.getResult()) {
+                            UChatroom chatroom = doc.toObject(UChatroom.class);
+                            if (!mChatroomIds.contains(chatroom.getChatroom_id())) {
+                                mChatroomIds.add(chatroom.getChatroom_id());
+                                mChatrooms.add(chatroom);
+                            }
                         }
+                        Log.d(TAG, "onEvent: number of chatrooms: " + mChatrooms.size());
+                        mChatroomsFetched = true;
+                        checkReady();
                     }
-                    Log.d(TAG, "onEvent: number of chatrooms: " + mChatrooms.size());
                 }
-                mChatroomsFetched = true;
-                checkReady();
             }
         });
     }
@@ -750,23 +701,20 @@ public class MainActivity extends AppCompatActivity implements
                 .collection(getString(R.string.collection_users))
                 .document(mAuth.getUid())
                 .collection(getString(R.string.collection_pending));
-        mPendingEventListener = pendingCollection.addSnapshotListener(new EventListener<QuerySnapshot>() {
+        pendingCollection.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
-            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
-                Log.d(TAG, "onEvent: called.");
-                if (e != null) {
-                    Log.e(TAG, "onEvent: Listen failed.", e);
-                    return;
-                }
-                if (queryDocumentSnapshots != null) {
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        Contact contact = doc.toObject(Contact.class);
-                        mPending.put(contact.getCid(), contact);
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if(task.isSuccessful()){
+                    if(task.getResult() != null){
+                        for (QueryDocumentSnapshot doc : task.getResult()) {
+                            Contact contact = doc.toObject(Contact.class);
+                            mPending.put(contact.getCid(), contact);
+                        }
+                        Log.d(TAG, "onEvent: number of contacts: " + mContacts.size());
+                        mPendingFetched = true;
+                        checkReady();
                     }
-                    Log.d(TAG, "onEvent: number of contacts: " + mContacts.size());
                 }
-                mPendingFetched = true;
-                checkReady();
             }
         });
     }
@@ -808,7 +756,6 @@ public class MainActivity extends AppCompatActivity implements
                 }
             }
         });
-
     }
 
 

@@ -1,6 +1,9 @@
 package com.example.kit.adapters;
 
 import androidx.annotation.NonNull;
+
+import android.content.Context;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +18,7 @@ import com.example.kit.R;
 import com.example.kit.models.UChatroom;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 public class ChatroomRecyclerAdapter extends RecyclerView.Adapter<ChatroomRecyclerAdapter.ViewHolder>
         implements Filterable
@@ -23,9 +27,11 @@ public class ChatroomRecyclerAdapter extends RecyclerView.Adapter<ChatroomRecycl
     private ArrayList<UChatroom> mChatrooms = new ArrayList<>();
     private ArrayList<UChatroom> mFilteredChatrooms = new ArrayList<>();
     private ChatroomRecyclerClickListener mChatroomRecyclerClickListener;
+    private Context mContext;
 
-    public ChatroomRecyclerAdapter(ArrayList<UChatroom> chatrooms, ChatroomRecyclerClickListener chatroomRecyclerClickListener) {
+    public ChatroomRecyclerAdapter(ArrayList<UChatroom> chatrooms, ChatroomRecyclerClickListener chatroomRecyclerClickListener, Context context) {
         this.mChatrooms = chatrooms;
+        mContext = context;
         mChatroomRecyclerClickListener = chatroomRecyclerClickListener;
     }
 
@@ -41,7 +47,7 @@ public class ChatroomRecyclerAdapter extends RecyclerView.Adapter<ChatroomRecycl
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ((ViewHolder)holder).chatroomTitle.setText(mChatrooms.get(position).getDisplay_name());
         holder.last_message.setText(mChatrooms.get(position).getLast_message());
-        holder.last_sent.setText(mChatrooms.get(position).getTime_last_sent().toString());
+        holder.last_sent.setText(format(mChatrooms.get(position).getTime_last_sent()));
 
     }
 
@@ -100,6 +106,11 @@ public class ChatroomRecyclerAdapter extends RecyclerView.Adapter<ChatroomRecycl
                 notifyDataSetChanged();
             }
         };
+    }
+
+    private String format(Date date){
+        return DateUtils.getRelativeTimeSpanString(mContext, date.getTime(),
+                true).toString();
     }
 
     public interface ChatroomRecyclerClickListener {
