@@ -1,5 +1,6 @@
 package com.example.kit.ui;
 
+import android.content.Context;
 import android.content.Intent;
 
 import androidx.annotation.NonNull;
@@ -44,6 +45,8 @@ import java.util.List;
 
 import static com.example.kit.Constants.CHATROOM;
 import static com.example.kit.Constants.CONTACTS_HASH_MAP;
+import static com.example.kit.Constants.INCOGNITO;
+import static com.example.kit.Constants.MY_PREFERENCES;
 import static com.example.kit.Constants.USER_LOCATION;
 
 
@@ -77,6 +80,8 @@ public class ChatroomActivity extends AppCompatActivity implements
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if(getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE).getBoolean(INCOGNITO, false))
+            setTheme(R.style.AppThemeIncognito);
         super.onCreate(savedInstanceState);
         mDb = FirebaseFirestore.getInstance();
         getIncomingIntent();
