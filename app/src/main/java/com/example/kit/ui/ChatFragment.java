@@ -134,6 +134,7 @@ public class ChatFragment extends DBGeoFragment implements
         if (savedInstanceState != null){
             adapterPostition = savedInstanceState.getInt("pos");
             mMessages = (ArrayList<ChatMessage>)savedInstanceState.getSerializable("mMessages");
+            mMessageIds = (Set<String>)savedInstanceState.getSerializable("mids");
         }
         init();
     }
@@ -144,8 +145,10 @@ public class ChatFragment extends DBGeoFragment implements
         if (mChatroom == null) {
             mChatroom = ((ChatroomActivity)getActivity()).getChatroom();
         }
-        ((LinearLayoutManager) mChatMessageRecyclerView.getLayoutManager()).scrollToPosition(adapterPostition);
+//        ((LinearLayoutManager) mChatMessageRecyclerView.getLayoutManager()).scrollToPosition(adapterPostition);
+
         getChatMessages();
+        initChatroomRecyclerView();
     }
 
     @Override
@@ -170,7 +173,16 @@ public class ChatFragment extends DBGeoFragment implements
     @Override
     public void onPause() {
         super.onPause();
-        adapterPostition = ((LinearLayoutManager)mChatMessageRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
+        int i = ((LinearLayoutManager)mChatMessageRecyclerView.getLayoutManager()).findLastCompletelyVisibleItemPosition();
+        if (i >= 0) {
+            adapterPostition = i;
+        }
+        if(mChatMessageEventListener != null){
+            mChatMessageEventListener.remove();
+        }
+        if(mUserListEventListener != null){
+            mUserListEventListener.remove();
+        }
         hideSoftKeyboard();
     }
 
@@ -201,6 +213,7 @@ public class ChatFragment extends DBGeoFragment implements
         super.onSaveInstanceState(outState);
         outState.putInt("pos", adapterPostition);
         outState.putSerializable("mMessages", mMessages);
+        outState.putSerializable("mids", (HashSet<String>)mMessageIds);
 
     }
 
@@ -251,25 +264,26 @@ public class ChatFragment extends DBGeoFragment implements
         mChatMessageRecyclerAdapter = new ChatMessageRecyclerAdapter(mMessages, new ArrayList<User>(), getActivity(), userID, this);
         mChatMessageRecyclerView.setAdapter(mChatMessageRecyclerAdapter);
         mChatMessageRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        mChatMessageRecyclerView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-            @Override
-            public void onLayoutChange(View v,
-                                       int left, int top, int right, int bottom,
-                                       int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                if (bottom < oldBottom) {
-                    mChatMessageRecyclerView.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            if(mMessages.size() > 0){
-                                mChatMessageRecyclerView.smoothScrollToPosition(
-                                        mChatMessageRecyclerView.getAdapter().getItemCount() - 1);
-                            }
-
-                        }
-                    }, 100);
-                }
-            }
-        });
+        mChatMessageRecyclerView.smoothScrollToPosition(adapterPostition);
+//        mChatMessageRecyclerView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+//            @Override
+//            public void onLayoutChange(View v,
+//                                       int left, int top, int right, int bottom,
+//                                       int oldLeft, int oldTop, int oldRight, int oldBottom) {
+//                if (bottom < oldBottom) {
+//                    mChatMessageRecyclerView.postDelayed(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            if(mMessages.size() > 0){
+//                                mChatMessageRecyclerView.smoothScrollToPosition(
+//                                        mChatMessageRecyclerView.getAdapter().getItemCount() - 1);
+//                            }
+//
+//                        }
+//                    }, 100);
+//                }
+//            }
+//        });
 
     }
 

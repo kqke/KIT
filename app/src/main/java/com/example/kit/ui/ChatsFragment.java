@@ -105,7 +105,7 @@ public class ChatsFragment extends DBGeoFragment implements
     ListenerRegistration mChatsEventListener;
     ChatroomRecyclerAdapter.ChatroomRecyclerClickListener listener;
 
-    private static int adapterPostition;
+//    private int adapterPostition;
 
     private static ChatsFragment instance;
 
@@ -194,13 +194,14 @@ public class ChatsFragment extends DBGeoFragment implements
     @Override
     public void onPause() {
         super.onPause();
-        adapterPostition = ((LinearLayoutManager)mChatroomRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
+//        int i = ((LinearLayoutManager)mChatroomRecyclerView.getLayoutManager()).findLastCompletelyVisibleItemPosition();
+//        adapterPostition =
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mChatroomRecyclerView.getLayoutManager().scrollToPosition(adapterPostition);
+//        mChatroomRecyclerView.getLayoutManager().scrollToPosition(adapterPostition);
     }
 
     /*
