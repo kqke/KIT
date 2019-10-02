@@ -22,11 +22,6 @@ public class ContactsRequestsPendingFragment extends Fragment {
 
     private static ContactsRequestsPendingFragment instance;
 
-    //TODO
-    // pending fragment
-    //TODO
-    // update recycler item views to have functionality to accept/send/revoke pairing requests
-
     /*
     ----------------------------- Lifecycle ---------------------------------
     */

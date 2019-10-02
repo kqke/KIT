@@ -25,7 +25,19 @@
                 android:onClick="onClick"
                 android:padding="20dp"/>
 
+            <ImageView
+                android:id="@+id/incognito"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_visibility_off"
+                android:layout_marginEnd="30dp"
+                android:layout_toStartOf="@+id/kit"
+                android:layout_centerVertical="true"
+                android:visibility="gone"
+                />
+
             <TextView
+                android:id="@+id/kit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="30dp"

@@ -67,20 +67,6 @@ public class ChatFragment extends DBGeoFragment implements
         View.OnClickListener,
         ChatMessageRecyclerAdapter.MessageRecyclerClickListener
 {
-
-    //TODO
-    // add actionbar to the map fragment that opens up with chat participants
-    //TODO
-    // make a nicer menu for actionbar actions
-    //TODO
-    // make a better layout for the keyboard, which includes a schedule a meeting button
-    //TODO
-    // onLongClickListener for message items
-    //TODO
-    // chatroom images
-    //TODO
-    // swipe functionality for messages? (like in whatsapp)
-
     //Tag
     private static final String TAG = "ChatFragment";
 
@@ -366,8 +352,7 @@ public class ChatFragment extends DBGeoFragment implements
 
     @Override
     public void onMessageLongClicked(int position) {
-        // TODO
-        // some deletion dialog
+
     }
 
     public void getDate(final ChatMessage message){

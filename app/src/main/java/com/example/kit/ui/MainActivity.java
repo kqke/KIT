@@ -51,12 +51,9 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.GeoPoint;
-import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
@@ -68,8 +65,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import javax.annotation.Nullable;
 
 import static com.example.kit.Constants.AUTH;
 import static com.example.kit.Constants.BACK_STACK_ROOT_TAG;
@@ -173,11 +168,11 @@ public class MainActivity extends AppCompatActivity implements
         super.onResume();
         if (checkMapServices()) {
             if (isLocationPermissionGranted()) {
-                getUserDetails();
-                fetchContacts();
-                fetchRequests();
-                fetchPending();
-                fetchChatrooms();
+//                getUserDetails();
+//                fetchContacts();
+//                fetchRequests();
+//                fetchPending();
+//                fetchChatrooms();
             }
         }
     }
@@ -292,6 +287,10 @@ public class MainActivity extends AppCompatActivity implements
         Toolbar toolbar = findViewById(R.id.upper_toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
+        if(incognito)
+            findViewById(R.id.incognito).setVisibility(View.VISIBLE);
+        else
+            findViewById(R.id.incognito).setVisibility(View.GONE);
     }
 
     private void retrieveProfileImage(){
@@ -319,7 +318,7 @@ public class MainActivity extends AppCompatActivity implements
     private void initNavigationBar () {
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navi_bar);
         bottomNav.setVisibility(View.VISIBLE);
-        if (curString == MAP_FRAG){
+        if (curString.equals(MAP_FRAG)){
             curFragment = MapFragment.newInstance();
         }
         replaceFragment(curFragment, curString, false);
@@ -348,7 +347,7 @@ public class MainActivity extends AppCompatActivity implements
                                 return true;
                             }
                             case R.id.action_contacts: {
-                                if(!(currentFragment instanceof ContactsFragment)) {
+                                if(!(currentFragment instanceof ContactsRequestsPendingFragment)) {
                                     curFragment = ContactsRequestsPendingFragment.getInstance();
                                     curString = CONTACTS_FRAG;
                                     setTitle(R.string.fragment_contacts);

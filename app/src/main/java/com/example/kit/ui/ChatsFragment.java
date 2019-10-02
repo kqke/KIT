@@ -25,6 +25,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.kit.R;
@@ -73,13 +74,6 @@ public class ChatsFragment extends DBGeoFragment implements
         ContactRecyclerAdapter.ContactsRecyclerClickListener,
         View.OnClickListener
 {
-
-    //TODO
-    // create images for when there are no chats
-    //TODO
-    // swipe functionality to recyclerview items? archive/star etc.
-    //TODO
-    // images for chats (maybe in chatroom activity, anyways chatroom should have an image)
 
     //Tag
     private static final String TAG = "ChatsFragment";
@@ -259,7 +253,17 @@ public class ChatsFragment extends DBGeoFragment implements
     */
 
     private void initView(View v){
-        v.findViewById(R.id.fab).setOnClickListener(this);
+        if(mChatrooms.size()==0){
+            v.findViewById(R.id.linear).setVisibility(View.VISIBLE);
+        }
+        if(mContacts.size() > 0){
+            FloatingActionButton fab = v.findViewById(R.id.fab);
+            fab.setOnClickListener(this);
+            fab.setVisibility(View.VISIBLE);
+        }
+        else{
+            ((TextView)v.findViewById(R.id.textChats)).setText("CONTACTS");
+        }
         mChatroomRecyclerView = v.findViewById(R.id.chatrooms_recycler_view);
         mChatroomRecyclerAdapter = new ChatroomRecyclerAdapter(mChatrooms, this, mActivity);
         mChatroomRecyclerView.setAdapter(mChatroomRecyclerAdapter);

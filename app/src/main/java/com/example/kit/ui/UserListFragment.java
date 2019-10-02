@@ -168,13 +168,6 @@ public class UserListFragment extends MapFragment
     ----------------------------- nav ---------------------------------
     */
 
-    private void navContactActivity(Contact contact){
-        //TODO
-        // ContactActivity is deprecated
-//        Intent intent = new Intent(mActivity, ContactActivity.class);
-//        intent.putExtra(getString(R.string.intent_contact), contact);
-//        startActivityForResult(intent, 0);
-    }
 
     @Override
     public void onContactSelected(int position) {
