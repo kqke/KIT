@@ -352,6 +352,7 @@ public class ChatroomActivity extends AppCompatActivity implements
         }
     }
 
+
     @Override
     public ArrayList<Contact> getContacts() {
         return contacts;

@@ -1,12 +1,17 @@
-TODO
-- Proximity notifications // done
-- Pending Fragment // done
-- Contact Fragment // done
-- Account Settings // done
-- Privacy Settings // done
-- UI finishes // never done
-- Let's meet button dialog // done
-- handwriting recognition(?) // pass
+TODO - UI
 
-- connection time outs
+- Images/Text for empty Contacts/requests/pending fragments (grab the linear layout from chatsfragment)
+- Images for chatrooms?
+- Make sure keyboard works properly in chatFragment
+- Toast error messages specifying username/status/display name errors
+- Map Fragment dialog (navigate/profile)
 
+
+TODO - GENERAL
+
+- Search still not working
+- Status/Display Name/username validity?
+- Leave chatroom functionality?
+- Connection time-outs
+
+- Handwriting recognition?

@@ -58,10 +58,6 @@ public class LoginActivity extends AppCompatActivity
     //widgets
     private EditText mUsername;
 
-    //TODO
-    // add a sign in button at the beginning of the run
-    // currently whenever the user signs out, he's automatically thrown into re-authentication
-
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -91,8 +87,6 @@ public class LoginActivity extends AppCompatActivity
     }
 
     private void initView(){
-        //TODO
-        // add logo to the registration button
         setContentView(R.layout.activity_login);
         findViewById(R.id.auth).setOnClickListener(this);
     }
@@ -122,9 +116,6 @@ public class LoginActivity extends AppCompatActivity
                         break;
                     }
                     case WRONG_FORMAT: {
-
-                        // TODO
-                        // maybe add another func for more specific error codes
 
                         Toast.makeText(LoginActivity.this,
                                 "Error message informing of username containing wrong chars",
@@ -222,8 +213,6 @@ public class LoginActivity extends AppCompatActivity
 ----------------------------- Username setup ---------------------------------
 */
     private void getUserName(){
-        //TODO
-        // changes to the xml
         setContentView(R.layout.activity_username);
         mUsername = findViewById(R.id.input_username);
         findViewById(R.id.btn_go).setOnClickListener(this);

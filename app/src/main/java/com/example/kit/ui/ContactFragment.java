@@ -42,6 +42,7 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import static android.view.View.VISIBLE;
+
 import static com.example.kit.Constants.CONTACT;
 import static com.example.kit.Constants.CONTACT_STATE;
 import static com.example.kit.Constants.FRIENDS;
@@ -260,8 +261,6 @@ public class ContactFragment extends DBGeoFragment implements
     }
 
     private void doneEditDisplayName(){
-        //TODO
-        // what is a valid display name?
         UsernameValidator validator = new UsernameValidator();
         if(validator.validate(mEditDisplayName.getText().toString())){
             mEditDisplayName.setVisibility(View.GONE);
@@ -402,6 +401,7 @@ public class ContactFragment extends DBGeoFragment implements
             }
         });
     }
+
 
     @Override
     public void removeContact(Contact contact) {

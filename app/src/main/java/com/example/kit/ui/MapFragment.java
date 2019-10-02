@@ -65,9 +65,6 @@ public class MapFragment extends DBGeoFragment implements
             GoogleMap.OnInfoWindowClickListener,
             GoogleMap.OnPolylineClickListener, View.OnClickListener {
 
-    //TODO
-    // navigate to Profile bubble when user is clicked
-
     //Tag
     private static final String TAG = "MapFragment";
 

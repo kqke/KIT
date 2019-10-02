@@ -18,11 +18,7 @@ import com.example.kit.adapters.ImageListRecyclerAdapter;
 
 import java.util.ArrayList;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link ImageListFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+
 public class ImageListFragment extends Fragment implements ImageListRecyclerAdapter.ImageListRecyclerClickListener{
 
     private static final String TAG = "ImageListFragment";

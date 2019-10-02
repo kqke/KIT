@@ -61,7 +61,7 @@
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="12dp"
             android:layout_alignParentBottom="true"
-            android:drawableTop="@drawable/ic_add_contact"
+            android:drawableTop="@drawable/ic_add_contact_black"
             android:text="SEND FRIEND REQUEST"
             style="?android:attr/borderlessButtonStyle"
             android:textColor="@android:color/holo_green_dark" />
@@ -73,7 +73,7 @@
             android:layout_above="@+id/profile_decline_btn"
             android:layout_alignParentBottom="true"
             android:layout_marginBottom="12dp"
-            android:drawableTop="@drawable/ic_add_contact"
+            android:drawableTop="@drawable/ic_add_contact_black"
             android:text="ACCEPT FRIEND REQUEST"
             android:visibility="gone"
             style="?android:attr/borderlessButtonStyle"
