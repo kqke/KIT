@@ -29,6 +29,7 @@ import com.example.kit.UserClient;
 import com.example.kit.models.Contact;
 import com.example.kit.models.User;
 import com.example.kit.util.FCM;
+import com.example.kit.util.RequestHandler;
 import com.example.kit.util.UsernameValidator;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -49,7 +50,7 @@ import static com.example.kit.Constants.NOT_FRIENDS;
 import static com.example.kit.Constants.THEIR_REQUEST_PENDING;
 
 public class ContactFragment extends DBGeoFragment implements
-        View.OnClickListener, ContactDialogFragment.OnInputSelected{
+        View.OnClickListener, ContactDialogFragment.OnInputSelected, RequestsDialogFragment.OnInputSelected{
 
     //Tag
     private static final String TAG = "ConatactFragment";
@@ -70,6 +71,8 @@ public class ContactFragment extends DBGeoFragment implements
     private String mCurrent_state;
 
     private ContactCallback recreate;
+
+    private DBGeoFragment contactFragment;
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -94,6 +97,7 @@ public class ContactFragment extends DBGeoFragment implements
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
+        contactFragment = this;
         recreate = (ContactCallback)context;
     }
 
@@ -125,26 +129,43 @@ public class ContactFragment extends DBGeoFragment implements
         mProfileName.setOnClickListener(this);
         mUserName = v.findViewById(R.id.profile_userName);
         mProfileStatus = v.findViewById(R.id.profile_status);
-        if(mCurrent_state.equals(FRIENDS)){
-            mUserName.setText(mContact.getUsername());
-            if(mContact.getStatus() != null)
-                mProfileStatus.setText(mContact.getStatus());
-            else
-                mProfileStatus.setVisibility(View.INVISIBLE);
-        }
-        else{
-            mProfileStatus.setVisibility(View.INVISIBLE);
-            mUserName.setVisibility(View.GONE);
-            mEditBtn.setVisibility(View.GONE);
-        }
         mSendReqBtn = v.findViewById(R.id.profile_send_req_btn);
         mTheirReqPending = v.findViewById(R.id.request_btns);
         mAcceptBtn = v.findViewById(R.id.profile_accept_req_btn);
         mDeclineBtn = v.findViewById(R.id.profile_decline_btn);
         mDeleteReqBtn = v.findViewById(R.id.profile_delete_request_btn);
         mDeleteBtn = v.findViewById(R.id.profile_delete_btn);
+        if(!mCurrent_state.equals(FRIENDS)){
+            setNonFriend();
+        }
         initState();
         retrieveProfileImage();
+    }
+
+    private void setFriend(){
+        mUserName.setText(mContact.getUsername());
+        if(mContact.getStatus() != null) {
+            mProfileStatus.setText(mContact.getStatus());
+        }
+        else {
+            mProfileStatus.setVisibility(View.INVISIBLE);
+        }
+        mDeleteBtn.setVisibility(VISIBLE);
+        mDeleteBtn.setClickable(true);
+        mDeleteBtn.setOnClickListener(this);
+        mAcceptBtn.setVisibility(View.INVISIBLE);
+        mAcceptBtn.setClickable(false);
+        mDeclineBtn.setVisibility(View.INVISIBLE);
+        mDeclineBtn.setClickable(false);
+
+    }
+
+    private void setNonFriend(){
+        mProfileStatus.setVisibility(View.INVISIBLE);
+        mUserName.setVisibility(View.GONE);
+        mEditBtn.setVisibility(View.GONE);
+        mDeleteBtn.setVisibility(View.INVISIBLE);
+        mDeleteBtn.setClickable(false);
     }
 
     private void initEditText(View v){
@@ -174,27 +195,45 @@ public class ContactFragment extends DBGeoFragment implements
         }
     }
 
+    private void setNotFirends(){
+        mSendReqBtn.setClickable(true);
+        mSendReqBtn.setVisibility(VISIBLE);
+        mSendReqBtn.setOnClickListener(this);
+        mDeleteReqBtn.setVisibility(View.INVISIBLE);
+        mDeleteReqBtn.setClickable(false);
+
+    }
+
+    private void setMyRequestPending(){
+        mDeleteReqBtn.setClickable(true);
+        mDeleteReqBtn.setVisibility(VISIBLE);
+        mDeleteReqBtn.setOnClickListener(this);
+        mSendReqBtn.setVisibility(View.INVISIBLE);
+        mSendReqBtn.setClickable(false);
+    }
+
+    private void setTheirReqPending(){
+        mTheirReqPending.setVisibility(VISIBLE);
+        mAcceptBtn.setOnClickListener(this);
+        mDeclineBtn.setOnClickListener(this);
+    }
+
     private void initState(){
         switch(mCurrent_state){
             case NOT_FRIENDS:{
-                mSendReqBtn.setVisibility(VISIBLE);
-                mSendReqBtn.setOnClickListener(this);
+                setNotFirends();
                 break;
             }
             case FRIENDS:{
-                mDeleteBtn.setVisibility(VISIBLE);
-                mDeleteBtn.setOnClickListener(this);
+                setFriend();
                 break;
             }
             case MY_REQUEST_PENDING:{
-                mDeleteReqBtn.setVisibility(VISIBLE);
-                mDeleteReqBtn.setOnClickListener(this);
+                setMyRequestPending();
                 break;
             }
             case THEIR_REQUEST_PENDING:{
-                mTheirReqPending.setVisibility(VISIBLE);
-                mAcceptBtn.setOnClickListener(this);
-                mDeclineBtn.setOnClickListener(this);
+                setTheirReqPending();
                 break;
             }
         }
@@ -334,6 +373,7 @@ public class ContactFragment extends DBGeoFragment implements
     }
 
     private void addContact(String display_name, final Contact contact) {
+        setMyRequestPending();
         final User user = ((UserClient) (getActivity().getApplicationContext())).getUser();
         Contact newContact = new Contact(display_name, contact.getName(), contact.getAvatar(), contact.getCid(), contact.getStatus());
         newContact.setToken(contact.getToken());
@@ -351,7 +391,9 @@ public class ContactFragment extends DBGeoFragment implements
                     public void onComplete(@NonNull Task<Void> task) {
                 FCM.send_FCM_Notification(contact.getToken(), "Friend Request", user.getUsername() + " has sent " +
                         "you a friend request");
-                recreate.initContactFragment(mContact.getCid(), MY_REQUEST_PENDING);
+//                recreate.initContactFragment(mContact.getCid(), MY_REQUEST_PENDING);
+
+
                     }
                 });
             }
@@ -360,20 +402,25 @@ public class ContactFragment extends DBGeoFragment implements
 
     @Override
     public void removeContact(Contact contact) {
+        setNonFriend();
+        setNotFirends();
         String uid = FirebaseAuth.getInstance().getUid();
         mDb.collection(getString(R.string.collection_users)).document(contact.getCid()).collection(getString(R.string.collection_contacts)).document(uid).delete();
         mDb.collection(getString(R.string.collection_users)).document(uid).collection(getString(R.string.collection_contacts)).document(contact.getCid()).delete();
-        recreate.initContactFragment(mContact.getCid(), NOT_FRIENDS);
+
+
+//        recreate.initContactFragment(mContact.getCid(), NOT_FRIENDS);
 //        mDeleteBtn.setClickable(false);
 //        mDeleteBtn.setVisibility(View.INVISIBLE);
     }
 
     @Override
     public void removeRequest(Contact contact) {
+        setNotFirends();
         String uid = FirebaseAuth.getInstance().getUid();
-        mDb.collection(getString(R.string.collection_users)).document(contact.getCid()).collection(getString(R.string.collection_pending)).document(uid).delete();
-        mDb.collection(getString(R.string.collection_users)).document(uid).collection(getString(R.string.collection_requests)).document(contact.getCid()).delete();
-        recreate.initContactFragment(mContact.getCid(), NOT_FRIENDS);
+        mDb.collection(getString(R.string.collection_users)).document(contact.getCid()).collection(getString(R.string.collection_requests)).document(uid).delete();
+        mDb.collection(getString(R.string.collection_users)).document(uid).collection(getString(R.string.collection_pending)).document(contact.getCid()).delete();
+//        recreate.initContactFragment(mContact.getCid(), NOT_FRIENDS);
 //        mDeleteReqBtn.setClickable(false);
 //        mDeleteReqBtn.setVisibility(View.INVISIBLE);
     }
@@ -448,6 +495,18 @@ public class ContactFragment extends DBGeoFragment implements
         else {
             return 0;
         }
+    }
+
+    @Override
+    public void requestAccepted(String display_name, Contact contact) {
+        setFriend();
+        RequestHandler.handleRequest(contact, display_name, true);
+    }
+
+    @Override
+    public void requestRemoved(Contact contact) {
+        setNotFirends();
+        RequestHandler.handleRequest(contact, "",false);
     }
 
     public interface ContactCallback{

@@ -49,8 +49,12 @@ import static com.example.kit.Constants.CONTACT;
 import static com.example.kit.Constants.CONTACTS_HASH_MAP;
 import static com.example.kit.Constants.CONTACTS_LIST;
 import static com.example.kit.Constants.CONTACT_STATE;
+import static com.example.kit.Constants.FRIENDS;
 import static com.example.kit.Constants.INCOGNITO;
 import static com.example.kit.Constants.MY_PREFERENCES;
+import static com.example.kit.Constants.MY_REQUEST_PENDING;
+import static com.example.kit.Constants.NOT_FRIENDS;
+import static com.example.kit.Constants.THEIR_REQUEST_PENDING;
 import static com.example.kit.Constants.USER_LOCATION;
 
 
@@ -58,7 +62,8 @@ public class ChatroomActivity extends AppCompatActivity implements
         ChatFragment.ChatroomCallback,
         MapFragment.MapCallBack,
         View.OnClickListener,
-        UserListFragment.UserListCallback
+        UserListFragment.UserListCallback,
+        ContactFragment.ContactCallback
 {
 
     //Tag
@@ -76,6 +81,8 @@ public class ChatroomActivity extends AppCompatActivity implements
     private ArrayList<Contact> contacts = new ArrayList<>();
     private ArrayList<UserLocation> mUserLocations = new ArrayList<>();
     private ArrayList<String> mUserTokens = new ArrayList<>();
+    private static HashMap<String, Contact> mRequests;
+    private static HashMap<String, Contact> mPending;
 
     private static final String CONTACT_FRAG = "CONTACT_FRAG";
 
@@ -141,6 +148,12 @@ public class ChatroomActivity extends AppCompatActivity implements
         }
         if (intent.hasExtra(CONTACTS_LIST)){
             contacts = getIntent().getParcelableArrayListExtra(CONTACTS_LIST);
+        }
+        if (intent.hasExtra("pending")){
+            mPending = (HashMap<String, Contact>) getIntent().getSerializableExtra("pending");
+        }
+        if (intent.hasExtra("requests")){
+            mRequests = (HashMap<String, Contact>)getIntent().getSerializableExtra("requests");
         }
     }
 
@@ -376,6 +389,68 @@ public class ChatroomActivity extends AppCompatActivity implements
     @Override
     public Contact getContact(String id) {
         return mContacts.get(id);
+    }
+
+    @Override
+    public void initContactFragment(final String id, final String state) {
+        if(state != null){
+            final Contact contact = new Contact();
+            DocumentReference userRef = mDb.collection(getString(R.string.collection_users))
+                    .document(id);
+            userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "onComplete: successfully found contact.");
+                        User user = task.getResult().toObject(User.class);
+                        contact.setCid(id);
+                        contact.setName(user.getUsername());
+                        contact.setAvatar(user.getAvatar());
+                        contact.setStatus(user.getStatus());
+                        contact.setToken(user.getToken());
+                        navContactFragment(contact, state);
+                    }
+                }
+            });
+        }
+        if(mContacts.keySet().contains(id)){
+            Contact contact = mContacts.get(id);
+            navContactFragment(contact, FRIENDS);
+            return;
+        }
+
+        for(Contact request : mRequests.values()){
+            if(request.getCid().equals(id)){
+                navContactFragment(request, THEIR_REQUEST_PENDING);
+                return;
+            }
+        }
+
+        for(Contact pending : mPending.values()){
+            if(pending.getCid().equals(id)){
+                navContactFragment(pending, MY_REQUEST_PENDING);
+                return;
+            }
+        }
+
+        final Contact contact = new Contact();
+        DocumentReference userRef = mDb.collection(getString(R.string.collection_users))
+                .document(id);
+        userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    Log.d(TAG, "onComplete: successfully found contact.");
+                    User user = task.getResult().toObject(User.class);
+                    contact.setCid(id);
+                    contact.setName(user.getUsername());
+                    contact.setAvatar(user.getAvatar());
+                    contact.setStatus(user.getStatus());
+                    contact.setToken(user.getToken());
+                    navContactFragment(contact, NOT_FRIENDS);
+                }
+            }
+        });
     }
 
     /*

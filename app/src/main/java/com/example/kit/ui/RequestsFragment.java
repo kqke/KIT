@@ -102,7 +102,24 @@ public class RequestsFragment extends DBGeoFragment implements
     @Override
     public void onDetach() {
         super.onDetach();
-        mRequestEventListener.remove();
+        if (mRequestEventListener != null) {
+            mRequestEventListener.remove();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mRequestEventListener != null) {
+            mRequestEventListener.remove();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        getParentFragmentManager().beginTransaction().detach(RequestsFragment.newInstance()).attach(RequestsFragment.newInstance());
+//        initListener();
+        super.onResume();
     }
 
     /*
