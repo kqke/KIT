@@ -214,6 +214,8 @@ public class ContactFragment extends DBGeoFragment implements
 
     private void setTheirReqPending(){
         mTheirReqPending.setVisibility(VISIBLE);
+        mAcceptBtn.setVisibility(VISIBLE);
+        mDeclineBtn.setVisibility(VISIBLE);
         mAcceptBtn.setOnClickListener(this);
         mDeclineBtn.setOnClickListener(this);
     }
@@ -506,6 +508,10 @@ public class ContactFragment extends DBGeoFragment implements
     @Override
     public void requestRemoved(Contact contact) {
         setNotFirends();
+        mAcceptBtn.setVisibility(View.INVISIBLE);
+        mDeclineBtn.setVisibility(View.INVISIBLE);
+        mAcceptBtn.setClickable(false);
+        mDeclineBtn.setClickable(false);
         RequestHandler.handleRequest(contact, "",false);
     }
 

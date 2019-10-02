@@ -135,11 +135,13 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
                     break;
                 }
                 case R.layout.layout_requests_list_item:{
+                    itemView.setOnClickListener(this);
                     itemView.findViewById(R.id.accept).setOnClickListener(this);
                     itemView.findViewById(R.id.decline).setOnClickListener(this);
                     break;
                 }
                 case R.layout.layout_pending_list_item:{
+                    itemView.setOnClickListener(this);
                     itemView.findViewById(R.id.delete_request).setOnClickListener(this);
                     break;
                 }
@@ -177,11 +179,17 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
                     else if(v.getId() == R.id.decline){
                         clickListener.onRejectSelected(adapterPosition);
                     }
+                    else {
+                        clickListener.onContactSelected(adapterPosition);
+                    }
                     break;
                 }
                 case R.layout.layout_pending_list_item:{
                     if(v.getId() == R.id.delete_request){
                         clickListener.onDeleteSelected(adapterPosition);
+                    }
+                    else {
+                        clickListener.onContactSelected(getAdapterPosition());
                     }
                 }
             }
