@@ -122,6 +122,12 @@ public class ContactsFragment extends DBGeoFragment implements
     }
 
     @Override
+    public void onResume() {
+        initListener();
+        super.onResume();
+    }
+
+    @Override
     public void onCreate(@androidx.annotation.Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }

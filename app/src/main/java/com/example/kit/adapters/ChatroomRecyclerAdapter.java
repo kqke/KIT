@@ -3,6 +3,8 @@ package com.example.kit.adapters;
 import androidx.annotation.NonNull;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +14,8 @@ import android.widget.Filterable;
 import android.widget.TextView;
 
 
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.kit.R;
@@ -19,6 +23,8 @@ import com.example.kit.models.UChatroom;
 
 import java.util.ArrayList;
 import java.util.Date;
+
+import static android.widget.LinearLayout.HORIZONTAL;
 
 public class ChatroomRecyclerAdapter extends RecyclerView.Adapter<ChatroomRecyclerAdapter.ViewHolder>
         implements Filterable
@@ -103,6 +109,11 @@ public class ChatroomRecyclerAdapter extends RecyclerView.Adapter<ChatroomRecycl
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
                 mFilteredChatrooms = (ArrayList<UChatroom>)results.values;
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    public void run() {
+                        notifyDataSetChanged();
+                    }
+                });
                 notifyDataSetChanged();
             }
         };

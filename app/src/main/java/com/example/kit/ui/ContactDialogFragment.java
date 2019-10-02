@@ -74,15 +74,16 @@ public class ContactDialogFragment extends DialogFragment {
             public void onClick(View v) {
                 switch (type) {
                     case Constants.GET_REMOVE_CONTACT:
-                    Log.d(TAG, "onClick: capturing input.");
-                    mOnInputSelected.removeContact(contact);
-                    getDialog().dismiss();
-                    break;
+                        Log.d(TAG, "onClick: capturing input.");
+                        mOnInputSelected.removeContact(contact);
+                        getDialog().dismiss();
+                        break;
 
                     case Constants.GET_REMOVE_REQUEST:
                         Log.d(TAG, "onClick: capturing input.");
                         mOnInputSelected.removeRequest(contact);
                         getDialog().dismiss();
+                        break;
                 }
             }
         });
@@ -99,5 +100,7 @@ public class ContactDialogFragment extends DialogFragment {
             Log.e(TAG, "onAttach: ClassCastException : " + e.getMessage() );
         }
     }
+
+
 
 }

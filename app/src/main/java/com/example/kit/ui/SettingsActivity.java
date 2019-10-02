@@ -8,6 +8,8 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -390,7 +392,7 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
             Log.e(TAG, "retrieveProfileImage: no avatar image. Setting default. " + e.getMessage() );
         }
 
-        Glide.with(this)
+        Glide.with(getApplicationContext())
                 .setDefaultRequestOptions(requestOptions)
                 .load(avatar)
                 .into((CircleImageView)findViewById(R.id.avatar));
@@ -431,8 +433,17 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
                                     // sets the avatar
                                     HashMap<String, String> avatar = new HashMap<>();
                                     avatar.put("avatar", uri.toString());
-                                    FirebaseFirestore.getInstance().collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).update("avatar", uri.toString());
-                                    retrieveProfileImage();
+                                    User user = ((UserClient)getApplicationContext()).getUser();
+                                    user.setAvatar(uri.toString());
+                                    ((UserClient) (getApplicationContext())).setUser(user);
+                                    FirebaseFirestore.getInstance().collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).update("avatar", uri.toString()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            retrieveProfileImage();
+                                        }
+                                    });
+
+
                                 }
                             });
                         }

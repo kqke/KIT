@@ -44,6 +44,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
@@ -54,7 +55,6 @@ import com.google.maps.android.MarkerManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.EventListener;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -106,11 +106,14 @@ public class ChatsFragment extends DBGeoFragment implements
     private AlertDialog alertDialog;
 
     ListenerRegistration mChatsEventListener;
+    ListenerRegistration mContactEventListener;
     ChatroomRecyclerAdapter.ChatroomRecyclerClickListener listener;
 
 //    private int adapterPostition;
 
     private static ChatsFragment instance;
+    private static HashMap<String, Contact> mRequests;
+    private static HashMap<String, Contact> mPending;
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -139,6 +142,10 @@ public class ChatsFragment extends DBGeoFragment implements
         mId2Contact = getContactsData.getId2Contact();
         mContacts = getContactsData.getContacts();
         mChatrooms = getChatroomsData.getChatrooms();
+        RequestsFragment.RequestsCallback requestsCallback = (RequestsFragment.RequestsCallback)context;
+        PendingFragment.PendingCallback pendingCallback = (PendingFragment.PendingCallback)context;
+        mRequests = requestsCallback.getRequests();
+        mPending = pendingCallback.getPending();
         Collections.sort(mChatrooms, new Comparator<UChatroom>() {
             @Override
             public int compare(UChatroom u1, UChatroom u2) {
@@ -160,7 +167,23 @@ public class ChatsFragment extends DBGeoFragment implements
     @Override
     public void onDetach() {
         super.onDetach();
-        mChatsEventListener.remove();
+        if (mContactEventListener != null) {
+            mContactEventListener.remove();
+        }
+        if (mChatsEventListener != null) {
+            mChatsEventListener.remove();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mContactEventListener != null) {
+            mContactEventListener.remove();
+        }
+        if (mChatsEventListener != null) {
+            mChatsEventListener.remove();
+        }
     }
 
     @Override
@@ -197,6 +220,12 @@ public class ChatsFragment extends DBGeoFragment implements
     @Override
     public void onPause() {
         super.onPause();
+        if (mContactEventListener != null) {
+            mContactEventListener.remove();
+        }
+        if (mChatsEventListener != null) {
+            mChatsEventListener.remove();
+        }
 //        int i = ((LinearLayoutManager)mChatroomRecyclerView.getLayoutManager()).findLastCompletelyVisibleItemPosition();
 //        adapterPostition =
     }
@@ -204,7 +233,25 @@ public class ChatsFragment extends DBGeoFragment implements
     @Override
     public void onResume() {
         super.onResume();
+        initListener();
 //        mChatroomRecyclerView.getLayoutManager().scrollToPosition(adapterPostition);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        initListener();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mContactEventListener != null) {
+            mContactEventListener.remove();
+        }
+        if (mChatsEventListener != null) {
+            mChatsEventListener.remove();
+        }
     }
 
     /*
@@ -281,7 +328,11 @@ public class ChatsFragment extends DBGeoFragment implements
                 }
             }
         });
+
     }
+
+
+
 
     private void notifyRecyclerAdapter(){
         new Handler(Looper.getMainLooper()).post(new Runnable() {
@@ -335,30 +386,42 @@ public class ChatsFragment extends DBGeoFragment implements
 
     private void newChatDialog(){
         final View dialogView = View.inflate(mActivity, R.layout.dialog_new_message, null);
-        alertDialog = new AlertDialog.Builder(mActivity).create();
-        mContactRecyclerView = dialogView.findViewById(R.id.contact_msg_recycler_view);
-        fab = dialogView.findViewById(R.id.group_message_btn);
-        fab.setOnClickListener(this);
-        mContactRecyclerAdapter = new ContactRecyclerAdapter(mContacts,
-                this, R.layout.layout_contact_list_item, mActivity);
-        mContactRecyclerView.setAdapter(mContactRecyclerAdapter);
-        mContactRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
-        fab.setEnabled(false);
-        SearchView searchView = dialogView.findViewById(R.id.search_view);
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        mDb.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_contacts)).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
-            public boolean onQueryTextSubmit(String queryString) {
-                mContactRecyclerAdapter.getFilter().filter(queryString);
-                return false;
-            }
-            @Override
-            public boolean onQueryTextChange(String queryString) {
-                mContactRecyclerAdapter.getFilter().filter(queryString);
-                return false;
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (!task.isSuccessful()) { return; }
+                mContacts.clear();
+                for (QueryDocumentSnapshot doc: task.getResult()){
+                    Contact contact = doc.toObject(Contact.class);
+                    mContacts.add(contact);
+                }
+                alertDialog = new AlertDialog.Builder(mActivity).create();
+                mContactRecyclerView = dialogView.findViewById(R.id.contact_msg_recycler_view);
+                fab = dialogView.findViewById(R.id.group_message_btn);
+                fab.setOnClickListener(instance);
+                mContactRecyclerAdapter = new ContactRecyclerAdapter(mContacts,
+                        instance, R.layout.layout_contact_list_item, mActivity);
+                mContactRecyclerView.setAdapter(mContactRecyclerAdapter);
+                mContactRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
+                fab.setEnabled(false);
+                SearchView searchView = dialogView.findViewById(R.id.search_view);
+                searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                    @Override
+                    public boolean onQueryTextSubmit(String queryString) {
+                        mContactRecyclerAdapter.getFilter().filter(queryString);
+                        return false;
+                    }
+                    @Override
+                    public boolean onQueryTextChange(String queryString) {
+                        mContactRecyclerAdapter.getFilter().filter(queryString);
+                        return false;
+                    }
+                });
+                alertDialog.setView(dialogView);
+                alertDialog.show();
             }
         });
-        alertDialog.setView(dialogView);
-        alertDialog.show();
+
     }
 
     private void navChatroomActivity(UChatroom chatroom){
@@ -367,6 +430,8 @@ public class ChatsFragment extends DBGeoFragment implements
         intent.putExtra(CONTACTS_HASH_MAP, mId2Contact);
         intent.putExtra(USER_LOCATION, mUserLocation);
         intent.putExtra(CONTACTS_LIST, mContacts);
+        intent.putExtra("pending", mPending);
+        intent.putExtra("request", mRequests);
         startActivityForResult(intent, 1);
     }
 

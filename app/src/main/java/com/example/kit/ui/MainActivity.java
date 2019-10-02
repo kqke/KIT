@@ -184,7 +184,8 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     protected void onRestart() {
-        if (getSharedPreferences(MY_PREFERENCES, MODE_PRIVATE).getBoolean(INCOGNITO, incognito) != incognito){
+        boolean inc = getSharedPreferences(MY_PREFERENCES, MODE_PRIVATE).getBoolean(INCOGNITO, false);
+        if (inc != incognito){
             incognito = !incognito;
             recreate();
         }

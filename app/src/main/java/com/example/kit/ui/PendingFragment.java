@@ -110,6 +110,14 @@ public class PendingFragment extends DBGeoFragment implements
         initListener();
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mPendingEventListener != null) {
+            mPendingEventListener.remove();
+        }
+    }
+
     /*
     ----------------------------- init ---------------------------------
     */
