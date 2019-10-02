@@ -125,6 +125,7 @@ public class ContactsFragment extends DBGeoFragment implements
     public void onResume() {
         initListener();
         super.onResume();
+        getContacts();
     }
 
     @Override
@@ -145,6 +146,38 @@ public class ContactsFragment extends DBGeoFragment implements
     /*
     ----------------------------- init ---------------------------------
     */
+
+    private void getContacts(){
+        mDb.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_contacts)).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (!task.isSuccessful()){ return; }
+                mContacts.clear();
+                for (QueryDocumentSnapshot doc: task.getResult()){
+                    Contact contact = doc.toObject(Contact.class);
+                    mContacts.put(contact.getCid(), contact);
+                }
+                mRecyclerList.clear();
+                mRecyclerList = new ArrayList<>(mContacts.values());
+                notifyRecyclerView();
+            }
+        });
+    }
+
+    private void notifyRecyclerView(){
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            public void run() {
+                mContactRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
+                        mContactFragment, R.layout.layout_contact_list_item, getContext());
+                mContactRecyclerView.setAdapter(mContactRecyclerAdapter);
+                mContactRecyclerAdapter.notifyDataSetChanged();
+                mContactRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
+                DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
+                mContactRecyclerView.addItemDecoration(itemDecor);
+                mContactRecyclerAdapter.notifyDataSetChanged();
+            }
+        });
+    }
 
     private void initView(View v){
         v.findViewById(R.id.fab).setOnClickListener(this);
@@ -198,18 +231,7 @@ public class ContactsFragment extends DBGeoFragment implements
                         Contact contact = doc.toObject(Contact.class);
                         mContacts.put(contact.getCid(), contact);
                         mRecyclerList = new ArrayList<>(mContacts.values());
-                        new Handler(Looper.getMainLooper()).post(new Runnable() {
-                            public void run() {
-                                mContactRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
-                                        mContactFragment, R.layout.layout_contact_list_item, getContext());
-                                mContactRecyclerView.setAdapter(mContactRecyclerAdapter);
-                                mContactRecyclerAdapter.notifyDataSetChanged();
-                                mContactRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
-                                DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
-                                mContactRecyclerView.addItemDecoration(itemDecor);
-                                mContactRecyclerAdapter.notifyDataSetChanged();
-                            }
-                        });
+                        notifyRecyclerView();
 
                         Log.d(TAG, "onEvent: number of contacts: " + mContacts.size());
 

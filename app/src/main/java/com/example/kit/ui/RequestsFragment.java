@@ -27,6 +27,8 @@ import com.example.kit.R;
 import com.example.kit.adapters.ContactRecyclerAdapter;
 import com.example.kit.models.Contact;
 import com.example.kit.util.RequestHandler;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
@@ -119,6 +121,24 @@ public class RequestsFragment extends DBGeoFragment implements
     public void onResume() {
         initListener();
         super.onResume();
+        getRequests();
+    }
+
+    private void getRequests(){
+        mDb.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_requests)).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (!task.isSuccessful()){ return; }
+                mRequests.clear();
+                for (QueryDocumentSnapshot doc: task.getResult()){
+                    Contact contact = doc.toObject(Contact.class);
+                    mRequests.put(contact.getCid(), contact);
+                }
+                mRecyclerList.clear();
+                mRecyclerList = new ArrayList<>(mRequests.values());
+                notifyRecyclerView();
+            }
+        });
     }
 
     /*
