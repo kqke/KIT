@@ -117,8 +117,7 @@ public class RequestsFragment extends DBGeoFragment implements
 
     @Override
     public void onResume() {
-        getParentFragmentManager().beginTransaction().detach(RequestsFragment.newInstance()).attach(RequestsFragment.newInstance());
-//        initListener();
+        initListener();
         super.onResume();
     }
 
