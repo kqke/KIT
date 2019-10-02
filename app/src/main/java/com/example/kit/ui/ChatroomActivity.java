@@ -453,6 +453,36 @@ public class ChatroomActivity extends AppCompatActivity implements
         });
     }
 
+    @Override
+    public void removeContact(Contact contact) {
+        mContacts.remove(contact.getCid());
+        mRequests.remove(contact.getCid());
+        mPending.remove(contact.getCid());
+    }
+
+    @Override
+    public void addContact(Contact contact, String type) {
+        switch (type) {
+            case FRIENDS: {
+                mContacts.put(contact.getCid(), contact);
+                break;
+            }
+
+            case MY_REQUEST_PENDING: {
+                mPending.put(contact.getCid(), contact);
+                break;
+            }
+
+            case THEIR_REQUEST_PENDING: {
+                mRequests.put(contact.getCid(), contact);
+                break;
+            }
+
+        }
+    }
+
+
+
     /*
             ----------------------------- ViewPagerAdapter ---------------------------------
             */

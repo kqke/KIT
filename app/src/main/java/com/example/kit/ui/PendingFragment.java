@@ -106,8 +106,9 @@ public class PendingFragment extends DBGeoFragment implements
 
     @Override
     public void onResume() {
-        super.onResume();
         initListener();
+        super.onResume();
+        getPending();
     }
 
     @Override
@@ -121,6 +122,23 @@ public class PendingFragment extends DBGeoFragment implements
     /*
     ----------------------------- init ---------------------------------
     */
+
+    private void getPending(){
+        mDb.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_pending)).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (!task.isSuccessful()){ return; }
+                mPending.clear();
+                for (QueryDocumentSnapshot doc: task.getResult()){
+                    Contact contact = doc.toObject(Contact.class);
+                    mPending.put(contact.getCid(), contact);
+                }
+                mRecyclerList.clear();
+                mRecyclerList = new ArrayList<>(mPending.values());
+                notifyRecyclerView();
+            }
+        });
+    }
 
     private void initView(View v){
         mPendingRecyclerView = v.findViewById(R.id.pending_recycler_view);

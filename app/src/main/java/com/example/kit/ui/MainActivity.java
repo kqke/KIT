@@ -444,6 +444,38 @@ public class MainActivity extends AppCompatActivity implements
         fetchUser(contactID, state);
     }
 
+    @Override
+    public void removeContact(Contact contact) {
+        mContactIds.remove(contact.getCid());
+        mId2Contact.remove(contact.getCid());
+        mContacts.remove(contact);
+        mRequests.remove(contact.getCid());
+        mPending.remove(contact.getCid());
+    }
+
+    @Override
+    public void addContact(Contact contact, String type) {
+        switch (type) {
+            case FRIENDS: {
+                mContacts.add(contact);
+                mContactIds.add(contact.getCid());
+                mId2Contact.put(contact.getCid(), contact);
+                break;
+            }
+
+            case MY_REQUEST_PENDING: {
+                mPending.put(contact.getCid(), contact);
+                break;
+            }
+
+            case THEIR_REQUEST_PENDING: {
+                mRequests.put(contact.getCid(), contact);
+                break;
+            }
+
+        }
+    }
+
     /*
     ----------------------------- Chatrooms Callback ---------------------------------
     */
@@ -758,43 +790,48 @@ public class MainActivity extends AppCompatActivity implements
             });
         }
         if(mContactIds.contains(userID)){
-            Contact contact = mId2Contact.get(userID);
-            navContactFragment(contact, FRIENDS, true);
-            return;
+            navContactFragment(mId2Contact.get(userID), FRIENDS, true);
         }
 
-        for(Contact request : mRequests.values()){
-            if(request.getCid().equals(userID)){
-                navContactFragment(request, THEIR_REQUEST_PENDING, true);
-                return;
-            }
+        else if (mRequests.containsKey(userID)){
+            navContactFragment(mRequests.get(userID), THEIR_REQUEST_PENDING, true);
         }
-
-        for(Contact pending : mPending.values()){
-            if(pending.getCid().equals(userID)){
-                navContactFragment(pending, MY_REQUEST_PENDING, true);
-                return;
-            }
+//        for(Contact request : mRequests.values()){
+//            if(request.getCid().equals(userID)){
+//                navContactFragment(request, THEIR_REQUEST_PENDING, true);
+//                return;
+//            }
+//        }
+        else if (mPending.containsKey(userID)){
+            navContactFragment(mPending.get(userID), MY_REQUEST_PENDING, true);
         }
+//        for(Contact pending : mPending.values()){
+//            if(pending.getCid().equals(userID)){
+//                navContactFragment(pending, MY_REQUEST_PENDING, true);
+//                return;
+//            }
+//        }
 
-        final Contact contact = new Contact();
-        DocumentReference userRef = mDb.collection(getString(R.string.collection_users))
-                .document(userID);
-        userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    Log.d(TAG, "onComplete: successfully found contact.");
-                    User user = task.getResult().toObject(User.class);
-                    contact.setCid(userID);
-                    contact.setName(user.getUsername());
-                    contact.setAvatar(user.getAvatar());
-                    contact.setStatus(user.getStatus());
-                    contact.setToken(user.getToken());
-                    navContactFragment(contact, NOT_FRIENDS, true);
+        else {
+            final Contact contact = new Contact();
+            DocumentReference userRef = mDb.collection(getString(R.string.collection_users))
+                    .document(userID);
+            userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "onComplete: successfully found contact.");
+                        User user = task.getResult().toObject(User.class);
+                        contact.setCid(userID);
+                        contact.setName(user.getUsername());
+                        contact.setAvatar(user.getAvatar());
+                        contact.setStatus(user.getStatus());
+                        contact.setToken(user.getToken());
+                        navContactFragment(contact, NOT_FRIENDS, true);
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
 

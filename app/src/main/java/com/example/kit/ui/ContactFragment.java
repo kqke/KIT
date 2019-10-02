@@ -398,6 +398,7 @@ public class ContactFragment extends DBGeoFragment implements
 
                     }
                 });
+                recreate.addContact(contact, MY_REQUEST_PENDING);
             }
         });
     }
@@ -409,6 +410,7 @@ public class ContactFragment extends DBGeoFragment implements
         String uid = FirebaseAuth.getInstance().getUid();
         mDb.collection(getString(R.string.collection_users)).document(contact.getCid()).collection(getString(R.string.collection_contacts)).document(uid).delete();
         mDb.collection(getString(R.string.collection_users)).document(uid).collection(getString(R.string.collection_contacts)).document(contact.getCid()).delete();
+        recreate.removeContact(contact);
 
 
 //        recreate.initContactFragment(mContact.getCid(), NOT_FRIENDS);
@@ -422,6 +424,7 @@ public class ContactFragment extends DBGeoFragment implements
         String uid = FirebaseAuth.getInstance().getUid();
         mDb.collection(getString(R.string.collection_users)).document(contact.getCid()).collection(getString(R.string.collection_requests)).document(uid).delete();
         mDb.collection(getString(R.string.collection_users)).document(uid).collection(getString(R.string.collection_pending)).document(contact.getCid()).delete();
+        recreate.removeContact(contact);
 //        recreate.initContactFragment(mContact.getCid(), NOT_FRIENDS);
 //        mDeleteReqBtn.setClickable(false);
 //        mDeleteReqBtn.setVisibility(View.INVISIBLE);
@@ -503,6 +506,7 @@ public class ContactFragment extends DBGeoFragment implements
     public void requestAccepted(String display_name, Contact contact) {
         setFriend();
         RequestHandler.handleRequest(contact, display_name, true);
+        recreate.addContact(contact, FRIENDS);
     }
 
     @Override
@@ -513,9 +517,12 @@ public class ContactFragment extends DBGeoFragment implements
         mAcceptBtn.setClickable(false);
         mDeclineBtn.setClickable(false);
         RequestHandler.handleRequest(contact, "",false);
+        recreate.removeContact(contact);
     }
 
     public interface ContactCallback{
         void initContactFragment(String id, String state);
+        void removeContact(Contact contact);
+        void addContact(Contact contact, String type);
     }
 }
