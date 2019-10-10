@@ -158,6 +158,10 @@ public class UserListFragment extends MapFragment
                 mContactList.add(new Contact(user.getUsername(), user.getEmail(), user.getAvatar(), user.getUser_id(), NOT_FRIENDS));
             }
         }
+        mContactList.clear();
+        for (User user: mUserList){
+            mContactList.add(new Contact(user.getUsername(), user.getUsername(), user.getAvatar(), user.getUser_id(), user.getStatus()));
+        }
         mUserRecyclerAdapter = new ContactRecyclerAdapter(mContactList,
                 this, R.layout.layout_contact_list_item, getContext());
         mUserListRecyclerView.setAdapter(mUserRecyclerAdapter);

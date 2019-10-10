@@ -540,14 +540,14 @@ public class ContactFragment extends MapFragment implements
         ViewWeightAnimationWrapper mapAnimationWrapper = new ViewWeightAnimationWrapper(mMapContainer);
         ObjectAnimator mapAnimation = ObjectAnimator.ofFloat(mapAnimationWrapper,
                 "weight",
-                50,
+                45,
                 100);
         mapAnimation.setDuration(800);
 
         ViewWeightAnimationWrapper recyclerAnimationWrapper = new ViewWeightAnimationWrapper(mContactInfo);
         ObjectAnimator recyclerAnimation = ObjectAnimator.ofFloat(recyclerAnimationWrapper,
                 "weight",
-                50,
+                55,
                 0);
         recyclerAnimation.setDuration(800);
 
@@ -562,14 +562,14 @@ public class ContactFragment extends MapFragment implements
         ObjectAnimator mapAnimation = ObjectAnimator.ofFloat(mapAnimationWrapper,
                 "weight",
                 100,
-                50);
+                45);
         mapAnimation.setDuration(800);
 
         ViewWeightAnimationWrapper recyclerAnimationWrapper = new ViewWeightAnimationWrapper(mContactInfo);
         ObjectAnimator recyclerAnimation = ObjectAnimator.ofFloat(recyclerAnimationWrapper,
                 "weight",
                 0,
-                50);
+                55);
         recyclerAnimation.setDuration(800);
 
         recyclerAnimation.start();
