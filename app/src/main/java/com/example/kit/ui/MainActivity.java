@@ -147,8 +147,10 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        if(getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE).getBoolean(INCOGNITO, false))
+        incognito = getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE).getBoolean(INCOGNITO, false);
+        if(incognito) {
             setTheme(R.style.AppThemeIncognito);
+        }
         super.onCreate(savedInstanceState);
         if (curFragment == null){
             curFragment = ChatsFragment.getInstance();

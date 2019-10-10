@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -85,6 +86,8 @@ public class ChatroomActivity extends AppCompatActivity implements
     private static HashMap<String, Contact> mPending;
 
     private static final String CONTACT_FRAG = "CONTACT_FRAG";
+    SharedPreferences.OnSharedPreferenceChangeListener spChanged;
+    private static boolean incognito;
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -98,6 +101,7 @@ public class ChatroomActivity extends AppCompatActivity implements
         mDb = FirebaseFirestore.getInstance();
         getIncomingIntent();
         getChatroomUsers();
+        initPreferenceListener();
         initLoadingView();
     }
 
@@ -115,9 +119,41 @@ public class ChatroomActivity extends AppCompatActivity implements
         return super.onCreateOptionsMenu(menu);
     }
 
+    @Override
+    protected void onRestart() {
+        boolean inc = getSharedPreferences(MY_PREFERENCES, MODE_PRIVATE).getBoolean(INCOGNITO, false);
+        if (inc != incognito){
+            incognito = !incognito;
+            recreate();
+        }
+        super.onRestart();
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        SharedPreferences sp = getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE);
+        sp.unregisterOnSharedPreferenceChangeListener(spChanged);
+        super.onSaveInstanceState(outState);
+    }
+
     /*
     ----------------------------- init ---------------------------------
     */
+
+    private void initPreferenceListener(){
+        SharedPreferences sp = getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE);
+        spChanged = new
+                SharedPreferences.OnSharedPreferenceChangeListener() {
+                    @Override
+                    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
+                                                          String key) {
+                        if(key.equals(INCOGNITO)){
+                            recreate();
+                        }
+                    }
+                };
+        sp.registerOnSharedPreferenceChangeListener(spChanged);
+    }
 
     private void initLoadingView(){
         setContentView(R.layout.activity_chatroom);
