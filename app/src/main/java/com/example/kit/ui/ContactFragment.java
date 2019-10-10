@@ -1,5 +1,6 @@
 package com.example.kit.ui;
 
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.os.Bundle;
 
@@ -16,8 +17,10 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,9 +31,12 @@ import com.example.kit.R;
 import com.example.kit.UserClient;
 import com.example.kit.models.Contact;
 import com.example.kit.models.User;
+import com.example.kit.models.UserLocation;
 import com.example.kit.util.FCM;
 import com.example.kit.util.RequestHandler;
 import com.example.kit.util.UsernameValidator;
+import com.example.kit.util.ViewWeightAnimationWrapper;
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -41,6 +47,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static android.view.View.VISIBLE;
 
 import static com.example.kit.Constants.CONTACT;
@@ -50,7 +59,7 @@ import static com.example.kit.Constants.MY_REQUEST_PENDING;
 import static com.example.kit.Constants.NOT_FRIENDS;
 import static com.example.kit.Constants.THEIR_REQUEST_PENDING;
 
-public class ContactFragment extends DBGeoFragment implements
+public class ContactFragment extends MapFragment implements
         View.OnClickListener, ContactDialogFragment.OnInputSelected, RequestsDialogFragment.OnInputSelected{
 
     //Tag
@@ -74,6 +83,18 @@ public class ContactFragment extends DBGeoFragment implements
     private ContactCallback recreate;
 
     private DBGeoFragment contactFragment;
+
+    RelativeLayout mContactInfo;
+
+    //map
+    RelativeLayout mMapContainer;
+    ImageButton expandBut;
+    ImageButton resetBut;
+    private static final int MAP_LAYOUT_STATE_CONTRACTED = 0;
+    private static final int MAP_LAYOUT_STATE_EXPANDED = 1;
+    private int mMapLayoutState = 0;
+
+
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -100,6 +121,10 @@ public class ContactFragment extends DBGeoFragment implements
         super.onAttach(context);
         contactFragment = this;
         recreate = (ContactCallback)context;
+        if (mContact == null && getArguments() != null) {
+            mContact = getArguments().getParcelable(CONTACT);
+        }
+        id2ContactsLocations = recreate.getContactLocations(mContact.getCid());
     }
 
     @Override
@@ -107,7 +132,9 @@ public class ContactFragment extends DBGeoFragment implements
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_contact, container, false);
+        mMapView = v.findViewById(R.id.contact_map);
         initView(v);
+        initGoogleMap(savedInstanceState);
         return v;
     }
 
@@ -124,6 +151,12 @@ public class ContactFragment extends DBGeoFragment implements
     private void initView(View v){
         initEditText(v);
         v.findViewById(R.id.contact_lin_lay).setBackgroundColor(getResources().getColor(R.color.White));
+        mContactInfo = v.findViewById(R.id.contact_info_container);
+        mMapContainer = v.findViewById(R.id.contact_map_container);
+        expandBut = v.findViewById(R.id.c_btn_full_screen_map);
+        resetBut = v.findViewById(R.id.c_btn_reset_map);
+        expandBut.setOnClickListener(this);
+        resetBut.setOnClickListener(this);
         mAvatarImage = v.findViewById(R.id.image_choose_avatar);
         mProfileName = v.findViewById(R.id.profile_displayName);
         mProfileName.setText(mContact.getName());
@@ -158,6 +191,13 @@ public class ContactFragment extends DBGeoFragment implements
         mAcceptBtn.setClickable(false);
         mDeclineBtn.setVisibility(View.INVISIBLE);
         mDeclineBtn.setClickable(false);
+        mMapView.setVisibility(View.VISIBLE);
+        mMapView.setClickable(true);
+        expandBut.setVisibility(View.VISIBLE);
+        expandBut.setClickable(true);
+        resetBut.setVisibility(View.VISIBLE);
+        resetBut.setClickable(true);
+
 
     }
 
@@ -167,6 +207,13 @@ public class ContactFragment extends DBGeoFragment implements
         mEditBtn.setVisibility(View.GONE);
         mDeleteBtn.setVisibility(View.INVISIBLE);
         mDeleteBtn.setClickable(false);
+        mMapView.setVisibility(View.INVISIBLE);
+        mMapView.setClickable(false);
+        expandBut.setVisibility(View.INVISIBLE);
+        expandBut.setClickable(false);
+        resetBut.setVisibility(View.INVISIBLE);
+        resetBut.setClickable(false);
+
     }
 
     private void initEditText(View v){
@@ -337,6 +384,22 @@ public class ContactFragment extends DBGeoFragment implements
                 deleteContact();
                 break;
             }
+            case R.id.c_btn_full_screen_map:{
+                if(mMapLayoutState == MAP_LAYOUT_STATE_CONTRACTED){
+                    mMapLayoutState = MAP_LAYOUT_STATE_EXPANDED;
+                    expandMapAnimation();
+                }
+                else if(mMapLayoutState == MAP_LAYOUT_STATE_EXPANDED){
+                    mMapLayoutState = MAP_LAYOUT_STATE_CONTRACTED;
+                    contractMapAnimation();
+                }
+                break;
+            }
+
+            case R.id.c_btn_reset_map:{
+                addMapMarkers();
+                setCameraView();
+            }
         }
     }
 
@@ -468,6 +531,60 @@ public class ContactFragment extends DBGeoFragment implements
         });
     }
 
+
+     /*
+    ----------------------------- map ---------------------------------
+    */
+
+    private void expandMapAnimation(){
+        ViewWeightAnimationWrapper mapAnimationWrapper = new ViewWeightAnimationWrapper(mMapContainer);
+        ObjectAnimator mapAnimation = ObjectAnimator.ofFloat(mapAnimationWrapper,
+                "weight",
+                50,
+                100);
+        mapAnimation.setDuration(800);
+
+        ViewWeightAnimationWrapper recyclerAnimationWrapper = new ViewWeightAnimationWrapper(mContactInfo);
+        ObjectAnimator recyclerAnimation = ObjectAnimator.ofFloat(recyclerAnimationWrapper,
+                "weight",
+                50,
+                0);
+        recyclerAnimation.setDuration(800);
+
+        recyclerAnimation.start();
+        mapAnimation.start();
+
+        Log.d(TAG, "expandMapAnimation: map weight ");
+    }
+
+    private void contractMapAnimation(){
+        ViewWeightAnimationWrapper mapAnimationWrapper = new ViewWeightAnimationWrapper(mMapContainer);
+        ObjectAnimator mapAnimation = ObjectAnimator.ofFloat(mapAnimationWrapper,
+                "weight",
+                100,
+                50);
+        mapAnimation.setDuration(800);
+
+        ViewWeightAnimationWrapper recyclerAnimationWrapper = new ViewWeightAnimationWrapper(mContactInfo);
+        ObjectAnimator recyclerAnimation = ObjectAnimator.ofFloat(recyclerAnimationWrapper,
+                "weight",
+                0,
+                50);
+        recyclerAnimation.setDuration(800);
+
+        recyclerAnimation.start();
+        mapAnimation.start();
+    }
+
+    @Override
+    public void onMapReady(GoogleMap map) {
+        super.onMapReady(map);
+        if (mMapLayoutState == MAP_LAYOUT_STATE_EXPANDED){
+            expandMapAnimation();
+        }
+    }
+
+
     /*
     ----------------------------- utils ---------------------------------
     */
@@ -524,5 +641,6 @@ public class ContactFragment extends DBGeoFragment implements
         void initContactFragment(String id, String state);
         void removeContact(Contact contact);
         void addContact(Contact contact, String type);
+        HashMap<String, UserLocation> getContactLocations(String contact_id);
     }
 }

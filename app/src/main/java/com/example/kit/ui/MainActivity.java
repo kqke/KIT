@@ -475,6 +475,20 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+    @Override
+    public HashMap<String, UserLocation> getContactLocations(String contact_id) {
+        HashMap<String, UserLocation> ret = new HashMap<>();
+        String uid = FirebaseAuth.getInstance().getUid();
+        String cid;
+        for (UserLocation ul: mContactLocations){
+            cid = ul.getUser().getUser_id();
+            if (cid.equals(contact_id) || cid.equals(uid) ){
+                ret.put(cid, ul);
+            }
+        }
+        return ret;
+    }
+
     /*
     ----------------------------- Chatrooms Callback ---------------------------------
     */

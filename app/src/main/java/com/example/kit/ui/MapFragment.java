@@ -231,432 +231,438 @@ public class MapFragment extends DBGeoFragment implements
     private void retrieveUserLocations() {
         Log.d(TAG, "retrieveUserLocations: retrieving location of all users in the chatroom");
         try {
-            if (mClusterMarkers.isEmpty()){
-                updateUserLocs();
-            } else {
-                for (final ClusterMarker clusterMarker : mClusterMarkers) {
-                    DocumentReference userLocationRef = FirebaseFirestore.getInstance()
-                            .collection(getString(R.string.collection_user_locations))
-                            .document(clusterMarker.getUser().getUser_id());
-                    userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                            if (task.isSuccessful()) {
-                                final UserLocation updatedUserLocation = task.getResult().toObject(UserLocation.class);
-                                boolean toReset = false;
-                                // update the location
-                                if (updatedUserLocation.isIncognito() != id2ContactsLocations.get(updatedUserLocation.getUser().getUser_id()).isIncognito()) {
-                                    toReset = true;
-                                }
-                                id2ContactsLocations.put(updatedUserLocation.getUser().getUser_id(), updatedUserLocation);
-                                for (int i = 0; i < mClusterMarkers.size(); i++) {
-                                    try {
-                                        if (mClusterMarkers.get(i).getUser().getUser_id().equals(updatedUserLocation.getUser().getUser_id())) {
+//            if (mClusterMarkers.isEmpty()){
+//                updateUserLocs();
+//            } else {
+            for (final UserLocation userLocation : id2ContactsLocations.values()) {
+                DocumentReference userLocationRef = FirebaseFirestore.getInstance()
+                        .collection(getString(R.string.collection_user_locations))
+                        .document(userLocation.getUser().getUser_id());
+                userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            final UserLocation updatedUserLocation = task.getResult().toObject(UserLocation.class);
+                            boolean toReset = false;
+                            // update the location
+                            if (updatedUserLocation.isIncognito() != id2ContactsLocations.get(updatedUserLocation.getUser().getUser_id()).isIncognito()) {
+                                toReset = true;
+                            }
+                            id2ContactsLocations.put(updatedUserLocation.getUser().getUser_id(), updatedUserLocation);
+                            for (int i = 0; i < mClusterMarkers.size(); i++) {
+                                try {
+                                    if (mClusterMarkers.get(i).getUser().getUser_id().equals(updatedUserLocation.getUser().getUser_id())) {
 
 
-                                            LatLng updatedLatLng = new LatLng(
-                                                    updatedUserLocation.getGeo_point().getLatitude(),
-                                                    updatedUserLocation.getGeo_point().getLongitude()
-                                            );
-                                            mClusterMarkers.get(i).setPosition(updatedLatLng);
-                                            mClusterManagerRenderer.setUpdateMarker(mClusterMarkers.get(i));
-                                        }
-
-                                    } catch (NullPointerException e) {
-                                        Log.e(TAG, "retrieveUserLocations: NullPointerException: " + e.getMessage());
+                                        LatLng updatedLatLng = new LatLng(
+                                                updatedUserLocation.getGeo_point().getLatitude(),
+                                                updatedUserLocation.getGeo_point().getLongitude()
+                                        );
+                                        mClusterMarkers.get(i).setPosition(updatedLatLng);
+                                        mClusterManagerRenderer.setUpdateMarker(mClusterMarkers.get(i));
+                                    } else if (i == mClusterMarkers.size() - 1) {
+                                        toReset = true;
                                     }
-                                }
-                                if (toReset) {
-                                    addMapMarkers();
+
+                                } catch (NullPointerException e) {
+                                    Log.e(TAG, "retrieveUserLocations: NullPointerException: " + e.getMessage());
                                 }
                             }
+                            if (toReset) {
+                                addMapMarkers();
+                            }
                         }
-                    });
-                }
+                    }
+                });
             }
+//            }
+
         } catch (IllegalStateException e) {
             Log.e(TAG, "retrieveUserLocations: Fragment was destroyed during Firestore query. Ending query." + e.getMessage());
         }
     }
 
-    private void updateUserLocs(){
-        addMapMarkers();
-        for (final UserLocation contactLoc : id2ContactsLocations.values()) {
-            DocumentReference userLocationRef = FirebaseFirestore.getInstance()
-                    .collection(getString(R.string.collection_user_locations))
-                    .document(contactLoc.getUser().getUser_id());
-            userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                    if (task.isSuccessful()) {
-                        final UserLocation updatedUserLocation = task.getResult().toObject(UserLocation.class);
-                        // update the location
-                        if (updatedUserLocation.isIncognito() != id2ContactsLocations.get(updatedUserLocation.getUser().getUser_id()).isIncognito()) {
-                            id2ContactsLocations.put(updatedUserLocation.getUser().getUser_id(), updatedUserLocation);
-                            if (!updatedUserLocation.isIncognito()) {
-                                addMapMarkers();
-                            }
-                        }
-                    }
-                }
-            });
-        }
-    }
+
+
+//        private void updateUserLocs(){
+//            addMapMarkers();
+//            for (final UserLocation contactLoc : id2ContactsLocations.values()) {
+//                DocumentReference userLocationRef = FirebaseFirestore.getInstance()
+//                        .collection(getString(R.string.collection_user_locations))
+//                        .document(contactLoc.getUser().getUser_id());
+//                userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+//                    @Override
+//                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+//                        if (task.isSuccessful()) {
+//                            final UserLocation updatedUserLocation = task.getResult().toObject(UserLocation.class);
+//                            // update the location
+//                            if (updatedUserLocation.isIncognito() != id2ContactsLocations.get(updatedUserLocation.getUser().getUser_id()).isIncognito()) {
+//                                id2ContactsLocations.put(updatedUserLocation.getUser().getUser_id(), updatedUserLocation);
+//                                if (!updatedUserLocation.isIncognito()) {
+//                                    addMapMarkers();
+//                                }
+//                            }
+//                        }
+//                    }
+//                });
+//            }
+//        }
     /*
     ----------------------------- Map ---------------------------------
     */
 
-    protected void initGoogleMap(Bundle savedInstanceState) {
-        // *** IMPORTANT ***
-        // MapView requires that the Bundle you pass contain _ONLY_ MapView SDK
-        // objects or sub-Bundles.
-        Bundle mapViewBundle = null;
-        if (savedInstanceState != null) {
-            mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
-        }
-        mMapView.onCreate(mapViewBundle);
-        mMapView.getMapAsync(this);
-        if (mGeoApiContext == null){
-            mGeoApiContext = new GeoApiContext.Builder().apiKey(getString(R.string.google_maps_api_key)).build();
-        }
-    }
-
-    @Override
-    public void onMapReady(GoogleMap map) {
-        Log.d(TAG, "onMapReady: ");
-        if (ActivityCompat.checkSelfPermission(mActivity, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(mActivity, Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-        map.setMyLocationEnabled(true);
-        mGoogleMap = map;
-        addMapMarkers();
-        mGoogleMap.setOnInfoWindowClickListener(this);
-        mGoogleMap.setOnPolylineClickListener(this);
-    }
-
-    void addMapMarkers() {
-        if (mGoogleMap != null) {
-            resetMap();
-
-            if (mClusterManager == null) {
-                mClusterManager = new ClusterManager<ClusterMarker>(mActivity.getApplicationContext(), mGoogleMap);
+        protected void initGoogleMap(Bundle savedInstanceState) {
+            // *** IMPORTANT ***
+            // MapView requires that the Bundle you pass contain _ONLY_ MapView SDK
+            // objects or sub-Bundles.
+            Bundle mapViewBundle = null;
+            if (savedInstanceState != null) {
+                mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
             }
-            if (mClusterManagerRenderer == null) {
-                mClusterManagerRenderer = new MyClusterManagerRenderer(
-                        mActivity,
-                        mGoogleMap,
-                        mClusterManager
-                );
-                mClusterManager.setRenderer(mClusterManagerRenderer);
+            mMapView.onCreate(mapViewBundle);
+            mMapView.getMapAsync(this);
+            if (mGeoApiContext == null){
+                mGeoApiContext = new GeoApiContext.Builder().apiKey(getString(R.string.google_maps_api_key)).build();
             }
-            System.out.println(mContactLocations.toString());
-            for (UserLocation userLocation : id2ContactsLocations.values()) {
+        }
 
-                if (userLocation.isIncognito()) {
-                    continue;
-                }
-
-                Log.d(TAG, "addMapMarkers: location: " + userLocation.getGeo_point().toString());
-                try {
-                    String snippet = "";
-                    if (userLocation.getUser().getUser_id().equals(FirebaseAuth.getInstance().getUid())) {
-                        snippet = "This is you";
-                    } else {
-                        snippet = "Determine route to " + userLocation.getUser().getUsername() + "?";
-                    }
-
-                    String avatar = ""; // set the default avatar
-                    try {
-                        avatar = userLocation.getUser().getAvatar();
-                    } catch (NumberFormatException e) {
-                        Log.d(TAG, "addMapMarkers: no avatar for " + userLocation.getUser().getUsername() + ", setting default.");
-                    }
-                    ClusterMarker newClusterMarker = new ClusterMarker(
-                            new LatLng(userLocation.getGeo_point().getLatitude(), userLocation.getGeo_point().getLongitude()),
-                            userLocation.getUser().getUsername(),
-                            snippet,
-                            avatar,
-                            userLocation.getUser()
-                    );
-                    mClusterManager.addItem(newClusterMarker);
-                    mClusterMarkers.add(newClusterMarker);
-
-                } catch (NullPointerException e) {
-                    Log.e(TAG, "addMapMarkers: NullPointerException: " + e.getMessage());
-                }
+        @Override
+        public void onMapReady(GoogleMap map) {
+            Log.d(TAG, "onMapReady: ");
+            if (ActivityCompat.checkSelfPermission(mActivity, Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED
+                    && ActivityCompat.checkSelfPermission(mActivity, Manifest.permission.ACCESS_COARSE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                return;
             }
-            mClusterManager.cluster();
+            map.setMyLocationEnabled(true);
+            mGoogleMap = map;
+            addMapMarkers();
+            mGoogleMap.setOnInfoWindowClickListener(this);
+            mGoogleMap.setOnPolylineClickListener(this);
             setCameraView();
         }
-    }
 
-    private void setCameraView() {
-        if(mUserLocation != null) {
-            double lat = mUserLocation.getGeo_point().getLatitude();
-            double lon = mUserLocation.getGeo_point().getLongitude();
-            double bb = lat - .1;
-            double lb = lon - .1;
-            double tb = lat + .1;
-            double rb = lon + .1;
-            double cur_lat, cur_long;
-            for (UserLocation loc: id2ContactsLocations.values()){
-                cur_lat = loc.getGeo_point().getLatitude();
-                cur_long = loc.getGeo_point().getLongitude();
-                if (cur_lat < bb) {
-                    bb = cur_lat - 0.1;
-                    tb = lat + Math.abs(lat - bb);
+        void addMapMarkers() {
+            if (mGoogleMap != null) {
+                resetMap();
+
+                if (mClusterManager == null) {
+                    mClusterManager = new ClusterManager<ClusterMarker>(mActivity.getApplicationContext(), mGoogleMap);
                 }
-                else if (cur_lat > tb){
-                    tb = cur_lat + 0.1;
-                    bb = lat - Math.abs(lat - tb);
-
+                if (mClusterManagerRenderer == null) {
+                    mClusterManagerRenderer = new MyClusterManagerRenderer(
+                            mActivity,
+                            mGoogleMap,
+                            mClusterManager
+                    );
+                    mClusterManager.setRenderer(mClusterManagerRenderer);
                 }
+                System.out.println(mContactLocations.toString());
+                for (UserLocation userLocation : id2ContactsLocations.values()) {
 
-                if (cur_long < lb) {
-                    lb = cur_long - 0.1;
-                    rb = lon + Math.abs(lon - lb);
-                }
-                else if (cur_long > rb){
-                    rb = cur_long + 0.1;
-                    lb = lon - Math.abs(lon - rb);
-                }
-            }
-            int width = getResources().getDisplayMetrics().widthPixels;
-            int height = getResources().getDisplayMetrics().heightPixels;
-            int padding = 4;
-            mMapBoundary = new LatLngBounds(new LatLng(bb, lb), new LatLng(tb, rb));
-            mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary, width, height, padding));
-        }
-    }
+                    if (userLocation.isIncognito()) {
+                        continue;
+                    }
 
-    public void zoomRoute(List<LatLng> lstLatLngRoute) {
-        if (mGoogleMap == null || lstLatLngRoute == null || lstLatLngRoute.isEmpty()) return;
-        LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
-        for (LatLng latLngPoint : lstLatLngRoute)
-            boundsBuilder.include(latLngPoint);
-        int routePadding = 120;
-        LatLngBounds latLngBounds = boundsBuilder.build();
-        mGoogleMap.animateCamera(
-                CameraUpdateFactory.newLatLngBounds(latLngBounds, routePadding),
-                600,
-                null
-        );
-    }
-
-    private void removeTripMarker(){
-        if (mTripMarker != null){
-            mTripMarker.remove();
-            removeTripMarker();
-        }
-    }
-
-    private void resetSelectedMarker(){
-        if (mSelectedMarker != null) {
-            mSelectedMarker.setVisible(true);
-        }
-    }
-
-    private void resetMap(){
-        if(mGoogleMap != null) {
-            mGoogleMap.clear();
-
-            if(mClusterManager != null){
-                mClusterManager.clearItems();
-            }
-
-            if (mClusterMarkers.size() > 0) {
-                mClusterMarkers.clear();
-                mClusterMarkers = new ArrayList<>();
-            }
-
-            if(mPolyLinesData.size() > 0){
-                mPolyLinesData.clear();
-                mPolyLinesData = new ArrayList<>();
-            }
-        }
-    }
-
-    @Override
-    public void onInfoWindowClick(final Marker marker) {
-        if(marker.getTitle().contains("Trip #")){
-            final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setMessage("Open Google Maps?")
-                    .setCancelable(true)
-                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                            String latitude = String.valueOf(marker.getPosition().latitude);
-                            String longitude = String.valueOf(marker.getPosition().longitude);
-                            Uri gmmIntentUri = Uri.parse("google.navigation:q=" + latitude + "," + longitude);
-                            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                            mapIntent.setPackage("com.google.android.apps.maps");
-
-                            try{
-                                if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
-                                    startActivity(mapIntent);
-                                }
-                            }catch (NullPointerException e){
-                                Log.e(TAG, "onClick: NullPointerException: Couldn't open map." + e.getMessage() );
-                                Toast.makeText(getActivity(), "Couldn't open map", Toast.LENGTH_SHORT).show();
-                            }
-
+                    Log.d(TAG, "addMapMarkers: location: " + userLocation.getGeo_point().toString());
+                    try {
+                        String snippet = "";
+                        if (userLocation.getUser().getUser_id().equals(FirebaseAuth.getInstance().getUid())) {
+                            snippet = "This is you";
+                        } else {
+                            snippet = "Determine route to " + userLocation.getUser().getUsername() + "?";
                         }
-                    })
-                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                        public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                            dialog.cancel();
+
+                        String avatar = ""; // set the default avatar
+                        try {
+                            avatar = userLocation.getUser().getAvatar();
+                        } catch (NumberFormatException e) {
+                            Log.d(TAG, "addMapMarkers: no avatar for " + userLocation.getUser().getUsername() + ", setting default.");
                         }
-                    });
-            final AlertDialog alert = builder.create();
-            alert.show();
-        } else {
+                        ClusterMarker newClusterMarker = new ClusterMarker(
+                                new LatLng(userLocation.getGeo_point().getLatitude(), userLocation.getGeo_point().getLongitude()),
+                                userLocation.getUser().getUsername(),
+                                snippet,
+                                avatar,
+                                userLocation.getUser()
+                        );
+                        mClusterManager.addItem(newClusterMarker);
+                        mClusterMarkers.add(newClusterMarker);
 
+                    } catch (NullPointerException e) {
+                        Log.e(TAG, "addMapMarkers: NullPointerException: " + e.getMessage());
+                    }
+                }
+                mClusterManager.cluster();
+//                setCameraView();
+            }
+        }
 
-            if (marker.getSnippet().equals("This is you")) {
-                marker.hideInfoWindow();
-            } else {
-                final AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
-                builder.setMessage("Navigate or Go to Profile?")
+         void setCameraView() {
+            if(mUserLocation != null) {
+                double lat = mUserLocation.getGeo_point().getLatitude();
+                double lon = mUserLocation.getGeo_point().getLongitude();
+                double bb = lat - .1;
+                double lb = lon - .1;
+                double tb = lat + .1;
+                double rb = lon + .1;
+                double cur_lat, cur_long;
+                for (UserLocation loc: id2ContactsLocations.values()){
+                    cur_lat = loc.getGeo_point().getLatitude();
+                    cur_long = loc.getGeo_point().getLongitude();
+                    if (cur_lat < bb) {
+                        bb = cur_lat - 0.1;
+                        tb = lat + Math.abs(lat - bb);
+                    }
+                    else if (cur_lat > tb){
+                        tb = cur_lat + 0.1;
+                        bb = lat - Math.abs(lat - tb);
+
+                    }
+
+                    if (cur_long < lb) {
+                        lb = cur_long - 0.1;
+                        rb = lon + Math.abs(lon - lb);
+                    }
+                    else if (cur_long > rb){
+                        rb = cur_long + 0.1;
+                        lb = lon - Math.abs(lon - rb);
+                    }
+                }
+                int width = getResources().getDisplayMetrics().widthPixels;
+                int height = getResources().getDisplayMetrics().heightPixels;
+                int padding = 4;
+                mMapBoundary = new LatLngBounds(new LatLng(bb, lb), new LatLng(tb, rb));
+                mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary, width, height, padding));
+            }
+        }
+
+        public void zoomRoute(List<LatLng> lstLatLngRoute) {
+            if (mGoogleMap == null || lstLatLngRoute == null || lstLatLngRoute.isEmpty()) return;
+            LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+            for (LatLng latLngPoint : lstLatLngRoute)
+                boundsBuilder.include(latLngPoint);
+            int routePadding = 120;
+            LatLngBounds latLngBounds = boundsBuilder.build();
+            mGoogleMap.animateCamera(
+                    CameraUpdateFactory.newLatLngBounds(latLngBounds, routePadding),
+                    600,
+                    null
+            );
+        }
+
+        private void removeTripMarker(){
+            if (mTripMarker != null){
+                mTripMarker.remove();
+                removeTripMarker();
+            }
+        }
+
+        private void resetSelectedMarker(){
+            if (mSelectedMarker != null) {
+                mSelectedMarker.setVisible(true);
+            }
+        }
+
+        private void resetMap(){
+            if(mGoogleMap != null) {
+                mGoogleMap.clear();
+
+                if(mClusterManager != null){
+                    mClusterManager.clearItems();
+                }
+
+                if (mClusterMarkers.size() > 0) {
+                    mClusterMarkers.clear();
+                    mClusterMarkers = new ArrayList<>();
+                }
+
+                if(mPolyLinesData.size() > 0){
+                    mPolyLinesData.clear();
+                    mPolyLinesData = new ArrayList<>();
+                }
+            }
+        }
+
+        @Override
+        public void onInfoWindowClick(final Marker marker) {
+            if(marker.getTitle().contains("Trip #")){
+                final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setMessage("Open Google Maps?")
                         .setCancelable(true)
-                        .setPositiveButton("Navigate", new DialogInterface.OnClickListener() {
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                resetSelectedMarker();
-                                mSelectedMarker = marker;
-                                calculateDirections(marker);
-                                dialog.dismiss();
+                                String latitude = String.valueOf(marker.getPosition().latitude);
+                                String longitude = String.valueOf(marker.getPosition().longitude);
+                                Uri gmmIntentUri = Uri.parse("google.navigation:q=" + latitude + "," + longitude);
+                                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                                mapIntent.setPackage("com.google.android.apps.maps");
+
+                                try{
+                                    if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                                        startActivity(mapIntent);
+                                    }
+                                }catch (NullPointerException e){
+                                    Log.e(TAG, "onClick: NullPointerException: Couldn't open map." + e.getMessage() );
+                                    Toast.makeText(getActivity(), "Couldn't open map", Toast.LENGTH_SHORT).show();
+                                }
+
                             }
                         })
-                        .setNegativeButton("Profile", new DialogInterface.OnClickListener() {
+                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
                             public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
                                 dialog.cancel();
                             }
                         });
                 final AlertDialog alert = builder.create();
                 alert.show();
-            }
-        }
-    }
+            } else {
 
-    @Override
-    public void onPolylineClick(Polyline polyline) {
-        int index = 0;
-        for(PolylineData polylineData: mPolyLinesData){
-            index++;
-            Log.d(TAG, "onPolylineClick: toString: " + polylineData.toString());
-            if(polyline.getId().equals(polylineData.getPolyline().getId())){
-                polylineData.getPolyline().setColor(ContextCompat.getColor(mActivity, R.color.blue1));
-                polylineData.getPolyline().setZIndex(1);
-                LatLng endLocation = new LatLng(polylineData.getLeg().endLocation.lat, polylineData.getLeg().endLocation.lng);
-                Marker marker = mGoogleMap.addMarker(new MarkerOptions().position(endLocation).title("Trip #: " + index).snippet(
-                        "Duration: " + polylineData.getLeg().duration + "\nDistance: " + polylineData.getLeg().distance));
-                mTripMarker = marker;
-                zoomRoute(polyline.getPoints());
-            }
-            else{
-                polylineData.getPolyline().setColor(ContextCompat.getColor(mActivity, R.color.darkGrey));
-                polylineData.getPolyline().setZIndex(0);
-            }
-        }
 
-    }
-
-    private void calculateDirections(Marker marker){
-        Log.d(TAG, "calculateDirections: calculating directions.");
-        com.google.maps.model.LatLng destination = new com.google.maps.model.LatLng(
-                marker.getPosition().latitude,
-                marker.getPosition().longitude
-        );
-        DirectionsApiRequest directions = new DirectionsApiRequest(mGeoApiContext);
-        directions.alternatives(true);
-        directions.origin(
-                new com.google.maps.model.LatLng(
-                        mUserLocation.getGeo_point().getLatitude(),
-                        mUserLocation.getGeo_point().getLongitude()
-                )
-        );
-        Log.d(TAG, "calculateDirections: destination: " + destination.toString());
-        directions.destination(destination).setCallback(new PendingResult.Callback<DirectionsResult>() {
-            @Override
-            public void onResult(DirectionsResult result) {
-                Log.d(TAG, "calculateDirections: routes: " + result.routes[0].toString());
-                Log.d(TAG, "calculateDirections: duration: " + result.routes[0].legs[0].duration);
-                Log.d(TAG, "calculateDirections: distance: " + result.routes[0].legs[0].distance);
-                Log.d(TAG, "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[0].toString());
-                addPolylinesToMap(result);
-                Log.d(TAG, "onResult: SUCCESSSSSS");
-            }
-            @Override
-            public void onFailure(Throwable e) {
-                Log.e(TAG, "calculateDirections: Failed to get directions: " + e.getMessage() );
-            }
-        });
-    }
-
-    private void addPolylinesToMap(final DirectionsResult result){
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                Log.d(TAG, "run: result routes: " + result.routes.length);
-                if(mPolyLinesData.size() > 0){
-                    for(PolylineData polylineData: mPolyLinesData){
-                        polylineData.getPolyline().remove();
-                    }
-                    mPolyLinesData.clear();
-                    mPolyLinesData = new ArrayList<>();
-                }
-                double duration = 999999999;
-                double distance = 999999999;
-                double tempDuration, tempDistance;
-                for(DirectionsRoute route: result.routes){
-                    Log.d(TAG, "run: leg: " + route.legs[0].toString());
-                    List<com.google.maps.model.LatLng> decodedPath = PolylineEncoding.decode(route.overviewPolyline.getEncodedPath());
-                    List<LatLng> newDecodedPath = new ArrayList<>();
-
-                    // This loops through all the LatLng coordinates of ONE polyline.
-                    for(com.google.maps.model.LatLng latLng: decodedPath){
-                        Log.d(TAG, "run: latlng: " + latLng.toString());
-                        newDecodedPath.add(new LatLng(
-                                latLng.lat,
-                                latLng.lng
-                        ));
-                    }
-                    Polyline polyline = mGoogleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
-                    polyline.setColor(ContextCompat.getColor(mActivity, R.color.darkGrey));
-                    polyline.setClickable(true);
-                    mPolyLinesData.add(new PolylineData(polyline, route.legs[0]));
-                    tempDuration = route.legs[0].duration.inSeconds;
-                    tempDistance = route.legs[0].distance.inMeters;
-                    if (tempDuration < duration || (tempDuration == duration && tempDistance < distance)) {
-                        duration = tempDuration;
-                        distance = tempDistance;
-                        onPolylineClick(polyline);
-                    }
-                    mSelectedMarker.setVisible(false);
+                if (marker.getSnippet().equals("This is you")) {
+                    marker.hideInfoWindow();
+                } else {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
+                    builder.setMessage("Navigate or Go to Profile?")
+                            .setCancelable(true)
+                            .setPositiveButton("Navigate", new DialogInterface.OnClickListener() {
+                                public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                    resetSelectedMarker();
+                                    mSelectedMarker = marker;
+                                    calculateDirections(marker);
+                                    dialog.dismiss();
+                                }
+                            })
+                            .setNegativeButton("Profile", new DialogInterface.OnClickListener() {
+                                public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                    dialog.cancel();
+                                }
+                            });
+                    final AlertDialog alert = builder.create();
+                    alert.show();
                 }
             }
-        });
-    }
+        }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()){
-            case R.id.btn_reset_map: {
-                addMapMarkers();
-                break;
+        @Override
+        public void onPolylineClick(Polyline polyline) {
+            int index = 0;
+            for(PolylineData polylineData: mPolyLinesData){
+                index++;
+                Log.d(TAG, "onPolylineClick: toString: " + polylineData.toString());
+                if(polyline.getId().equals(polylineData.getPolyline().getId())){
+                    polylineData.getPolyline().setColor(ContextCompat.getColor(mActivity, R.color.blue1));
+                    polylineData.getPolyline().setZIndex(1);
+                    LatLng endLocation = new LatLng(polylineData.getLeg().endLocation.lat, polylineData.getLeg().endLocation.lng);
+                    Marker marker = mGoogleMap.addMarker(new MarkerOptions().position(endLocation).title("Trip #: " + index).snippet(
+                            "Duration: " + polylineData.getLeg().duration + "\nDistance: " + polylineData.getLeg().distance));
+                    mTripMarker = marker;
+                    zoomRoute(polyline.getPoints());
+                }
+                else{
+                    polylineData.getPolyline().setColor(ContextCompat.getColor(mActivity, R.color.darkGrey));
+                    polylineData.getPolyline().setZIndex(0);
+                }
+            }
+
+        }
+
+        private void calculateDirections(Marker marker){
+            Log.d(TAG, "calculateDirections: calculating directions.");
+            com.google.maps.model.LatLng destination = new com.google.maps.model.LatLng(
+                    marker.getPosition().latitude,
+                    marker.getPosition().longitude
+            );
+            DirectionsApiRequest directions = new DirectionsApiRequest(mGeoApiContext);
+            directions.alternatives(true);
+            directions.origin(
+                    new com.google.maps.model.LatLng(
+                            mUserLocation.getGeo_point().getLatitude(),
+                            mUserLocation.getGeo_point().getLongitude()
+                    )
+            );
+            Log.d(TAG, "calculateDirections: destination: " + destination.toString());
+            directions.destination(destination).setCallback(new PendingResult.Callback<DirectionsResult>() {
+                @Override
+                public void onResult(DirectionsResult result) {
+                    Log.d(TAG, "calculateDirections: routes: " + result.routes[0].toString());
+                    Log.d(TAG, "calculateDirections: duration: " + result.routes[0].legs[0].duration);
+                    Log.d(TAG, "calculateDirections: distance: " + result.routes[0].legs[0].distance);
+                    Log.d(TAG, "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[0].toString());
+                    addPolylinesToMap(result);
+                    Log.d(TAG, "onResult: SUCCESSSSSS");
+                }
+                @Override
+                public void onFailure(Throwable e) {
+                    Log.e(TAG, "calculateDirections: Failed to get directions: " + e.getMessage() );
+                }
+            });
+        }
+
+        private void addPolylinesToMap(final DirectionsResult result){
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d(TAG, "run: result routes: " + result.routes.length);
+                    if(mPolyLinesData.size() > 0){
+                        for(PolylineData polylineData: mPolyLinesData){
+                            polylineData.getPolyline().remove();
+                        }
+                        mPolyLinesData.clear();
+                        mPolyLinesData = new ArrayList<>();
+                    }
+                    double duration = 999999999;
+                    double distance = 999999999;
+                    double tempDuration, tempDistance;
+                    for(DirectionsRoute route: result.routes){
+                        Log.d(TAG, "run: leg: " + route.legs[0].toString());
+                        List<com.google.maps.model.LatLng> decodedPath = PolylineEncoding.decode(route.overviewPolyline.getEncodedPath());
+                        List<LatLng> newDecodedPath = new ArrayList<>();
+
+                        // This loops through all the LatLng coordinates of ONE polyline.
+                        for(com.google.maps.model.LatLng latLng: decodedPath){
+                            Log.d(TAG, "run: latlng: " + latLng.toString());
+                            newDecodedPath.add(new LatLng(
+                                    latLng.lat,
+                                    latLng.lng
+                            ));
+                        }
+                        Polyline polyline = mGoogleMap.addPolyline(new PolylineOptions().addAll(newDecodedPath));
+                        polyline.setColor(ContextCompat.getColor(mActivity, R.color.darkGrey));
+                        polyline.setClickable(true);
+                        mPolyLinesData.add(new PolylineData(polyline, route.legs[0]));
+                        tempDuration = route.legs[0].duration.inSeconds;
+                        tempDistance = route.legs[0].distance.inMeters;
+                        if (tempDuration < duration || (tempDuration == duration && tempDistance < distance)) {
+                            duration = tempDuration;
+                            distance = tempDistance;
+                            onPolylineClick(polyline);
+                        }
+                        mSelectedMarker.setVisible(false);
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void onClick(View v) {
+            switch (v.getId()){
+                case R.id.btn_reset_map: {
+                    addMapMarkers();
+                    setCameraView();
+                    break;
+                }
             }
         }
-    }
 
     /*
     ----------------------------- Map Callback ---------------------------------
     */
 
-    public interface MapCallBack {
-        ArrayList<UserLocation> getUserLocations();
-        UserLocation getUserLocation();
-        ArrayList<Contact> getContacts();
+        public interface MapCallBack {
+            ArrayList<UserLocation> getUserLocations();
+            UserLocation getUserLocation();
+            ArrayList<Contact> getContacts();
+        }
     }
-}
-
