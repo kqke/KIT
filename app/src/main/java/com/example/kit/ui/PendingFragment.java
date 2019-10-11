@@ -141,6 +141,9 @@ public class PendingFragment extends DBGeoFragment implements
     }
 
     private void initView(View v){
+        if(mPending.size()==0){
+            v.findViewById(R.id.linear).setVisibility(View.VISIBLE);
+        }
         mPendingRecyclerView = v.findViewById(R.id.pending_recycler_view);
         mPendingRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
                 this, R.layout.layout_pending_list_item, getContext());

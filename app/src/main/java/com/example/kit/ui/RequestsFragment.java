@@ -146,6 +146,9 @@ public class RequestsFragment extends DBGeoFragment implements
     */
 
     private void initView(View v){
+        if(mRequests.size()==0){
+            v.findViewById(R.id.linear).setVisibility(View.VISIBLE);
+        }
         mRequestsRecyclerView = v.findViewById(R.id.requests_recycler_view);
         mRequestsRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
                 this, R.layout.layout_requests_list_item, getContext());
