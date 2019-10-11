@@ -335,9 +335,6 @@ public class ChatsFragment extends DBGeoFragment implements
 
     }
 
-
-
-
     private void notifyRecyclerAdapter(){
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             public void run() {

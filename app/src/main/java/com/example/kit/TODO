@@ -1,17 +1,31 @@
 TODO - UI
 
-- Images/Text for empty Contacts/requests/pending fragments (grab the linear layout from chatsfragment)
+done - Images/Text for empty Contacts/requests/pending fragments (grab the linear layout from chatsfragment)
 - Images for chatrooms?
+- unseen messages in the chatroom
 - Make sure keyboard works properly in chatFragment
 - Toast error messages specifying username/status/display name errors
 - Map Fragment dialog (navigate/profile)
-
+- Those dialog fragment things
+- The weights thing in contactFragment does not work properly
+- maybe add an indicator to a contact that is in incognito mode
+- fucking back stack - go from chats to contacts and back to chats -> press back -> FUCK
+- chatroom name not updated when display name updated
+- Handwriting/text recognition - fix the dialog fragment
+- contact fragment - username/display name mix up
 
 TODO - GENERAL
 
+- Google sign in not working
+- Map updates can be seen and its annoying
+- navigation from contactfragment to mapfragment does not work
+- Authentication is checked on every MainActivity onCreate
 - Search still not working
 - Status/Display Name/username validity?
 - Leave chatroom functionality?
 - Connection time-outs
+- incognito not REALLY working with live location - the marker is not drawn but location is still shown
+- scheduling has not been really tested yet
+- lots of spontaneous crashes on casual use
+- email verification
 
-- Handwriting recognition?

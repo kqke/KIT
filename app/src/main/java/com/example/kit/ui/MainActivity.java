@@ -886,7 +886,14 @@ public class MainActivity extends AppCompatActivity implements
             fetchRequests();
             fetchPending();
             fetchChatrooms();
-        } else {
+        } else if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.CAMERA},
+                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+        else{
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);

@@ -29,5 +29,51 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"/>
 
+    <LinearLayout
+        android:layout_marginTop="90dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        android:id="@+id/linear"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="YOU"
+            android:textSize="30sp"
+            android:layout_marginTop="30dp"
+            android:layout_marginStart="40dp"
+            android:id="@+id/textYou"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="HAVE"
+            android:textSize="45sp"
+            android:layout_marginTop="30dp"
+            android:layout_marginStart="40dp"
+            android:id="@+id/textHave"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="NO"
+            android:textSize="60sp"
+            android:layout_marginTop="5dp"
+            android:layout_marginStart="40dp"
+            android:id="@+id/textNo"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="REQUESTS"
+            android:textSize="25sp"
+            android:layout_marginTop="25dp"
+            android:layout_marginStart="40dp"
+            android:id="@+id/textChats"/>
+    </LinearLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

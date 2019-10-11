@@ -17,10 +17,21 @@
         android:textColor="@android:color/holo_green_dark"
         />
 
+    <TextureView
+        android:id="@+id/camera_preview"
+        android:layout_width="640px"
+        android:layout_height="640px"
+        app:layout_constraintTop_toBottomOf="@+id/text"
+        app:layout_constraintBottom_toTopOf="@+id/dialog_input"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/text"
+        app:layout_constraintTop_toBottomOf="@id/camera_preview"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         android:background="@null"
         android:hint="username"
         android:id="@+id/dialog_input"
