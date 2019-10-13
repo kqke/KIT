@@ -19,12 +19,12 @@ TODO - GENERAL
 - Google sign in not working
 - Map updates can be seen and its annoying
 - navigation from contactfragment to mapfragment does not work
-- Authentication is checked on every MainActivity onCreate
+done - Authentication is checked on every MainActivity onCreate
 - Search still not working
 - Status/Display Name/username validity?
 - Leave chatroom functionality?
 - Connection time-outs
-- incognito not REALLY working with live location - the marker is not drawn but location is still shown
+- incognito not REALLY working with live location - the marker is not drawn but location (blue dot) is still shown
 - scheduling has not been really tested yet
 - lots of spontaneous crashes on casual use
 - email verification

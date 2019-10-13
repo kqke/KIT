@@ -50,6 +50,8 @@ public class UserClient extends Application {
 
     private User user;
 
+    private boolean isAuth = false;
+
     public User getUser() {
         return user;
     }
@@ -58,4 +60,12 @@ public class UserClient extends Application {
         this.user = user;
     }
 
+
+    public boolean isAuth() {
+        return isAuth;
+    }
+
+    public void setAuth(boolean auth) {
+        isAuth = auth;
+    }
 }
