@@ -11,7 +11,7 @@ done - Images/Text for empty Contacts/requests/pending fragments (grab the linea
 - maybe add an indicator to a contact that is in incognito mode
 - fucking back stack - go from chats to contacts and back to chats -> press back -> FUCK
 - chatroom name not updated when display name updated
-- Handwriting/text recognition - fix the dialog fragment
+done - Handwriting/text recognition - fix the dialog fragment
 - contact fragment - username/display name mix up
 
 TODO - GENERAL
