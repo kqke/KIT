@@ -162,7 +162,15 @@ public class MainActivity extends AppCompatActivity implements
         mDb = FirebaseFirestore.getInstance();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         initPreferenceListener();
-        setupFirebaseAuth();
+        if(((UserClient) (getApplicationContext())).isAuth()){
+            mAuth = FirebaseAuth.getInstance();
+            initLoadingView();
+            getLocationPermission();
+            initMessageService();
+        }
+        else {
+            setupFirebaseAuth();
+        }
     }
 
     @Override
@@ -272,6 +280,7 @@ public class MainActivity extends AppCompatActivity implements
                 "Authenticated with: " + user.getEmail(),
                 Toast.LENGTH_SHORT).show();
         ((UserClient) (getApplicationContext())).setUser(user);
+        ((UserClient) (getApplicationContext())).setAuth(true);
         Log.d(TAG, "setCurrentUser: successfully set the user client.");
     }
 
