@@ -1,30 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:animateLayoutChanges="true">
 
     <TextView
         android:id="@+id/text"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
         android:text="ENTER A USERNAME"
         android:textColor="@android:color/holo_green_dark"
         />
 
+
+
     <TextureView
+        android:visibility="gone"
+        android:animateLayoutChanges="true"
         android:id="@+id/camera_preview"
-        android:layout_width="640px"
-        android:layout_height="640px"
-        app:layout_constraintTop_toBottomOf="@+id/text"
-        app:layout_constraintBottom_toTopOf="@+id/dialog_input"
+        android:layout_width="match_parent"
+        android:layout_height="300px"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
 
     <EditText
         android:layout_width="match_parent"
@@ -38,17 +40,32 @@
         android:padding="30dp"
         />
 
-    <Button
-        android:id="@+id/go_profile_btn"
+    <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/dialog_input"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:drawableTop="@drawable/ic_profile_1"
-        android:text="GO TO PROFILE"
-        android:textColor="@android:color/holo_green_dark"
-        style="?android:attr/borderlessButtonStyle"
-        />
+        android:layout_gravity="center">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <Button
+            android:id="@+id/go_profile_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableTop="@drawable/ic_profile_1"
+            android:text="GO TO PROFILE"
+            android:textColor="@android:color/holo_green_dark"
+            style="?android:attr/borderlessButtonStyle"
+            />
+
+        <Button
+            android:id="@+id/start_camera"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@+id/go_profile_btn"
+            android:text="SCAN TEXT"
+            android:drawableTop="@drawable/ic_camera_24px"
+            style="?android:attr/borderlessButtonStyle"/>
+
+
+    </RelativeLayout>
+
+
+</LinearLayout>

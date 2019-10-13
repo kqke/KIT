@@ -1,11 +1,12 @@
 package com.example.kit.ui;
 
 import android.Manifest;
+
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Matrix;
-import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.media.Image;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import androidx.camera.core.ImageAnalysisConfig;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
 import androidx.camera.core.PreviewConfig;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -34,6 +36,7 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -42,6 +45,7 @@ import com.example.kit.R;
 import com.example.kit.adapters.ContactRecyclerAdapter;
 import com.example.kit.models.Contact;
 import com.example.kit.models.UserLocation;
+import com.example.kit.util.ViewWeightAnimationWrapper;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -62,6 +66,7 @@ import com.google.firebase.ml.vision.text.FirebaseVisionText;
 import com.google.firebase.ml.vision.text.FirebaseVisionTextRecognizer;
 import com.google.firebase.ml.vision.text.RecognizedLanguage;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -103,6 +108,10 @@ public class ContactsFragment extends DBGeoFragment implements
     EditText inputUsername;
     TextureView cameraPreview;
     private final AtomicBoolean shouldThrottle = new AtomicBoolean(false);
+    private boolean cameraOpen;
+    private Button startCameraBtn;
+    private ImageAnalysis imageAnalysis;
+    private Preview preview;
 
 
     private static View view;
@@ -318,13 +327,44 @@ public class ContactsFragment extends DBGeoFragment implements
         alertDialog = new AlertDialog.Builder(mActivity).create();
         inputUsername = dialogView.findViewById(R.id.dialog_input);
         cameraPreview = dialogView.findViewById(R.id.camera_preview);
+        startCameraBtn = dialogView.findViewById(R.id.start_camera);
         dialogView.findViewById(R.id.go_profile_btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 checkExistingUsername(inputUsername.getText().toString());
             }
         });
-        initCamera();
+        startCameraBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!cameraOpen){
+                    if(initCamera()) {
+                        inputUsername.setText("");
+                        startCameraBtn.setText("CLOSE CAMERA");
+                        cameraPreview.setVisibility(View.VISIBLE);
+                        cameraOpen = true;
+                    }
+                }
+                else{
+                    startCameraBtn.setText("SCAN TEXT");
+                    cameraPreview.setVisibility(View.GONE);
+                    imageAnalysis.removeAnalyzer();
+                    preview.removePreviewOutputListener();
+                    cameraOpen = false;
+                }
+            }
+        });
+        alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                cameraPreview.setVisibility(View.GONE);
+                startCameraBtn.setText("SCAN TEXT");
+                inputUsername.setText("");
+                imageAnalysis.removeAnalyzer();
+                preview.removePreviewOutputListener();
+                cameraOpen = false;
+            }
+        });
         alertDialog.setView(dialogView);
         alertDialog.show();
     }
@@ -333,7 +373,7 @@ public class ContactsFragment extends DBGeoFragment implements
     ----------------------------- Text Recognition ---------------------------------
     */
 
-    private void initCamera() {
+    private boolean initCamera() {
         boolean hasPermission = ContextCompat.checkSelfPermission(mActivity.getApplicationContext(),
                 Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_GRANTED;
@@ -343,10 +383,10 @@ public class ContactsFragment extends DBGeoFragment implements
             CameraX.unbindAll();
 
             PreviewConfig previewConfig = new PreviewConfig.Builder()
-                    .setTargetAspectRatio(new Rational(1, 1))
-                    .setTargetResolution(new Size(640, 640))
+                    .setTargetAspectRatio(new Rational(cameraPreview.getWidth(), cameraPreview.getHeight()))
+                    .setTargetResolution(new  Size(cameraPreview.getWidth(), cameraPreview.getHeight()))
                     .build();
-            final Preview preview = new Preview(previewConfig);
+            preview = new Preview(previewConfig);
 
             preview.setOnPreviewOutputUpdateListener(
                     new Preview.OnPreviewOutputUpdateListener() {
@@ -356,18 +396,17 @@ public class ContactsFragment extends DBGeoFragment implements
                             parent.removeView(cameraPreview);
                             parent.addView(cameraPreview, 0);
                             SurfaceTexture preview = previewOutput.getSurfaceTexture();
-
                             cameraPreview.setSurfaceTexture(preview);
                             updateTransform();
                         }
                     });
 
             ImageAnalysisConfig analysisConfig = new ImageAnalysisConfig.Builder()
-                            .setTargetAspectRatio(new Rational(1, 1))
-                            .setTargetResolution(new Size(640, 640))
+                            .setTargetAspectRatio(new Rational(cameraPreview.getWidth(), cameraPreview.getHeight()))
+                            .setTargetResolution(new Size(cameraPreview.getWidth(), cameraPreview.getHeight()))
                             .setImageReaderMode(ImageAnalysis.ImageReaderMode.ACQUIRE_LATEST_IMAGE)
                             .build();
-            ImageAnalysis imageAnalysis = new ImageAnalysis(analysisConfig);
+            imageAnalysis = new ImageAnalysis(analysisConfig);
             imageAnalysis.setAnalyzer(
                     new ImageAnalysis.Analyzer() {
                         @Override
@@ -392,7 +431,7 @@ public class ContactsFragment extends DBGeoFragment implements
                                                 public void run() {
                                                     shouldThrottle.set(false);
                                                 }
-                                            },3000);
+                                            },1000);
                                         }
                                     })
                                     .addOnFailureListener(
@@ -405,39 +444,33 @@ public class ContactsFragment extends DBGeoFragment implements
                                                         public void run() {
                                                             shouldThrottle.set(false);
                                                         }
-                                                    },3000);
+                                                    },1000);
                                                 }
                                             });
                             shouldThrottle.set(true);
                         }
                     });
             CameraX.bindToLifecycle(this, imageAnalysis, preview);
-        } else {
-
+            return true;
         }
+        if(!hasPermission){
+            ActivityCompat.requestPermissions(mActivity,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.CAMERA},
+                    999);
+        }
+        if(!hasCamera){
+            Toast.makeText(mActivity,
+                    "You don't seem to have a camera",
+                    Toast.LENGTH_SHORT).show();
+        }
+        return false;
     }
+
 
     private void putCameraText(FirebaseVisionText result){
         String resultText = result.getText();
-        for (FirebaseVisionText.TextBlock block: result.getTextBlocks()) {
-            String blockText = block.getText();
-            Float blockConfidence = block.getConfidence();
-            List<RecognizedLanguage> blockLanguages = block.getRecognizedLanguages();
-            Point[] blockCornerPoints = block.getCornerPoints();
-            for (FirebaseVisionText.Line line: block.getLines()) {
-                String lineText = line.getText();
-                Float lineConfidence = line.getConfidence();
-                List<RecognizedLanguage> lineLanguages = line.getRecognizedLanguages();
-                Point[] lineCornerPoints = line.getCornerPoints();
-                for (FirebaseVisionText.Element element: line.getElements()) {
-                    String elementText = element.getText();
-                    Float elementConfidence = element.getConfidence();
-                    Point[] elementCornerPoints = element.getCornerPoints();
-                }
-            }
-            inputUsername.setText(blockText);
-            break;
-        }
+        if(cameraOpen)
+            inputUsername.setText(resultText);
     }
 
     private void updateTransform(){
