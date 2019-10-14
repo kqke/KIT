@@ -143,6 +143,7 @@ public class MainActivity extends AppCompatActivity implements
     SharedPreferences.OnSharedPreferenceChangeListener spChanged;
     private static boolean incognito;
     private static boolean exit;
+    private BottomNavigationView bottomNav;
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -332,7 +333,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void initNavigationBar () {
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_navi_bar);
+        bottomNav = findViewById(R.id.bottom_navi_bar);
         bottomNav.setVisibility(View.VISIBLE);
         if (curString.equals(MAP_FRAG)){
             curFragment = MapFragment.newInstance();
@@ -1061,25 +1062,35 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onBackPressed() {
-        int count = getSupportFragmentManager().getBackStackEntryCount();
-        if (count == 0) {
-            if (exit) {
-                finish(); // finish activity
-            } else {
-                Toast.makeText(this, "Press Back again to Exit.",
-                        Toast.LENGTH_SHORT).show();
-                exit = true;
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        exit = false;
-                    }
-                }, 2 * 1000);
+        if (curString != CHATS_FRAG) {
+            exit = false;
+            bottomNav.setSelectedItemId(R.id.action_chats);
+            curFragment = ChatsFragment.getInstance();
+            curString = CHATS_FRAG;
+            setTitle(R.string.fragment_chats);
+            replaceFragment(curFragment, curString, false);
+        }
+        else {
+            int count = getSupportFragmentManager().getBackStackEntryCount();
+            if (count == 0) {
+                if (exit) {
+                    finish(); // finish activity
+                } else {
+                    Toast.makeText(this, "Press Back again to Exit.",
+                            Toast.LENGTH_SHORT).show();
+                    exit = true;
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            exit = false;
+                        }
+                    }, 2 * 1000);
 
+                }
+            } else {
+                getSupportFragmentManager().popBackStackImmediate();
+                int c = getSupportFragmentManager().getBackStackEntryCount();
             }
-        } else {
-            getSupportFragmentManager().popBackStackImmediate();
-            int c = getSupportFragmentManager().getBackStackEntryCount();
         }
     }
 }
