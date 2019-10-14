@@ -14,6 +14,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 
+import android.os.Handler;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -88,7 +89,8 @@ public class MainActivity extends AppCompatActivity implements
         MapFragment.MapCallBack,
         RequestsDialogFragment.OnInputSelected,
         PendingFragment.PendingCallback,
-        ContactFragment.ContactCallback
+        ContactFragment.ContactCallback,
+        SettingsActivity.SettingsCallback
 {
 
     //Tag
@@ -140,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements
 
     SharedPreferences.OnSharedPreferenceChangeListener spChanged;
     private static boolean incognito;
+    private static boolean exit;
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -147,6 +150,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        exit = false;
         incognito = getSharedPreferences(MY_PREFERENCES, Context.MODE_PRIVATE).getBoolean(INCOGNITO, false);
         if(incognito) {
             setTheme(R.style.AppThemeIncognito);
@@ -176,13 +180,14 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onResume() {
         super.onResume();
+        exit = false;
         if (checkMapServices()) {
             if (isLocationPermissionGranted()) {
-//                getUserDetails();
-//                fetchContacts();
-//                fetchRequests();
-//                fetchPending();
-//                fetchChatrooms();
+                getUserDetails();
+                fetchContacts();
+                fetchRequests();
+                fetchPending();
+                fetchChatrooms();
             }
         }
     }
@@ -439,6 +444,8 @@ public class MainActivity extends AppCompatActivity implements
         return mContacts;
     }
 
+
+
     @Override
     public Set<String> getContactIds() {
         return mContactIds;
@@ -571,7 +578,7 @@ public class MainActivity extends AppCompatActivity implements
         startActivity(intent);
     }
 
-    private void navSettingsActivity(){
+     public void navSettingsActivity(){
         Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
     }
@@ -582,7 +589,7 @@ public class MainActivity extends AppCompatActivity implements
         args.putParcelable(CONTACT, contact);
         args.putString(CONTACT_STATE, state);
         contactFrag.setArguments(args);
-        replaceFragment(contactFrag, CONTACT_FRAG, stack);
+        replaceFragment(contactFrag, CONTACT_FRAG, true);
     }
 
     /*
@@ -808,7 +815,7 @@ public class MainActivity extends AppCompatActivity implements
                         contact.setAvatar(user.getAvatar());
                         contact.setStatus(user.getStatus());
                         contact.setToken(user.getToken());
-                        navContactFragment(contact, state, false);
+                        navContactFragment(contact, state, true);
                     }
                 }
             });
@@ -1049,6 +1056,30 @@ public class MainActivity extends AppCompatActivity implements
             replaceFragment(ContactsRequestsPendingFragment.newInstance(), CONTACTS_FRAG, false);
             setTitle(R.string.fragment_contacts);
 
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        int count = getSupportFragmentManager().getBackStackEntryCount();
+        if (count == 0) {
+            if (exit) {
+                finish(); // finish activity
+            } else {
+                Toast.makeText(this, "Press Back again to Exit.",
+                        Toast.LENGTH_SHORT).show();
+                exit = true;
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        exit = false;
+                    }
+                }, 2 * 1000);
+
+            }
+        } else {
+            getSupportFragmentManager().popBackStackImmediate();
+            int c = getSupportFragmentManager().getBackStackEntryCount();
         }
     }
 }

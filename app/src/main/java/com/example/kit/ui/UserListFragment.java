@@ -45,6 +45,7 @@ public class UserListFragment extends MapFragment
     //Callback
     ChatFragment.ChatroomCallback callback;
     UserListCallback ulCallback;
+    ContactFragment.ContactCallback contactCallback;
 
     //map
     RelativeLayout mMapContainer;
@@ -86,6 +87,7 @@ public class UserListFragment extends MapFragment
         super.onAttach(context);
         callback = (ChatFragment.ChatroomCallback) context;
         ulCallback = (UserListCallback) context;
+        contactCallback = (ContactFragment.ContactCallback) context;
         mUserList = callback.getUserList();
         mContactList = ulCallback.getContacts();
     }
@@ -168,13 +170,7 @@ public class UserListFragment extends MapFragment
             ulCallback.navSettingsActivity();
             return;
         }
-        if (cont.getStatus().equals(NOT_FRIENDS)){
-            state = NOT_FRIENDS;
-        }
-        else {
-            state = FRIENDS;
-        }
-        ulCallback.navContactFragment(mContactList.get(position), state);
+        contactCallback.initContactFragment(mContactList.get(position).getCid(), null);
     }
 
     @Override

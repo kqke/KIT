@@ -95,6 +95,11 @@ public class MapFragment extends DBGeoFragment implements
     protected MapView mMapView;
     ImageButton mapRefreshButton;
 
+    //Callbacks
+    ContactFragment.ContactCallback contactCallback;
+    SettingsActivity.SettingsCallback settingsCallback;
+    MapCallBack mapCallBack;
+
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -111,13 +116,16 @@ public class MapFragment extends DBGeoFragment implements
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        MapCallBack getData = (MapCallBack)context;
-        mContactLocations = getData.getUserLocations();
+        contactCallback = (ContactFragment.ContactCallback)context;
+        settingsCallback = (SettingsActivity.SettingsCallback)context;
+        mapCallBack = (MapCallBack)context;
+
+        mContactLocations = mapCallBack.getUserLocations();
         for (UserLocation contactLoc: mContactLocations){
             id2ContactsLocations.put(contactLoc.getUser().getUser_id(), contactLoc);
         }
 
-        mUserLocation = getData.getUserLocation();
+        mUserLocation = mapCallBack.getUserLocation();
     }
 
     @Override
@@ -147,6 +155,7 @@ public class MapFragment extends DBGeoFragment implements
     @Override
     public void onResume() {
         super.onResume();
+
         mMapView.onResume();
         startUserLocationsRunnable();
     }
@@ -155,6 +164,7 @@ public class MapFragment extends DBGeoFragment implements
     public void onStart() {
         super.onStart();
         mMapView.onStart();
+        addMapMarkers();
     }
 
 
@@ -249,23 +259,27 @@ public class MapFragment extends DBGeoFragment implements
                                 toReset = true;
                             }
                             id2ContactsLocations.put(updatedUserLocation.getUser().getUser_id(), updatedUserLocation);
-                            for (int i = 0; i < mClusterMarkers.size(); i++) {
-                                try {
-                                    if (mClusterMarkers.get(i).getUser().getUser_id().equals(updatedUserLocation.getUser().getUser_id())) {
+                            if (!updatedUserLocation.isIncognito()) {
+                                boolean found = false;
+                                for (int i = 0; i < mClusterMarkers.size(); i++) {
+                                    try {
+                                        if (mClusterMarkers.get(i).getUser().getUser_id().equals(updatedUserLocation.getUser().getUser_id())) {
 
 
-                                        LatLng updatedLatLng = new LatLng(
-                                                updatedUserLocation.getGeo_point().getLatitude(),
-                                                updatedUserLocation.getGeo_point().getLongitude()
-                                        );
-                                        mClusterMarkers.get(i).setPosition(updatedLatLng);
-                                        mClusterManagerRenderer.setUpdateMarker(mClusterMarkers.get(i));
-                                    } else if (i == mClusterMarkers.size() - 1) {
-                                        toReset = true;
+                                            LatLng updatedLatLng = new LatLng(
+                                                    updatedUserLocation.getGeo_point().getLatitude(),
+                                                    updatedUserLocation.getGeo_point().getLongitude()
+                                            );
+                                            mClusterMarkers.get(i).setPosition(updatedLatLng);
+                                            mClusterManagerRenderer.setUpdateMarker(mClusterMarkers.get(i));
+                                            found = true;
+                                        } else if (i == mClusterMarkers.size() - 1 && !found) {
+                                            toReset = true;
+                                        }
+
+                                    } catch (NullPointerException e) {
+                                        Log.e(TAG, "retrieveUserLocations: NullPointerException: " + e.getMessage());
                                     }
-
-                                } catch (NullPointerException e) {
-                                    Log.e(TAG, "retrieveUserLocations: NullPointerException: " + e.getMessage());
                                 }
                             }
                             if (toReset) {
@@ -517,16 +531,32 @@ public class MapFragment extends DBGeoFragment implements
                         });
                 final AlertDialog alert = builder.create();
                 alert.show();
-            } else {
+            }
 
-
+            else {
                 if (marker.getSnippet().equals("This is you")) {
-                    marker.hideInfoWindow();
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
+                    builder.setMessage("Go to Settings?")
+                            .setCancelable(true)
+                            .setPositiveButton("Settings", new DialogInterface.OnClickListener() {
+                                public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                    settingsCallback.navSettingsActivity();
+                                    dialog.dismiss();
+                                }
+                            })
+                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.cancel();
+                                }
+                            });
+                    final AlertDialog alert = builder.create();
+                    alert.show();
                 } else {
                     final AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
-                    builder.setMessage("Navigate or Go to Profile?")
+                    builder.setMessage("Calculate Directions or Go to Profile?")
                             .setCancelable(true)
-                            .setPositiveButton("Navigate", new DialogInterface.OnClickListener() {
+                            .setPositiveButton("Calculate", new DialogInterface.OnClickListener() {
                                 public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
                                     resetSelectedMarker();
                                     mSelectedMarker = marker;
@@ -536,6 +566,7 @@ public class MapFragment extends DBGeoFragment implements
                             })
                             .setNegativeButton("Profile", new DialogInterface.OnClickListener() {
                                 public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                    contactCallback.initContactFragment(mClusterManagerRenderer.getmMarkerToUser().get(marker.getId()).getUser_id(), null);
                                     dialog.cancel();
                                 }
                             });

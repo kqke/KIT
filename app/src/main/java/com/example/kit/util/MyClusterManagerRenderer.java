@@ -12,6 +12,7 @@ import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.example.kit.R;
 import com.example.kit.models.ClusterMarker;
+import com.example.kit.models.User;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
@@ -21,6 +22,8 @@ import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 import com.google.maps.android.ui.IconGenerator;
 
+import java.util.HashMap;
+
 public class MyClusterManagerRenderer extends DefaultClusterRenderer<ClusterMarker>
 {
   private final IconGenerator iconGenerator;
@@ -29,6 +32,7 @@ public class MyClusterManagerRenderer extends DefaultClusterRenderer<ClusterMark
   private final int markerHeight;
   private Context mContext;
   Bitmap icon;
+  private HashMap<String, User> mMarkerToUser = new HashMap<>();
 
   public MyClusterManagerRenderer(Context context, GoogleMap googleMap,
                                   ClusterManager<ClusterMarker> clusterManager) {
@@ -62,6 +66,9 @@ public class MyClusterManagerRenderer extends DefaultClusterRenderer<ClusterMark
   @Override
   protected void onClusterItemRendered(ClusterMarker clusterItem, final Marker marker) {
     super.onClusterItemRendered(clusterItem, marker);
+    if (marker.getTag() == null) {
+      marker.setTag("tagged");
+    }
     Glide.with(mContext)
             .load(clusterItem.getIconPicture())
             .apply(new RequestOptions().diskCacheStrategy(DiskCacheStrategy.ALL))
@@ -69,11 +76,14 @@ public class MyClusterManagerRenderer extends DefaultClusterRenderer<ClusterMark
             .into(new SimpleTarget<Drawable>() {
               @Override
               public void onResourceReady(Drawable drawable, Transition<? super Drawable> transition) {
-                imageView.setImageDrawable(drawable);
-                icon = iconGenerator.makeIcon();
-                marker.setIcon(BitmapDescriptorFactory.fromBitmap(icon));
+//              if (marker.getTag() != null) {
+                  imageView.setImageDrawable(drawable);
+                  icon = iconGenerator.makeIcon();
+                  marker.setIcon(BitmapDescriptorFactory.fromBitmap(icon));
+//              }
               }
             });
+    mMarkerToUser.put(marker.getId(), clusterItem.getUser());
   }
 
   @Override
@@ -92,5 +102,7 @@ public class MyClusterManagerRenderer extends DefaultClusterRenderer<ClusterMark
     }
   }
 
-
+  public HashMap<String, User> getmMarkerToUser() {
+    return mMarkerToUser;
+  }
 }

@@ -64,7 +64,8 @@ public class ChatroomActivity extends AppCompatActivity implements
         MapFragment.MapCallBack,
         View.OnClickListener,
         UserListFragment.UserListCallback,
-        ContactFragment.ContactCallback
+        ContactFragment.ContactCallback,
+        SettingsActivity.SettingsCallback
 {
 
     //Tag
@@ -450,23 +451,30 @@ public class ChatroomActivity extends AppCompatActivity implements
                 }
             });
         }
-        if(mContacts.keySet().contains(id)){
-            Contact contact = mContacts.get(id);
-            navContactFragment(contact, FRIENDS);
-            return;
-        }
-
-        for(Contact request : mRequests.values()){
-            if(request.getCid().equals(id)){
-                navContactFragment(request, THEIR_REQUEST_PENDING);
+        if (mContacts != null) {
+            if (mContacts.keySet().contains(id)) {
+                Contact contact = mContacts.get(id);
+                navContactFragment(contact, FRIENDS);
                 return;
             }
         }
 
-        for(Contact pending : mPending.values()){
-            if(pending.getCid().equals(id)){
-                navContactFragment(pending, MY_REQUEST_PENDING);
-                return;
+        if (mRequests != null) {
+            for (Contact request : mRequests.values()) {
+                if (request.getCid().equals(id)) {
+                    navContactFragment(request, THEIR_REQUEST_PENDING);
+                    return;
+                }
+            }
+        }
+
+
+        if (mPending != null) {
+            for (Contact pending : mPending.values()) {
+                if (pending.getCid().equals(id)) {
+                    navContactFragment(pending, MY_REQUEST_PENDING);
+                    return;
+                }
             }
         }
 
