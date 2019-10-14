@@ -62,6 +62,7 @@ dependencies {
     //Firebase Text Recognition
     implementation 'com.google.firebase:firebase-ml-vision:23.0.0'
 
+
     //Google Play Services for Maps
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
     // Google play services for location information

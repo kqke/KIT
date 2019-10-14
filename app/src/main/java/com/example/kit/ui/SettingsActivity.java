@@ -480,4 +480,8 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         // CropImage.activity(uri).setAspectRatio(1, 1).start(this);
 
     }
+
+    public interface SettingsCallback{
+        void navSettingsActivity();
+    }
 }
