@@ -499,6 +499,16 @@ public class ChatroomActivity extends AppCompatActivity implements
     }
 
     @Override
+    public void requestAccepted(String display_name, Contact contact) {
+
+    }
+
+    @Override
+    public void requestRemoved(Contact contact) {
+
+    }
+
+    @Override
     public void removeContact(Contact contact) {
         mContacts.remove(contact.getCid());
         mRequests.remove(contact.getCid());
