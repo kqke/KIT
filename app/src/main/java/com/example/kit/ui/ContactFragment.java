@@ -3,7 +3,6 @@ package com.example.kit.ui;
 import android.animation.LayoutTransition;
 import android.animation.ObjectAnimator;
 import android.content.Context;
-import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -50,15 +49,16 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import static android.view.View.VISIBLE;
 
+import static com.example.kit.Constants.ACCEPT_REQUEST;
 import static com.example.kit.Constants.CONTACT;
 import static com.example.kit.Constants.CONTACT_STATE;
 import static com.example.kit.Constants.FRIENDS;
 import static com.example.kit.Constants.MY_REQUEST_PENDING;
 import static com.example.kit.Constants.NOT_FRIENDS;
+import static com.example.kit.Constants.SEND_REQUEST;
 import static com.example.kit.Constants.THEIR_REQUEST_PENDING;
 
 public class ContactFragment extends MapFragment implements
@@ -331,16 +331,26 @@ public class ContactFragment extends MapFragment implements
         }
     }
 
-    private void getDisplayName(){
+    private void getDisplayName(final String state){
         final View dialogView = View.inflate(mActivity, R.layout.dialog_display_name, null);
         final AlertDialog alertDialog = new AlertDialog.Builder(mActivity).create();
-        dialogView.findViewById(R.id.go_profile_btn).setOnClickListener(new View.OnClickListener() {
+        Button goBtn = dialogView.findViewById(R.id.accept_req_btn);
+        if(state.equals(SEND_REQUEST)){
+            goBtn = dialogView.findViewById(R.id.go_profile_btn);
+        }
+        goBtn.setVisibility(VISIBLE);
+        goBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String displayName = ((EditText)dialogView.findViewById(R.id.dialog_input)).getText().toString();
                 UsernameValidator validator = new UsernameValidator();
                 if(validator.validate(displayName)){
-                    addContact(displayName, mContact);
+                    if(state.equals(SEND_REQUEST)){
+                        addContact(displayName, mContact);
+                    }
+                    else{
+                        requestAccepted(displayName, mContact);
+                    }
                     alertDialog.dismiss();
                 }
                 else{
@@ -415,19 +425,23 @@ public class ContactFragment extends MapFragment implements
     */
 
     private void sendRequest(){
-        getDisplayName();
+        getDisplayName(SEND_REQUEST);
     }
 
     private void acceptRequest(){
-        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_ACCEPT_REQUEST, mContact, getActivity(), this);
-        requestDialog.setTargetFragment(ContactFragment.this, 1);
-        requestDialog.show(getFragmentManager(), "RequestsDialogFragment");
+        getDisplayName(ACCEPT_REQUEST);
+
+//        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_ACCEPT_REQUEST, mContact, getActivity(), this);
+//        requestDialog.setTargetFragment(ContactFragment.this, 1);
+//        requestDialog.show(getFragmentManager(), "RequestsDialogFragment");
     }
 
     private void declineRequest(){
-        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_REMOVE_REQUEST, mContact, getActivity(), this);
-        requestDialog.setTargetFragment(ContactFragment.this, 1);
-        requestDialog.show(getFragmentManager(), "RequestsDialogFragment");
+
+
+//        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_REMOVE_REQUEST, mContact, getActivity(), this);
+//        requestDialog.setTargetFragment(ContactFragment.this, 1);
+//        requestDialog.show(getFragmentManager(), "RequestsDialogFragment");
     }
 
     private void deleteRequest(){
@@ -586,9 +600,9 @@ public class ContactFragment extends MapFragment implements
     @Override
     public void onMapReady(GoogleMap map) {
         super.onMapReady(map);
-        if (mMapLayoutState == MAP_LAYOUT_STATE_EXPANDED){
-            expandMapAnimation();
-        }
+//        if (mMapLayoutState == MAP_LAYOUT_STATE_EXPANDED){
+//            expandMapAnimation();
+//        }
     }
 
 
@@ -614,13 +628,9 @@ public class ContactFragment extends MapFragment implements
                 return str1_ch - str2_ch;
             }
         }
-        // Edge case for strings like
-        // String 1="Geeks" and String 2="Geeksforgeeks"
         if (l1 != l2) {
             return l1 - l2;
         }
-        // If none of the above conditions is true,
-        // it implies both the strings are equal
         else {
             return 0;
         }

@@ -13,6 +13,8 @@ done - The weights thing in contactFragment does not work properly
 - chatroom name not updated when display name updated
 done - Handwriting/text recognition - fix the dialog fragment
 - contact fragment - username/display name mix up
+- Remove South Park Pics
+- Change avatar dialog
 
 TODO - GENERAL
 
