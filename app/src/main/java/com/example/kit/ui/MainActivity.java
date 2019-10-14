@@ -87,7 +87,6 @@ public class MainActivity extends AppCompatActivity implements
         ChatsFragment.ChatroomsCallback,
         RequestsFragment.RequestsCallback,
         MapFragment.MapCallBack,
-        RequestsDialogFragment.OnInputSelected,
         PendingFragment.PendingCallback,
         ContactFragment.ContactCallback,
         SettingsActivity.SettingsCallback
@@ -462,6 +461,16 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
+    public void requestAccepted(String display_name, Contact contact) {
+        handleRequest(contact, display_name, true);
+    }
+
+    @Override
+    public void requestRemoved(Contact contact) {
+        handleRequest(contact, "", false);
+    }
+
+    @Override
     public void removeContact(Contact contact) {
         mContactIds.remove(contact.getCid());
         mId2Contact.remove(contact.getCid());
@@ -552,20 +561,6 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public HashMap<String, Contact> getPending() {
         return mPending;
-    }
-
-    /*
-    ----------------------------- Requests Dialog Fragment Callback ---------------------------------
-    */
-
-    @Override
-    public void requestAccepted(String display_name, Contact contact) {
-        handleRequest(contact, display_name, true);
-    }
-
-    @Override
-    public void requestRemoved(Contact contact) {
-        handleRequest(contact, "", false);
     }
 
     /*

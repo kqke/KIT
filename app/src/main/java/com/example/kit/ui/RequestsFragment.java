@@ -6,6 +6,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -18,7 +19,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
@@ -27,6 +32,7 @@ import com.example.kit.R;
 import com.example.kit.adapters.ContactRecyclerAdapter;
 import com.example.kit.models.Contact;
 import com.example.kit.util.RequestHandler;
+import com.example.kit.util.UsernameValidator;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -41,11 +47,13 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static android.view.View.VISIBLE;
 import static android.widget.LinearLayout.HORIZONTAL;
+import static com.example.kit.Constants.REMOVE_REQUEST;
+import static com.example.kit.Constants.SEND_REQUEST;
 
 public class RequestsFragment extends DBGeoFragment implements
-        ContactRecyclerAdapter.ContactsRecyclerClickListener,
-        RequestsDialogFragment.OnInputSelected {
+        ContactRecyclerAdapter.ContactsRecyclerClickListener{
 
     //Tag
     private static final String TAG = "RequestsFragment";
@@ -307,18 +315,20 @@ public class RequestsFragment extends DBGeoFragment implements
 
     @Override
     public void onAcceptSelected(int position) {
-        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_ACCEPT_REQUEST, mRecyclerList.get(position),
-                getActivity(), this);
-        requestDialog.setTargetFragment(RequestsFragment.this, 1);
-        requestDialog.show(getFragmentManager(), "RequestsDialogFragment");
+        getDisplayName(mRecyclerList.get(position));
+//        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_ACCEPT_REQUEST, mRecyclerList.get(position),
+//                getActivity(), this);
+//        requestDialog.setTargetFragment(RequestsFragment.this, 1);
+//        requestDialog.show(getFragmentManager(), "RequestsDialogFragment");
     }
 
     @Override
     public void onRejectSelected(int position) {
-        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_REMOVE_REQUEST, mRecyclerList.get(position),
-                getActivity(), this);
-        requestDialog.setTargetFragment(RequestsFragment.this, 1);
-        requestDialog.show(getFragmentManager(), "RequestsDialogFragment");
+        areYouSure(mRecyclerList.get(position));
+//        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_REMOVE_REQUEST, mRecyclerList.get(position),
+//                getActivity(), this);
+//        requestDialog.setTargetFragment(RequestsFragment.this, 1);
+//        requestDialog.show(getFragmentManager(), "RequestsDialogFragment");
     }
 
     @Override
@@ -332,7 +342,6 @@ public class RequestsFragment extends DBGeoFragment implements
     }
 
 
-    @Override
     public void requestAccepted(String display_name, Contact contact) {
         RequestHandler.handleRequest(contact, display_name, true);
         for (Contact cont: mRecyclerList) {
@@ -353,7 +362,7 @@ public class RequestsFragment extends DBGeoFragment implements
         }
     }
 
-    @Override
+
     public void requestRemoved(Contact contact) {
         RequestHandler.handleRequest(contact, "", false);
         for (Contact cont: mRecyclerList) {
@@ -372,6 +381,51 @@ public class RequestsFragment extends DBGeoFragment implements
                 });
             }
         }
+    }
+
+    private void getDisplayName(final Contact contact){
+        final View dialogView = View.inflate(mActivity, R.layout.dialog_display_name, null);
+        final AlertDialog alertDialog = new AlertDialog.Builder(mActivity).create();
+        Button goBtn = dialogView.findViewById(R.id.accept_req_btn);
+        goBtn.setVisibility(VISIBLE);
+        goBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String displayName = ((EditText)dialogView.findViewById(R.id.dialog_input)).getText().toString();
+                UsernameValidator validator = new UsernameValidator();
+                if(validator.validate(displayName)){
+                        requestAccepted(displayName, contact);
+                    alertDialog.dismiss();
+                }
+                else{
+                    Toast.makeText(mActivity,
+                            "Enter a valid display name",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        alertDialog.setView(dialogView);
+        alertDialog.show();
+    }
+
+    private void areYouSure(final Contact contact){
+        final View dialogView = View.inflate(mActivity, R.layout.dialog_requests, null);
+        final AlertDialog alertDialog = new AlertDialog.Builder(mActivity).create();
+        dialogView.findViewById(R.id.cancel_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alertDialog.dismiss();
+            }
+        });
+        dialogView.findViewById(R.id.proceed_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                requestRemoved(contact);
+                alertDialog.dismiss();
+            }
+        });
+        alertDialog.setView(dialogView);
+        alertDialog.show();
     }
 
     /*
