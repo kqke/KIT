@@ -1,7 +1,9 @@
 package com.example.kit.ui;
 
+import android.animation.LayoutTransition;
 import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -172,6 +174,10 @@ public class ContactFragment extends MapFragment implements
         if(!mCurrent_state.equals(FRIENDS)){
             setNonFriend();
         }
+        ((ViewGroup) v.findViewById(R.id.contact_lin_lay)).getLayoutTransition()
+                .setDuration(800);
+        ((ViewGroup) v.findViewById(R.id.contact_lin_lay)).getLayoutTransition()
+                .enableTransitionType(LayoutTransition.CHANGING);
         initState();
         retrieveProfileImage();
     }
@@ -387,11 +393,11 @@ public class ContactFragment extends MapFragment implements
             case R.id.c_btn_full_screen_map:{
                 if(mMapLayoutState == MAP_LAYOUT_STATE_CONTRACTED){
                     mMapLayoutState = MAP_LAYOUT_STATE_EXPANDED;
-                    expandMapAnimation();
+                    mContactInfo.setVisibility(View.GONE);
                 }
                 else if(mMapLayoutState == MAP_LAYOUT_STATE_EXPANDED){
                     mMapLayoutState = MAP_LAYOUT_STATE_CONTRACTED;
-                    contractMapAnimation();
+                    mContactInfo.setVisibility(VISIBLE);
                 }
                 break;
             }
@@ -399,6 +405,7 @@ public class ContactFragment extends MapFragment implements
             case R.id.c_btn_reset_map:{
                 addMapMarkers();
                 setCameraView();
+                break;
             }
         }
     }
