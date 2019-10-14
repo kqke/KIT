@@ -18,6 +18,8 @@ done - The weights thing in contactFragment does not work properly
 done/discarded - maybe add an indicator to a contact that is in incognito mode - don't think it is necessary...
 people don't like other people knowing they are sneaky
 
+
+#TODO this is still not working for me...
 - fucking back stack - go from chats to contacts -> enter a contact page -> back to chats -> press back -> FUCK
 
 - chatroom name not updated when display name updated
