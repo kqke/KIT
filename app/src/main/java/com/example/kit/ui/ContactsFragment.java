@@ -2,6 +2,7 @@ package com.example.kit.ui;
 
 import android.Manifest;
 
+import android.animation.LayoutTransition;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
@@ -324,6 +325,10 @@ public class ContactsFragment extends DBGeoFragment implements
 
     private void newContactDialog(){
         final View dialogView = View.inflate(mActivity, R.layout.dialog_new_contact, null);
+        ((ViewGroup) dialogView.findViewById(R.id.a_d_ll)).getLayoutTransition()
+                .setDuration(800);
+        ((ViewGroup) dialogView.findViewById(R.id.a_d_ll)).getLayoutTransition()
+                .enableTransitionType(LayoutTransition.CHANGING);
         alertDialog = new AlertDialog.Builder(mActivity).create();
         inputUsername = dialogView.findViewById(R.id.dialog_input);
         cameraPreview = dialogView.findViewById(R.id.camera_preview);

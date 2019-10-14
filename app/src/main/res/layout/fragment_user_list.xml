@@ -2,29 +2,23 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
+    android:id="@+id/user_list_layout"
     android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
     android:background="@color/White">
 
-    <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:weightSum="100"
-        android:background="@color/White">
 
         <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="50"
+            android:layout_height="wrap_content"
             android:id="@+id/user_list_recycler_view">
 
         </androidx.recyclerview.widget.RecyclerView>
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="50"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/user_list_recycler_view"
             android:id="@+id/ul_map_container">
 
             <com.google.android.gms.maps.MapView
@@ -60,7 +54,6 @@
         </RelativeLayout>
 
 
-    </LinearLayout>
 
     <ProgressBar
         android:layout_width="wrap_content"

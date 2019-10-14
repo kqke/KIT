@@ -1,5 +1,6 @@
 package com.example.kit.ui;
 
+import android.animation.LayoutTransition;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.os.Bundle;
@@ -118,6 +119,10 @@ public class UserListFragment extends MapFragment
         resetBut = view.findViewById(R.id.ul_btn_reset_map);
         expandBut.setOnClickListener(this);
         resetBut.setOnClickListener(this);
+        ((ViewGroup) view.findViewById(R.id.user_list_layout)).getLayoutTransition()
+                .setDuration(800);
+        ((ViewGroup) view.findViewById(R.id.user_list_layout)).getLayoutTransition()
+                .enableTransitionType(LayoutTransition.CHANGING);
         initUserListRecyclerView();
         initGoogleMap(savedInstanceState);
         setUserPosition();
@@ -180,7 +185,6 @@ public class UserListFragment extends MapFragment
         if (cont.getCid().equals(FirebaseAuth.getInstance().getUid())){
             ulCallback.navSettingsActivity();
             return;
-
         }
         if (cont.getStatus().equals(NOT_FRIENDS)){
             state = NOT_FRIENDS;
@@ -287,52 +291,52 @@ public class UserListFragment extends MapFragment
 //        }
 //    }
 
-    private void expandMapAnimation(){
-        ViewWeightAnimationWrapper mapAnimationWrapper = new ViewWeightAnimationWrapper(mMapContainer);
-        ObjectAnimator mapAnimation = ObjectAnimator.ofFloat(mapAnimationWrapper,
-                "weight",
-                50,
-                100);
-        mapAnimation.setDuration(800);
-
-        ViewWeightAnimationWrapper recyclerAnimationWrapper = new ViewWeightAnimationWrapper(mUserListRecyclerView);
-        ObjectAnimator recyclerAnimation = ObjectAnimator.ofFloat(recyclerAnimationWrapper,
-                "weight",
-                50,
-                0);
-        recyclerAnimation.setDuration(800);
-
-        recyclerAnimation.start();
-        mapAnimation.start();
-
-        Log.d(TAG, "expandMapAnimation: map weight ");
-    }
-
-    private void contractMapAnimation(){
-        ViewWeightAnimationWrapper mapAnimationWrapper = new ViewWeightAnimationWrapper(mMapContainer);
-        ObjectAnimator mapAnimation = ObjectAnimator.ofFloat(mapAnimationWrapper,
-                "weight",
-                100,
-                50);
-        mapAnimation.setDuration(800);
-
-        ViewWeightAnimationWrapper recyclerAnimationWrapper = new ViewWeightAnimationWrapper(mUserListRecyclerView);
-        ObjectAnimator recyclerAnimation = ObjectAnimator.ofFloat(recyclerAnimationWrapper,
-                "weight",
-                0,
-                50);
-        recyclerAnimation.setDuration(800);
-
-        recyclerAnimation.start();
-        mapAnimation.start();
-    }
+//    private void expandMapAnimation(){
+//        ViewWeightAnimationWrapper mapAnimationWrapper = new ViewWeightAnimationWrapper(mMapContainer);
+//        ObjectAnimator mapAnimation = ObjectAnimator.ofFloat(mapAnimationWrapper,
+//                "weight",
+//                50,
+//                100);
+//        mapAnimation.setDuration(800);
+//
+//        ViewWeightAnimationWrapper recyclerAnimationWrapper = new ViewWeightAnimationWrapper(mUserListRecyclerView);
+//        ObjectAnimator recyclerAnimation = ObjectAnimator.ofFloat(recyclerAnimationWrapper,
+//                "weight",
+//                50,
+//                0);
+//        recyclerAnimation.setDuration(800);
+//
+//        recyclerAnimation.start();
+//        mapAnimation.start();
+//
+//        Log.d(TAG, "expandMapAnimation: map weight ");
+//    }
+//
+//    private void contractMapAnimation(){
+//        ViewWeightAnimationWrapper mapAnimationWrapper = new ViewWeightAnimationWrapper(mMapContainer);
+//        ObjectAnimator mapAnimation = ObjectAnimator.ofFloat(mapAnimationWrapper,
+//                "weight",
+//                100,
+//                50);
+//        mapAnimation.setDuration(800);
+//
+//        ViewWeightAnimationWrapper recyclerAnimationWrapper = new ViewWeightAnimationWrapper(mUserListRecyclerView);
+//        ObjectAnimator recyclerAnimation = ObjectAnimator.ofFloat(recyclerAnimationWrapper,
+//                "weight",
+//                0,
+//                50);
+//        recyclerAnimation.setDuration(800);
+//
+//        recyclerAnimation.start();
+//        mapAnimation.start();
+//    }
 
     @Override
     public void onMapReady(GoogleMap map) {
         super.onMapReady(map);
-        if (mMapLayoutState == MAP_LAYOUT_STATE_EXPANDED){
-            expandMapAnimation();
-        }
+//        if (mMapLayoutState == MAP_LAYOUT_STATE_EXPANDED){
+//            expandMapAnimation();
+//        }
     }
 
     @Override
@@ -341,11 +345,11 @@ public class UserListFragment extends MapFragment
             case R.id.btn_full_screen_map:{
                 if(mMapLayoutState == MAP_LAYOUT_STATE_CONTRACTED){
                     mMapLayoutState = MAP_LAYOUT_STATE_EXPANDED;
-                    expandMapAnimation();
+                    mUserListRecyclerView.setVisibility(View.GONE);
                 }
                 else if(mMapLayoutState == MAP_LAYOUT_STATE_EXPANDED){
                     mMapLayoutState = MAP_LAYOUT_STATE_CONTRACTED;
-                    contractMapAnimation();
+                    mUserListRecyclerView.setVisibility(View.VISIBLE);
                 }
                 break;
             }
@@ -353,6 +357,7 @@ public class UserListFragment extends MapFragment
             case R.id.ul_btn_reset_map:{
                 addMapMarkers();
                 setCameraView();
+                break;
             }
         }
     }
