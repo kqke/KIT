@@ -58,11 +58,12 @@ import static com.example.kit.Constants.CONTACT_STATE;
 import static com.example.kit.Constants.FRIENDS;
 import static com.example.kit.Constants.MY_REQUEST_PENDING;
 import static com.example.kit.Constants.NOT_FRIENDS;
+import static com.example.kit.Constants.REMOVE_REQUEST;
 import static com.example.kit.Constants.SEND_REQUEST;
 import static com.example.kit.Constants.THEIR_REQUEST_PENDING;
 
 public class ContactFragment extends MapFragment implements
-        View.OnClickListener, ContactDialogFragment.OnInputSelected, RequestsDialogFragment.OnInputSelected{
+        View.OnClickListener{
 
     //Tag
     private static final String TAG = "ConatactFragment";
@@ -364,6 +365,44 @@ public class ContactFragment extends MapFragment implements
         alertDialog.show();
     }
 
+    private void areYouSure(String title, String yesButtonText, final String state){
+        final View dialogView = View.inflate(mActivity, R.layout.dialog_requests, null);
+        final AlertDialog alertDialog = new AlertDialog.Builder(mActivity).create();
+        ((TextView)dialogView.findViewById(R.id.text)).setText(title);
+        dialogView.findViewById(R.id.cancel_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alertDialog.dismiss();
+            }
+        });
+        ((Button)dialogView.findViewById(R.id.proceed_btn)).setText(yesButtonText);
+        dialogView.findViewById(R.id.proceed_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switch(state){
+                    case REMOVE_REQUEST:
+                    {
+                        requestRemoved(mContact);
+                        break;
+                    }
+                    case "DELETE REQUEST":
+                    {
+                        removeRequest(mContact);
+                        break;
+                    }
+                    case "DELETE CONTACT":
+                    {
+                        removeContact(mContact);
+                        break;
+                    }
+                }
+                alertDialog.dismiss();
+            }
+        });
+        alertDialog.setView(dialogView);
+        alertDialog.show();
+    }
+
     /*
     ----------------------------- onClick ---------------------------------
     */
@@ -437,7 +476,7 @@ public class ContactFragment extends MapFragment implements
     }
 
     private void declineRequest(){
-
+        areYouSure(REMOVE_REQUEST, "DECLINE REQUEST", REMOVE_REQUEST);
 
 //        RequestsDialogFragment requestDialog = new RequestsDialogFragment(Constants.GET_REMOVE_REQUEST, mContact, getActivity(), this);
 //        requestDialog.setTargetFragment(ContactFragment.this, 1);
@@ -445,15 +484,17 @@ public class ContactFragment extends MapFragment implements
     }
 
     private void deleteRequest(){
-        ContactDialogFragment contactDialogFragment = new ContactDialogFragment(Constants.GET_REMOVE_REQUEST, mContact, getActivity(), this);
-        contactDialogFragment.setTargetFragment(ContactFragment.this, 1);
-        contactDialogFragment.show(getFragmentManager(), "RequestsDialogFragment");
+        areYouSure(REMOVE_REQUEST, "DELETE REQUEST", "DELETE REQUEST");
+//        ContactDialogFragment contactDialogFragment = new ContactDialogFragment(Constants.GET_REMOVE_REQUEST, mContact, getActivity(), this);
+//        contactDialogFragment.setTargetFragment(ContactFragment.this, 1);
+//        contactDialogFragment.show(getFragmentManager(), "RequestsDialogFragment");
     }
 
     private void deleteContact(){
-        ContactDialogFragment contactDialogFragment = new ContactDialogFragment(Constants.GET_REMOVE_CONTACT, mContact, getActivity(), this);
-        contactDialogFragment.setTargetFragment(ContactFragment.this, 1);
-        contactDialogFragment.show(getFragmentManager(), "RequestsDialogFragment");
+        areYouSure("ARE YOU SURE?", "DELETE CONTACT", "DELETE CONTACT");
+//        ContactDialogFragment contactDialogFragment = new ContactDialogFragment(Constants.GET_REMOVE_CONTACT, mContact, getActivity(), this);
+//        contactDialogFragment.setTargetFragment(ContactFragment.this, 1);
+//        contactDialogFragment.show(getFragmentManager(), "RequestsDialogFragment");
 
     }
 
@@ -487,7 +528,7 @@ public class ContactFragment extends MapFragment implements
     }
 
 
-    @Override
+
     public void removeContact(Contact contact) {
         setNonFriend();
         setNotFirends();
@@ -502,7 +543,6 @@ public class ContactFragment extends MapFragment implements
 //        mDeleteBtn.setVisibility(View.INVISIBLE);
     }
 
-    @Override
     public void removeRequest(Contact contact) {
         setNotFirends();
         String uid = FirebaseAuth.getInstance().getUid();
@@ -636,14 +676,14 @@ public class ContactFragment extends MapFragment implements
         }
     }
 
-    @Override
+
     public void requestAccepted(String display_name, Contact contact) {
         setFriend();
         RequestHandler.handleRequest(contact, display_name, true);
+        recreate.requestAccepted(display_name, contact);
         recreate.addContact(contact, FRIENDS);
     }
 
-    @Override
     public void requestRemoved(Contact contact) {
         setNotFirends();
         mAcceptBtn.setVisibility(View.INVISIBLE);
@@ -651,6 +691,7 @@ public class ContactFragment extends MapFragment implements
         mAcceptBtn.setClickable(false);
         mDeclineBtn.setClickable(false);
         RequestHandler.handleRequest(contact, "",false);
+        recreate.requestRemoved(contact);
         recreate.removeContact(contact);
     }
 
@@ -659,5 +700,7 @@ public class ContactFragment extends MapFragment implements
         void removeContact(Contact contact);
         void addContact(Contact contact, String type);
         HashMap<String, UserLocation> getContactLocations(String contact_id);
+        void requestAccepted(String display_name, Contact contact);
+        void requestRemoved(Contact contact);
     }
 }

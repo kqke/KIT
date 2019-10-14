@@ -6,6 +6,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -18,7 +19,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.example.kit.Constants;
 import com.example.kit.R;
@@ -39,10 +42,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import static android.widget.LinearLayout.HORIZONTAL;
+import static com.example.kit.Constants.REMOVE_REQUEST;
 
 public class PendingFragment extends DBGeoFragment implements
-        ContactRecyclerAdapter.ContactsRecyclerClickListener,
-        PendingDialogFragment.OnInputSelected
+        ContactRecyclerAdapter.ContactsRecyclerClickListener
 {
 
     //Tag
@@ -294,6 +297,29 @@ public class PendingFragment extends DBGeoFragment implements
 //    }
 
 
+    private void areYouSure(final Contact contact){
+        final View dialogView = View.inflate(mActivity, R.layout.dialog_requests, null);
+        final AlertDialog alertDialog = new AlertDialog.Builder(mActivity).create();
+        ((TextView)dialogView.findViewById(R.id.text)).setText("ARE YOU SURE?");
+        dialogView.findViewById(R.id.cancel_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alertDialog.dismiss();
+            }
+        });
+        ((Button)dialogView.findViewById(R.id.proceed_btn)).setText("DELETE REQUEST");
+        dialogView.findViewById(R.id.proceed_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                remove(contact);
+                alertDialog.dismiss();
+            }
+        });
+        alertDialog.setView(dialogView);
+        alertDialog.show();
+    }
+
+
     @Override
     public void onAcceptSelected(int position) {
     }
@@ -304,10 +330,11 @@ public class PendingFragment extends DBGeoFragment implements
 
     @Override
     public void onDeleteSelected(int position) {
-        PendingDialogFragment requestDialog = new PendingDialogFragment(Constants.GET_ACCEPT_REQUEST, mRecyclerList.get(position),
-                getActivity(), this);
-        requestDialog.setTargetFragment(PendingFragment.this, 1);
-        requestDialog.show(getFragmentManager(), "PendingDialogFragment");
+        areYouSure(mRecyclerList.get(position));
+//        PendingDialogFragment requestDialog = new PendingDialogFragment(Constants.GET_ACCEPT_REQUEST, mRecyclerList.get(position),
+//                getActivity(), this);
+//        requestDialog.setTargetFragment(PendingFragment.this, 1);
+//        requestDialog.show(getFragmentManager(), "PendingDialogFragment");
     }
 
     @Override
@@ -315,7 +342,6 @@ public class PendingFragment extends DBGeoFragment implements
 
     }
 
-    @Override
     public void remove(final Contact contact) {
         mDb.collection(getString(R.string.collection_users)).document(contact.getCid()).collection(getString(R.string.collection_requests)).document(FirebaseAuth.getInstance().getUid()).delete();
         mDb.collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getUid()).collection(getString(R.string.collection_pending)).document(contact.getCid()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {

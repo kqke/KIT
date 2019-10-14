@@ -3,20 +3,22 @@ TODO - UI
 done - Images/Text for empty Contacts/requests/pending fragments (grab the linear layout from chatsfragment)
 
 - unseen messages in the chatroom
+
 - Make sure keyboard works properly in chatFragment
+
 - Toast error messages specifying username/status/display name errors
 
 - Map Fragment dialog (navigate/profile) - fixed - new bug happens where icons don't show on map
 (excluding user list fragment map) when returning from settings
 
-- Those dialog fragment things
+done - Those dialog fragment things
 
 done - The weights thing in contactFragment does not work properly
 
-- maybe add an indicator to a contact that is in incognito mode - don't think it is necessary...
+done/discarded - maybe add an indicator to a contact that is in incognito mode - don't think it is necessary...
 people don't like other people knowing they are sneaky
 
-- fucking back stack - go from chats to contacts and back to chats -> press back -> FUCK - done
+- fucking back stack - go from chats to contacts and back to chats -> press back -> FUCK
 
 - chatroom name not updated when display name updated
 
@@ -26,7 +28,7 @@ done - Handwriting/text recognition - fix the dialog fragment
 
 - Remove South Park Pics
 
-- Change avatar dialog
+done - Change avatar dialog
 
 TODO - GENERAL
 
@@ -50,13 +52,14 @@ done/incorrect - incognito not REALLY working with live location - the marker is
 location (blue dot) is still shown (the blue dot is your current location... you only see it for
 your user
 
-
-
 - scheduling has not been really tested yet
 
 - lots of spontaneous crashes on casual use - i have not encountered many spntaneous crashes
 
 - email verification
 
+- is private chat deleted once contact is deleted?
+
 TODO - MAYBE
+
 - Images for chatrooms?

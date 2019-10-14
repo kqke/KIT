@@ -335,21 +335,13 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
 
         // setup the alert builder
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Notice");
-        builder.setMessage("CHOOSE ONE");
-
+        builder.setTitle("Change avatar?");
         // add the buttons
 
         builder.setPositiveButton("Gallery", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 getImageFromGallery();
-            }
-        });
-        builder.setNeutralButton("Camera", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                getImageFromCamera();
             }
         });
 
