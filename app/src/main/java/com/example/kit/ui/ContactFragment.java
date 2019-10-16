@@ -523,6 +523,7 @@ public class ContactFragment extends MapFragment implements
                     }
                 });
                 recreate.addContact(contact, MY_REQUEST_PENDING);
+
             }
         });
     }

@@ -256,14 +256,11 @@ public class ChatsFragment extends DBGeoFragment implements
         if(mChatrooms.size()==0){
             v.findViewById(R.id.linear).setVisibility(View.VISIBLE);
         }
-        if(mContacts.size() > 0){
-            FloatingActionButton fab = v.findViewById(R.id.fab);
-            fab.setOnClickListener(this);
-            fab.setVisibility(View.VISIBLE);
-        }
-        else{
+        if(mContacts.size()==0){
             ((TextView)v.findViewById(R.id.textChats)).setText("CONTACTS");
         }
+        FloatingActionButton fab = v.findViewById(R.id.fab);
+        fab.setOnClickListener(this);
         mChatroomRecyclerView = v.findViewById(R.id.chatrooms_recycler_view);
         mChatroomRecyclerAdapter = new ChatroomRecyclerAdapter(mChatrooms, this, mActivity);
         mChatroomRecyclerView.setAdapter(mChatroomRecyclerAdapter);
@@ -372,7 +369,13 @@ public class ChatsFragment extends DBGeoFragment implements
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.fab:
-                newChatDialog();
+                if(mContacts.size() ==0){
+                    Toast.makeText(mActivity,
+                            "You have no contacts", Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    newChatDialog();
+                }
                 break;
             case R.id.group_message_btn:
                 alertDialog.dismiss();
@@ -406,6 +409,8 @@ public class ChatsFragment extends DBGeoFragment implements
                 mContactRecyclerView.setLayoutManager(new LinearLayoutManager(mActivity));
                 fab.setEnabled(false);
                 SearchView searchView = dialogView.findViewById(R.id.search_view);
+                ImageView icon = searchView.findViewById(R.id.search_button);
+                icon.setColorFilter(Color.BLACK);
                 searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                     @Override
                     public boolean onQueryTextSubmit(String queryString) {
