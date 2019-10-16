@@ -74,6 +74,7 @@ public class RequestsFragment extends DBGeoFragment implements
 
     //vars
     private RequestsFragment mRequestFragment;
+    RequestsCallback getData;
 
 //    private static RequestHandler rHandler = new RequestHandler();
 
@@ -93,7 +94,7 @@ public class RequestsFragment extends DBGeoFragment implements
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         mRequestFragment = this;
-        RequestsCallback getData = (RequestsCallback)context;
+        getData = (RequestsCallback)context;
         mRequests = getData.getRequests();
         mRecyclerList = new ArrayList<>(mRequests.values());
         initContactFragment = (ContactsFragment.ContactsCallback)context;
@@ -213,6 +214,7 @@ public class RequestsFragment extends DBGeoFragment implements
                                 contact = doc.getDocument().toObject(Contact.class);
                                 mRequests.put(contact.getCid(), contact);
                                 mRecyclerList = new ArrayList<>(mRequests.values());
+                                getData.updateRequests(mRequests);
                                 notifyRecyclerView();
 
                                 Log.d(TAG,"THIS SHOULD BE CALLED");
@@ -232,6 +234,7 @@ public class RequestsFragment extends DBGeoFragment implements
                                 contact = doc.getDocument().toObject(Contact.class);
                                 mRequests.put(contact.getCid(), contact);
                                 mRecyclerList = new ArrayList<>(mRequests.values());
+                                getData.updateRequests(mRequests);
                                 notifyRecyclerView();
                                 break;
 
@@ -239,6 +242,7 @@ public class RequestsFragment extends DBGeoFragment implements
                                 contact = doc.getDocument().toObject(Contact.class);
                                 mRequests.remove(contact.getCid());
                                 mRecyclerList = new ArrayList<>(mRequests.values());
+                                getData.updateRequests(mRequests);
                                 notifyRecyclerView();
                         }
                     }
@@ -434,6 +438,7 @@ public class RequestsFragment extends DBGeoFragment implements
 
     public interface RequestsCallback {
         HashMap<String, Contact> getRequests();
+        void updateRequests(HashMap<String, Contact> requests);
     }
 
 }
