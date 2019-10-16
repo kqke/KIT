@@ -535,12 +535,12 @@ public class ContactFragment extends MapFragment implements
         String uid = FirebaseAuth.getInstance().getUid();
         String cid = contact.getCid();
         String first, second, chatroom_id;
-        if (stringCompare(mContact.getCid(), FirebaseAuth.getInstance().getUid()) > 0) {
-            first = mContact.getCid();
-            second = FirebaseAuth.getInstance().getUid();
+        if (stringCompare(cid, uid) > 0) {
+            first = uid;
+            second = cid;
         } else {
-            first = FirebaseAuth.getInstance().getUid();
-            second = mContact.getCid();
+            first = cid;
+            second = uid;
         }
         chatroom_id = first + second;
         DocumentReference contactRef = mDb.collection(getString(R.string.collection_users)).document(cid);

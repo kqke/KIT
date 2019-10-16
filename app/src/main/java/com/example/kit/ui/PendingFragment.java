@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.kit.Constants;
@@ -67,6 +68,7 @@ public class PendingFragment extends DBGeoFragment implements
 
     //Var
     private PendingFragment mPendingFragment;
+    private LinearLayout linearLayout;
 
 
 //    private static RequestHandler rHandler = new RequestHandler();
@@ -144,8 +146,9 @@ public class PendingFragment extends DBGeoFragment implements
     }
 
     private void initView(View v){
+        linearLayout = v.findViewById(R.id.linear);
         if(mPending.size()==0){
-            v.findViewById(R.id.linear).setVisibility(View.VISIBLE);
+            linearLayout.setVisibility(View.VISIBLE);
         }
         mPendingRecyclerView = v.findViewById(R.id.pending_recycler_view);
         mPendingRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
@@ -206,6 +209,7 @@ public class PendingFragment extends DBGeoFragment implements
                                 mRecyclerList = new ArrayList<>(mPending.values());
                                 getData.updatePending(mPending);
                                 notifyRecyclerView();
+                                linearLayout.setVisibility(View.INVISIBLE);
 
                                 Log.d(TAG,"THIS SHOULD BE CALLED");
 
@@ -226,6 +230,7 @@ public class PendingFragment extends DBGeoFragment implements
                                 mRecyclerList = new ArrayList<>(mPending.values());
                                 getData.updatePending(mPending);
                                 notifyRecyclerView();
+                                linearLayout.setVisibility(View.INVISIBLE);
                                 break;
 
                             case REMOVED:
@@ -234,6 +239,9 @@ public class PendingFragment extends DBGeoFragment implements
                                 mRecyclerList = new ArrayList<>(mPending.values());
                                 getData.updatePending(mPending);
                                 notifyRecyclerView();
+                                if(mPending.size()==0){
+                                    linearLayout.setVisibility(View.VISIBLE);
+                                }
                         }
                     }
 
@@ -361,6 +369,9 @@ public class PendingFragment extends DBGeoFragment implements
                         DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
                         mPendingRecyclerView.addItemDecoration(itemDecor);
                         mPendingRecyclerAdapter.notifyDataSetChanged();
+                        if(mPending.size()==0){
+                            linearLayout.setVisibility(View.VISIBLE);
+                        }
                     }
                 });
             }
