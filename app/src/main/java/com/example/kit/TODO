@@ -18,7 +18,7 @@ done - The weights thing in contactFragment does not work properly
 done/discarded - maybe add an indicator to a contact that is in incognito mode - don't think it is necessary...
 people don't like other people knowing they are sneaky
 
-- fucking back stack - go from chats to contacts and back to chats -> press back -> FUCK
+- fucking back stack - go from chats to contacts and back to chats -> press back -> FUCK - done
 
 - chatroom name not updated when display name updated
 
@@ -34,9 +34,10 @@ TODO - GENERAL
 
 done - Google sign in not working
 
-- Map updates can be seen and its annoying
+- Map updates can be seen and its annoying - done
 
-- navigation from contactfragment to mapfragment does not work
+- navigation from contactfragment to mapfragment does not work - work in progress - i dont get why..
+.
 
 done - Authentication is checked on every MainActivity onCreate
 

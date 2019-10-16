@@ -244,52 +244,53 @@ public class MapFragment extends DBGeoFragment implements
 //            if (mClusterMarkers.isEmpty()){
 //                updateUserLocs();
 //            } else {
-            for (final UserLocation userLocation : id2ContactsLocations.values()) {
-                DocumentReference userLocationRef = FirebaseFirestore.getInstance()
-                        .collection(getString(R.string.collection_user_locations))
-                        .document(userLocation.getUser().getUser_id());
-                userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            final UserLocation updatedUserLocation = task.getResult().toObject(UserLocation.class);
-                            boolean toReset = false;
-                            // update the location
-                            if (updatedUserLocation.isIncognito() != id2ContactsLocations.get(updatedUserLocation.getUser().getUser_id()).isIncognito()) {
-                                toReset = true;
-                            }
-                            id2ContactsLocations.put(updatedUserLocation.getUser().getUser_id(), updatedUserLocation);
-                            if (!updatedUserLocation.isIncognito()) {
-                                boolean found = false;
-                                for (int i = 0; i < mClusterMarkers.size(); i++) {
-                                    try {
-                                        if (mClusterMarkers.get(i).getUser().getUser_id().equals(updatedUserLocation.getUser().getUser_id())) {
+            if (id2ContactsLocations != null) {
+                for (final UserLocation userLocation : id2ContactsLocations.values()) {
+                    DocumentReference userLocationRef = FirebaseFirestore.getInstance()
+                            .collection(getString(R.string.collection_user_locations))
+                            .document(userLocation.getUser().getUser_id());
+                    userLocationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                final UserLocation updatedUserLocation = task.getResult().toObject(UserLocation.class);
+                                boolean toReset = false;
+                                // update the location
+                                if (updatedUserLocation.isIncognito() != id2ContactsLocations.get(updatedUserLocation.getUser().getUser_id()).isIncognito()) {
+                                    toReset = true;
+                                }
+                                id2ContactsLocations.put(updatedUserLocation.getUser().getUser_id(), updatedUserLocation);
+                                if (!updatedUserLocation.isIncognito()) {
+                                    boolean found = false;
+                                    for (int i = 0; i < mClusterMarkers.size(); i++) {
+                                        try {
+                                            if (mClusterMarkers.get(i).getUser().getUser_id().equals(updatedUserLocation.getUser().getUser_id())) {
 
 
-                                            LatLng updatedLatLng = new LatLng(
-                                                    updatedUserLocation.getGeo_point().getLatitude(),
-                                                    updatedUserLocation.getGeo_point().getLongitude()
-                                            );
-                                            mClusterMarkers.get(i).setPosition(updatedLatLng);
-                                            mClusterManagerRenderer.setUpdateMarker(mClusterMarkers.get(i));
-                                            found = true;
-                                        } else if (i == mClusterMarkers.size() - 1 && !found) {
-                                            toReset = true;
+                                                LatLng updatedLatLng = new LatLng(
+                                                        updatedUserLocation.getGeo_point().getLatitude(),
+                                                        updatedUserLocation.getGeo_point().getLongitude()
+                                                );
+                                                mClusterMarkers.get(i).setPosition(updatedLatLng);
+                                                mClusterManagerRenderer.setUpdateMarker(mClusterMarkers.get(i));
+                                                found = true;
+                                            } else if (i == mClusterMarkers.size() - 1 && !found) {
+                                                toReset = true;
+                                            }
+
+                                        } catch (NullPointerException e) {
+                                            Log.e(TAG, "retrieveUserLocations: NullPointerException: " + e.getMessage());
                                         }
-
-                                    } catch (NullPointerException e) {
-                                        Log.e(TAG, "retrieveUserLocations: NullPointerException: " + e.getMessage());
                                     }
                                 }
-                            }
-                            if (toReset) {
-                                addMapMarkers();
+                                if (toReset) {
+                                    addMapMarkers();
+                                }
                             }
                         }
-                    }
-                });
+                    });
+                }
             }
-//            }
 
         } catch (IllegalStateException e) {
             Log.e(TAG, "retrieveUserLocations: Fragment was destroyed during Firestore query. Ending query." + e.getMessage());
@@ -373,43 +374,45 @@ public class MapFragment extends DBGeoFragment implements
                     mClusterManager.setRenderer(mClusterManagerRenderer);
                 }
                 System.out.println(mContactLocations.toString());
-                for (UserLocation userLocation : id2ContactsLocations.values()) {
+                if (id2ContactsLocations != null) {
+                    for (UserLocation userLocation : id2ContactsLocations.values()) {
 
-                    if (userLocation.isIncognito()) {
-                        continue;
-                    }
-
-                    Log.d(TAG, "addMapMarkers: location: " + userLocation.getGeo_point().toString());
-                    try {
-                        String snippet = "";
-                        if (userLocation.getUser().getUser_id().equals(FirebaseAuth.getInstance().getUid())) {
-                            snippet = "This is you";
-                        } else {
-                            snippet = "Determine route to " + userLocation.getUser().getUsername() + "?";
+                        if (userLocation.isIncognito()) {
+                            continue;
                         }
 
-                        String avatar = ""; // set the default avatar
+                        Log.d(TAG, "addMapMarkers: location: " + userLocation.getGeo_point().toString());
                         try {
-                            avatar = userLocation.getUser().getAvatar();
-                        } catch (NumberFormatException e) {
-                            Log.d(TAG, "addMapMarkers: no avatar for " + userLocation.getUser().getUsername() + ", setting default.");
-                        }
-                        ClusterMarker newClusterMarker = new ClusterMarker(
-                                new LatLng(userLocation.getGeo_point().getLatitude(), userLocation.getGeo_point().getLongitude()),
-                                userLocation.getUser().getUsername(),
-                                snippet,
-                                avatar,
-                                userLocation.getUser()
-                        );
-                        mClusterManager.addItem(newClusterMarker);
-                        mClusterMarkers.add(newClusterMarker);
+                            String snippet = "";
+                            if (userLocation.getUser().getUser_id().equals(FirebaseAuth.getInstance().getUid())) {
+                                snippet = "This is you";
+                            } else {
+                                snippet = "Determine route to " + userLocation.getUser().getUsername() + "?";
+                            }
 
-                    } catch (NullPointerException e) {
-                        Log.e(TAG, "addMapMarkers: NullPointerException: " + e.getMessage());
+                            String avatar = ""; // set the default avatar
+                            try {
+                                avatar = userLocation.getUser().getAvatar();
+                            } catch (NumberFormatException e) {
+                                Log.d(TAG, "addMapMarkers: no avatar for " + userLocation.getUser().getUsername() + ", setting default.");
+                            }
+                            ClusterMarker newClusterMarker = new ClusterMarker(
+                                    new LatLng(userLocation.getGeo_point().getLatitude(), userLocation.getGeo_point().getLongitude()),
+                                    userLocation.getUser().getUsername(),
+                                    snippet,
+                                    avatar,
+                                    userLocation.getUser()
+                            );
+                            mClusterManager.addItem(newClusterMarker);
+                            mClusterMarkers.add(newClusterMarker);
+
+                        } catch (NullPointerException e) {
+                            Log.e(TAG, "addMapMarkers: NullPointerException: " + e.getMessage());
+                        }
                     }
-                }
-                mClusterManager.cluster();
+                    mClusterManager.cluster();
 //                setCameraView();
+                }
             }
         }
 
