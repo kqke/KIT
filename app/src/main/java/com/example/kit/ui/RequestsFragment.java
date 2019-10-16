@@ -22,6 +22,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -75,6 +76,7 @@ public class RequestsFragment extends DBGeoFragment implements
     //vars
     private RequestsFragment mRequestFragment;
     RequestsCallback getData;
+    private LinearLayout linearLayout;
 
 //    private static RequestHandler rHandler = new RequestHandler();
 
@@ -155,8 +157,9 @@ public class RequestsFragment extends DBGeoFragment implements
     */
 
     private void initView(View v){
+        linearLayout = v.findViewById(R.id.linear);
         if(mRequests.size()==0){
-            v.findViewById(R.id.linear).setVisibility(View.VISIBLE);
+            linearLayout.setVisibility(View.VISIBLE);
         }
         mRequestsRecyclerView = v.findViewById(R.id.requests_recycler_view);
         mRequestsRecyclerAdapter = new ContactRecyclerAdapter(mRecyclerList,
@@ -216,6 +219,7 @@ public class RequestsFragment extends DBGeoFragment implements
                                 mRecyclerList = new ArrayList<>(mRequests.values());
                                 getData.updateRequests(mRequests);
                                 notifyRecyclerView();
+                                linearLayout.setVisibility(View.INVISIBLE);
 
                                 Log.d(TAG,"THIS SHOULD BE CALLED");
 
@@ -236,6 +240,7 @@ public class RequestsFragment extends DBGeoFragment implements
                                 mRecyclerList = new ArrayList<>(mRequests.values());
                                 getData.updateRequests(mRequests);
                                 notifyRecyclerView();
+                                linearLayout.setVisibility(View.INVISIBLE);
                                 break;
 
                             case REMOVED:
@@ -244,6 +249,9 @@ public class RequestsFragment extends DBGeoFragment implements
                                 mRecyclerList = new ArrayList<>(mRequests.values());
                                 getData.updateRequests(mRequests);
                                 notifyRecyclerView();
+                                if(mRequests.size()==0){
+                                    linearLayout.setVisibility(View.VISIBLE);
+                                }
                         }
                     }
 
@@ -360,6 +368,9 @@ public class RequestsFragment extends DBGeoFragment implements
                         DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
                         mRequestsRecyclerView.addItemDecoration(itemDecor);
                         mRequestsRecyclerAdapter.notifyDataSetChanged();
+                        if(mRequests.size()==0){
+                            linearLayout.setVisibility(View.VISIBLE);
+                        }
                     }
                 });
             }
@@ -381,6 +392,9 @@ public class RequestsFragment extends DBGeoFragment implements
                         DividerItemDecoration itemDecor = new DividerItemDecoration(mActivity, HORIZONTAL);
                         mRequestsRecyclerView.addItemDecoration(itemDecor);
                         mRequestsRecyclerAdapter.notifyDataSetChanged();
+                        if(mRequests.size()==0){
+                            linearLayout.setVisibility(View.VISIBLE);
+                        }
                     }
                 });
             }

@@ -40,6 +40,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.example.kit.R;
@@ -114,6 +115,7 @@ public class ContactsFragment extends DBGeoFragment implements
     private Button startCameraBtn;
     private ImageAnalysis imageAnalysis;
     private Preview preview;
+    private LinearLayout linearLayout;
 
 
     private static View view;
@@ -217,8 +219,9 @@ public class ContactsFragment extends DBGeoFragment implements
     }
 
     private void initView(View v){
+        linearLayout = v.findViewById(R.id.linear);
         if(mContacts.size()==0){
-            v.findViewById(R.id.linear).setVisibility(View.VISIBLE);
+            linearLayout.setVisibility(View.VISIBLE);
         }
         v.findViewById(R.id.fab).setOnClickListener(this);
         mContactRecyclerView = v.findViewById(R.id.contact_recycler_view);
@@ -280,6 +283,7 @@ public class ContactsFragment extends DBGeoFragment implements
                                 mRecyclerList = new ArrayList<>(mContacts.values());
                                 getData.updateContacts(mRecyclerList, mContacts);
                                 notifyRecyclerView();
+                                linearLayout.setVisibility(View.INVISIBLE);
 
                                 Log.d(TAG,"THIS SHOULD BE CALLED");
 
@@ -300,6 +304,7 @@ public class ContactsFragment extends DBGeoFragment implements
                                 mRecyclerList = new ArrayList<>(mContacts.values());
                                 getData.updateContacts(mRecyclerList, mContacts);
                                 notifyRecyclerView();
+                                linearLayout.setVisibility(View.INVISIBLE);
                                 break;
 
                             case REMOVED:
@@ -308,6 +313,9 @@ public class ContactsFragment extends DBGeoFragment implements
                                 mRecyclerList = new ArrayList<>(mContacts.values());
                                 getData.updateContacts(mRecyclerList, mContacts);
                                 notifyRecyclerView();
+                                if (mContacts.size() == 0) {
+                                    linearLayout.setVisibility(View.VISIBLE);
+                                }
                         }
                     }
 

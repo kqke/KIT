@@ -492,6 +492,26 @@ public class MainActivity extends AppCompatActivity implements
         mContacts.remove(contact);
         mRequests.remove(contact.getCid());
         mPending.remove(contact.getCid());
+        String uid = FirebaseAuth.getInstance().getUid();
+        String cid = contact.getCid();
+        String first, second, chatroom_id;
+        if (stringCompare(cid, FirebaseAuth.getInstance().getUid()) > 0) {
+            first = cid;
+            second = uid;
+        } else {
+            first = uid;
+            second = cid;
+        }
+        chatroom_id = first + second;
+        mChatroomIds.remove(chatroom_id);
+        UChatroom uchat = new UChatroom();
+        for (UChatroom uChatroom: mChatrooms){
+            if (uChatroom.getChatroom_id().equals(chatroom_id)){
+                uchat = uChatroom;
+                break;
+            }
+        }
+        mChatrooms.remove(uchat);
     }
 
     @Override
@@ -1140,6 +1160,28 @@ public class MainActivity extends AppCompatActivity implements
                 getSupportFragmentManager().popBackStackImmediate();
                 int c = getSupportFragmentManager().getBackStackEntryCount();
             }
+        }
+    }
+
+
+    public static int stringCompare(String str1, String str2)
+    {
+        int l1 = str1.length();
+        int l2 = str2.length();
+        int lmin = Math.min(l1, l2);
+
+        for (int i = 0; i < lmin; i++) {
+            int str1_ch = (int)str1.charAt(i);
+            int str2_ch = (int)str2.charAt(i);
+            if (str1_ch != str2_ch) {
+                return str1_ch - str2_ch;
+            }
+        }
+        if (l1 != l2) {
+            return l1 - l2;
+        }
+        else {
+            return 0;
         }
     }
 }
