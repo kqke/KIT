@@ -138,11 +138,13 @@ public class MainActivity extends AppCompatActivity implements
 
     private static Fragment curFragment;
     private static String curString;
+    private static String prevString;
 
     SharedPreferences.OnSharedPreferenceChangeListener spChanged;
     private static boolean incognito;
     private static boolean exit;
     private BottomNavigationView bottomNav;
+
 
     /*
     ----------------------------- Lifecycle ---------------------------------
@@ -462,6 +464,18 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
+    public void updatePending(HashMap<String, Contact> pending) {
+        mPending = pending;
+    }
+
+    @Override
+    public void updateContacts(ArrayList<Contact> contacts, HashMap<String, Contact> id2contact) {
+        mContacts = contacts;
+        mId2Contact = id2contact;
+        mContactIds = new HashSet<>(id2contact.keySet());
+    }
+
+    @Override
     public void requestAccepted(String display_name, Contact contact) {
         handleRequest(contact, display_name, true);
     }
@@ -554,6 +568,11 @@ public class MainActivity extends AppCompatActivity implements
         return mRequests;
     }
 
+    @Override
+    public void updateRequests(HashMap<String, Contact> requests) {
+        mRequests = requests;
+    }
+
 
     /*
     ----------------------------- Pending Callback ---------------------------------
@@ -585,6 +604,9 @@ public class MainActivity extends AppCompatActivity implements
         args.putParcelable(CONTACT, contact);
         args.putString(CONTACT_STATE, state);
         contactFrag.setArguments(args);
+        curFragment = contactFrag;
+        prevString = curString;
+        curString = CONTACT_FRAG;
         replaceFragment(contactFrag, CONTACT_FRAG, true);
     }
 
@@ -1059,10 +1081,42 @@ public class MainActivity extends AppCompatActivity implements
     public void onBackPressed() {
         if (curString != CHATS_FRAG) {
             exit = false;
-            bottomNav.setSelectedItemId(R.id.action_chats);
-            curFragment = ChatsFragment.getInstance();
-            curString = CHATS_FRAG;
-            setTitle(R.string.fragment_chats);
+
+            if (curString.equals(CONTACT_FRAG)){
+                getSupportFragmentManager().popBackStack();
+                switch (prevString){
+                    case (CHATS_FRAG):{
+                        curFragment = ChatsFragment.getInstance();
+                        curString = CHATS_FRAG;
+                        setTitle(R.string.fragment_chats);
+                        bottomNav.setSelectedItemId(R.id.action_chats);
+                        break;
+                    }
+
+                    case (MAP_FRAG):{
+                        curFragment = MapFragment.newInstance();
+                        curString = MAP_FRAG;
+                        setTitle(R.string.fragment_map);
+                        bottomNav.setSelectedItemId(R.id.action_map);
+                        break;
+                    }
+
+                    case (CONTACTS_FRAG):{
+                        curFragment = ContactsRequestsPendingFragment.getInstance();
+                        curString = CONTACTS_FRAG;
+                        setTitle(R.string.fragment_contacts);
+                        bottomNav.setSelectedItemId(R.id.action_contacts);
+                        break;
+                    }
+
+                }
+            }
+            else {
+                bottomNav.setSelectedItemId(R.id.action_chats);
+                curFragment = ChatsFragment.getInstance();
+                curString = CHATS_FRAG;
+                setTitle(R.string.fragment_chats);
+            }
             replaceFragment(curFragment, curString, false);
         }
         else {

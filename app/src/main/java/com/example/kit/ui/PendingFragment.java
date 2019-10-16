@@ -204,6 +204,7 @@ public class PendingFragment extends DBGeoFragment implements
                                 contact = doc.getDocument().toObject(Contact.class);
                                 mPending.put(contact.getCid(), contact);
                                 mRecyclerList = new ArrayList<>(mPending.values());
+                                getData.updatePending(mPending);
                                 notifyRecyclerView();
 
                                 Log.d(TAG,"THIS SHOULD BE CALLED");
@@ -223,6 +224,7 @@ public class PendingFragment extends DBGeoFragment implements
                                 contact = doc.getDocument().toObject(Contact.class);
                                 mPending.put(contact.getCid(), contact);
                                 mRecyclerList = new ArrayList<>(mPending.values());
+                                getData.updatePending(mPending);
                                 notifyRecyclerView();
                                 break;
 
@@ -230,6 +232,7 @@ public class PendingFragment extends DBGeoFragment implements
                                 contact = doc.getDocument().toObject(Contact.class);
                                 mPending.remove(contact.getCid());
                                 mRecyclerList = new ArrayList<>(mPending.values());
+                                getData.updatePending(mPending);
                                 notifyRecyclerView();
                         }
                     }
@@ -372,6 +375,7 @@ public class PendingFragment extends DBGeoFragment implements
     public interface PendingCallback {
         HashMap<String, Contact> getPending();
         void initContactFragment(String contactID, String state);
+        void updatePending(HashMap<String, Contact> pending);
     }
 
 }

@@ -533,8 +533,22 @@ public class ContactFragment extends MapFragment implements
         setNonFriend();
         setNotFirends();
         String uid = FirebaseAuth.getInstance().getUid();
-        mDb.collection(getString(R.string.collection_users)).document(contact.getCid()).collection(getString(R.string.collection_contacts)).document(uid).delete();
-        mDb.collection(getString(R.string.collection_users)).document(uid).collection(getString(R.string.collection_contacts)).document(contact.getCid()).delete();
+        String cid = contact.getCid();
+        String first, second, chatroom_id;
+        if (stringCompare(mContact.getCid(), FirebaseAuth.getInstance().getUid()) > 0) {
+            first = mContact.getCid();
+            second = FirebaseAuth.getInstance().getUid();
+        } else {
+            first = FirebaseAuth.getInstance().getUid();
+            second = mContact.getCid();
+        }
+        chatroom_id = first + second;
+        DocumentReference contactRef = mDb.collection(getString(R.string.collection_users)).document(cid);
+        DocumentReference userRef = mDb.collection(getString(R.string.collection_users)).document(uid);
+        contactRef.collection(getString(R.string.collection_contacts)).document(uid).delete();
+        contactRef.collection(getString(R.string.collection_user_chatrooms)).document(chatroom_id).delete();
+        userRef.collection(getString(R.string.collection_contacts)).document(contact.getCid()).delete();
+        userRef.collection(getString(R.string.collection_user_chatrooms)).document(chatroom_id).delete();
         recreate.removeContact(contact);
 
 

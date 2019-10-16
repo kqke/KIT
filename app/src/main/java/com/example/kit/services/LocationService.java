@@ -298,7 +298,7 @@ public class LocationService extends Service {
                                         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "1234")
                                                 .setContentTitle("Proximity Alert")
                                                 .setContentText("you are near " + contact.getName())
-                                                .setSmallIcon(R.drawable.chef)
+                                                .setSmallIcon(R.mipmap.ic_launcher_round)
                                                 .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
                                         if (Build.VERSION.SDK_INT >= 26) {

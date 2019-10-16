@@ -37,7 +37,7 @@
             android:value="@string/google_maps_api_key" />
 
         <meta-data android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@drawable/chef"/>
+            android:resource="@mipmap/ic_launcher_round"/>
 
         <meta-data
             android:name="com.google.android.gms.version"

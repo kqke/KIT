@@ -53,6 +53,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -264,17 +265,64 @@ public class ContactsFragment extends DBGeoFragment implements
                     Log.e(TAG, "onEvent: Listen failed.", e);
                     return;
                 }
-                if (queryDocumentSnapshots != null) {
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()) {
+                    Contact contact;
+                    //Instead of simply using the entire query snapshot
+                    //See the actual changes to query results between query snapshots (added, removed, and modified)
+                    for (DocumentChange doc : queryDocumentSnapshots.getDocumentChanges()) {
+                        switch (doc.getType()) {
 
-                        Contact contact = doc.toObject(Contact.class);
-                        mContacts.put(contact.getCid(), contact);
-                        mRecyclerList = new ArrayList<>(mContacts.values());
-                        notifyRecyclerView();
+                            case ADDED:
 
-                        Log.d(TAG, "onEvent: number of contacts: " + mContacts.size());
+                                //Call the model to populate it with document
+                                contact = doc.getDocument().toObject(Contact.class);
+                                mContacts.put(contact.getCid(), contact);
+                                mRecyclerList = new ArrayList<>(mContacts.values());
+                                getData.updateContacts(mRecyclerList, mContacts);
+                                notifyRecyclerView();
 
+                                Log.d(TAG,"THIS SHOULD BE CALLED");
+
+                                   /* //Just call this method once
+                                    if (noContent.isShown()){
+                                        //This will be called only if user added some new post
+                                        announcementList.add(annonPost);
+                                        announcementRecyclerAdapter.notifyDataSetChanged();
+                                        noContent.setVisibility(View.GONE);
+                                        label.setVisibility(View.VISIBLE);
+                                    }*/
+
+                                break;
+
+                            case MODIFIED:
+                                contact = doc.getDocument().toObject(Contact.class);
+                                mContacts.put(contact.getCid(), contact);
+                                mRecyclerList = new ArrayList<>(mContacts.values());
+                                getData.updateContacts(mRecyclerList, mContacts);
+                                notifyRecyclerView();
+                                break;
+
+                            case REMOVED:
+                                contact = doc.getDocument().toObject(Contact.class);
+                                mContacts.remove(contact.getCid());
+                                mRecyclerList = new ArrayList<>(mContacts.values());
+                                getData.updateContacts(mRecyclerList, mContacts);
+                                notifyRecyclerView();
+                        }
                     }
+
+//                    if (queryDocumentSnapshots != null) {
+//                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+//
+//                        Contact contact = doc.toObject(Contact.class);
+//                        mContacts.put(contact.getCid(), contact);
+//                        mRecyclerList = new ArrayList<>(mContacts.values());
+//                        getData.updateContacts(mRecyclerList, mContacts);
+//                        notifyRecyclerView();
+//
+//                        Log.d(TAG, "onEvent: number of contacts: " + mContacts.size());
+//
+//                    }
                 }
             }
         });
@@ -572,5 +620,6 @@ public class ContactsFragment extends DBGeoFragment implements
         HashMap<String, Contact> getId2Contact();
         ArrayList<UserLocation> getUserLocations();
         void initContactFragment(String contactID, String state);
+        void updateContacts(ArrayList<Contact> contacts, HashMap<String, Contact> id2contact);
     }
 }
