@@ -46,6 +46,6 @@
         app:layout_constraintEnd_toStartOf="@+id/email"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/cartman_cop" />
+        app:srcCompat="@drawable/default_profile" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

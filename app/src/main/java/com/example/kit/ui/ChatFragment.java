@@ -310,8 +310,8 @@ public class ChatFragment extends DBGeoFragment implements
             SimpleDateFormat formatter = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss z");
             ((TextView)dialogView.findViewById(R.id.date)).setText(formatter.format(message.getMeeting_time()));
             RequestOptions requestOptions = new RequestOptions()
-                    .error(R.drawable.cartman_cop)
-                    .placeholder(R.drawable.cartman_cop);
+                    .error(R.drawable.default_profile)
+                    .placeholder(R.drawable.default_profile);
             Glide.with(this)
                     .setDefaultRequestOptions(requestOptions)
                     .load(contact.getAvatar())

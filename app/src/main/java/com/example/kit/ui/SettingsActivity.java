@@ -375,8 +375,8 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
 
     private void retrieveProfileImage(){
         RequestOptions requestOptions = new RequestOptions()
-                .error(R.drawable.cartman_cop)
-                .placeholder(R.drawable.cartman_cop);
+                .error(R.drawable.default_profile)
+                .placeholder(R.drawable.default_profile);
         String avatar = "";
         try{
             avatar = (((UserClient)getApplicationContext()).getUser().getAvatar());

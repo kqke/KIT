@@ -56,7 +56,7 @@ public class MyClusterManagerRenderer extends DefaultClusterRenderer<ClusterMark
    */
   @Override
   protected void onBeforeClusterItemRendered(ClusterMarker item, MarkerOptions markerOptions) {
-    imageView.setImageResource(R.drawable.cartman_cop);
+    imageView.setImageResource(R.drawable.default_profile);
 //    Glide.with(mContext).load(item.getIconPicture()).into(imageView);
     icon = iconGenerator.makeIcon();
     iconGenerator.setContentView(imageView);

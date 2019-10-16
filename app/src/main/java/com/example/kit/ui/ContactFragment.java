@@ -298,8 +298,8 @@ public class ContactFragment extends MapFragment implements
 
     private void retrieveProfileImage(){
         RequestOptions requestOptions = new RequestOptions()
-                .error(R.drawable.cartman_cop)
-                .placeholder(R.drawable.cartman_cop);
+                .error(R.drawable.default_profile)
+                .placeholder(R.drawable.default_profile);
         Glide.with(this)
                 .setDefaultRequestOptions(requestOptions)
                 .load(mContact.getAvatar())
