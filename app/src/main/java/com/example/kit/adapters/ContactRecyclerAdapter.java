@@ -72,8 +72,8 @@ public class ContactRecyclerAdapter extends RecyclerView.Adapter<ContactRecycler
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.contactName.setText(mFilteredContacts.get(position).getName());
         RequestOptions requestOptions = new RequestOptions()
-                .error(R.drawable.cartman_cop)
-                .placeholder(R.drawable.cartman_cop);
+                .error(R.drawable.default_profile)
+                .placeholder(R.drawable.default_profile);
         String avatar = "";
         try{
            avatar = mFilteredContacts.get(position).getAvatar();

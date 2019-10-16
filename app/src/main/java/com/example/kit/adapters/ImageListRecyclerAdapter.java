@@ -40,8 +40,8 @@ public class ImageListRecyclerAdapter extends RecyclerView.Adapter<ImageListRecy
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
         RequestOptions requestOptions = new RequestOptions()
-                .placeholder(R.drawable.cartman_cop)
-                .error(R.drawable.cartman_cop);
+                .placeholder(R.drawable.default_profile)
+                .error(R.drawable.default_profile);
 
         Glide.with(mContext)
                 .setDefaultRequestOptions(requestOptions)
