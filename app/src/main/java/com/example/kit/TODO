@@ -37,6 +37,8 @@ done - Google sign in not working
 - Map updates can be seen and its annoying - done
 
 - navigation from contactfragment to mapfragment does not work - work in progress - i dont get why...
+- navigation from contactfragment to mapfragment does not work - work in progress - i dont get why..
+.
 
 done - Authentication is checked on every MainActivity onCreate
 

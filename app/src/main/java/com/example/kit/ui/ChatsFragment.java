@@ -256,11 +256,14 @@ public class ChatsFragment extends DBGeoFragment implements
         if(mChatrooms.size()==0){
             v.findViewById(R.id.linear).setVisibility(View.VISIBLE);
         }
-        if(mContacts.size()==0){
+        if(mContacts.size() > 0){
+            FloatingActionButton fab = v.findViewById(R.id.fab);
+            fab.setOnClickListener(this);
+            fab.setVisibility(View.VISIBLE);
+        }
+        else{
             ((TextView)v.findViewById(R.id.textChats)).setText("CONTACTS");
         }
-        FloatingActionButton fab = v.findViewById(R.id.fab);
-        fab.setOnClickListener(this);
         mChatroomRecyclerView = v.findViewById(R.id.chatrooms_recycler_view);
         mChatroomRecyclerAdapter = new ChatroomRecyclerAdapter(mChatrooms, this, mActivity);
         mChatroomRecyclerView.setAdapter(mChatroomRecyclerAdapter);
@@ -369,6 +372,7 @@ public class ChatsFragment extends DBGeoFragment implements
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.fab:
+                newChatDialog();
                 if(mContacts.size() ==0){
                     Toast.makeText(mActivity,
                             "You have no contacts", Toast.LENGTH_SHORT).show();
