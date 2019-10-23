@@ -1,1 +1,0 @@
-this is a chat app for keeping in touch with friends
