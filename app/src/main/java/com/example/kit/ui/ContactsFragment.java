@@ -418,17 +418,26 @@ public class ContactsFragment extends DBGeoFragment implements
         alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
-                cameraPreview.setVisibility(View.GONE);
-                startCameraBtn.setText("SCAN TEXT");
                 inputUsername.setText("");
-                imageAnalysis.removeAnalyzer();
-                preview.removePreviewOutputListener();
-                cameraOpen = false;
+                if(cameraOpen) {
+                    cameraPreview.setVisibility(View.GONE);
+                    startCameraBtn.setText("SCAN TEXT");
+                    if (imageAnalysis != null) {
+                        imageAnalysis.removeAnalyzer();
+                    }
+                    if (preview != null) {
+                        preview.removePreviewOutputListener();
+                    }
+                    cameraOpen = false;
+                }
             }
         });
         alertDialog.setView(dialogView);
         alertDialog.show();
     }
+
+
+
 
     /*
     ----------------------------- Text Recognition ---------------------------------
@@ -445,7 +454,7 @@ public class ContactsFragment extends DBGeoFragment implements
 
             PreviewConfig previewConfig = new PreviewConfig.Builder()
                     .setTargetAspectRatio(new Rational(cameraPreview.getWidth(), cameraPreview.getHeight()))
-                    .setTargetResolution(new  Size(cameraPreview.getWidth(), cameraPreview.getHeight()))
+                    .setTargetResolution(new  Size(cameraPreview.getWidth()/2, cameraPreview.getHeight()))
                     .build();
             preview = new Preview(previewConfig);
 
@@ -464,7 +473,7 @@ public class ContactsFragment extends DBGeoFragment implements
 
             ImageAnalysisConfig analysisConfig = new ImageAnalysisConfig.Builder()
                             .setTargetAspectRatio(new Rational(cameraPreview.getWidth(), cameraPreview.getHeight()))
-                            .setTargetResolution(new Size(cameraPreview.getWidth(), cameraPreview.getHeight()))
+                            .setTargetResolution(new Size(cameraPreview.getWidth() / 2, cameraPreview.getHeight() / 2))
                             .setImageReaderMode(ImageAnalysis.ImageReaderMode.ACQUIRE_LATEST_IMAGE)
                             .build();
             imageAnalysis = new ImageAnalysis(analysisConfig);
