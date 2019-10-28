@@ -494,7 +494,7 @@ public class ContactsFragment extends DBGeoFragment implements
                                     .addOnSuccessListener(new OnSuccessListener<FirebaseVisionText>() {
                                         @Override
                                         public void onSuccess(FirebaseVisionText firebaseVisionText) {
-                                            // Task completed successfully
+                                            // Task completed successfull - got text
                                             putCameraText(firebaseVisionText);
                                             new Handler().postDelayed(new Runnable() {
                                                 @Override
@@ -539,8 +539,18 @@ public class ContactsFragment extends DBGeoFragment implements
 
     private void putCameraText(FirebaseVisionText result){
         String resultText = result.getText();
-        if(cameraOpen)
+        if(cameraOpen){
             inputUsername.setText(resultText);
+            cameraPreview.setVisibility(View.GONE);
+            startCameraBtn.setText("SCAN AGAIN");
+            if (imageAnalysis != null) {
+                imageAnalysis.removeAnalyzer();
+            }
+            if (preview != null) {
+                preview.removePreviewOutputListener();
+            }
+            cameraOpen = false;
+        }
     }
 
     private void updateTransform(){
