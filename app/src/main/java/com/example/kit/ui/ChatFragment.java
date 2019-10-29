@@ -1,7 +1,5 @@
 package com.example.kit.ui;
 
-
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -296,7 +294,6 @@ public class ChatFragment extends DBGeoFragment implements
         final ChatMessage message = mMessages.get(position);
         if(message.isExpired()){
             Toast.makeText(mActivity, "This invite has expired...", Toast.LENGTH_SHORT).show();
-
         }
         else if(message.getUser().getUser_id()
                 .equals(((UserClient)mActivity.getApplicationContext()).getUser().getUser_id())){
@@ -305,9 +302,9 @@ public class ChatFragment extends DBGeoFragment implements
         else {
             final View dialogView = View.inflate(mActivity, R.layout.dialog_schedule, null);
             final AlertDialog alertDialog = new AlertDialog.Builder(mActivity).create();
-            Contact contact = getData.getContact(message.getUser().getUser_id());
+            final Contact contact = getData.getContact(message.getUser().getUser_id());
             ((TextView)dialogView.findViewById(R.id.profile_displayName)).setText(contact.getUsername());
-            SimpleDateFormat formatter = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss z");
+            final SimpleDateFormat formatter = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss z");
             ((TextView)dialogView.findViewById(R.id.date)).setText(formatter.format(message.getMeeting_time()));
             RequestOptions requestOptions = new RequestOptions()
                     .error(R.drawable.default_profile)
@@ -334,6 +331,15 @@ public class ChatFragment extends DBGeoFragment implements
                             .putExtra(CalendarContract.Events.TITLE, "Meeting with " + mChatroom.getDisplay_name())
                             .putExtra(CalendarContract.Events.DESCRIPTION, "meeting")
                             .putExtra(CalendarContract.Events.AVAILABILITY, CalendarContract.Events.AVAILABILITY_BUSY);
+                    for(User user : mUserList){
+                        if(user.getUser_id()
+                                .equals(((UserClient)mActivity.getApplicationContext()).getUser().getUser_id())){
+                            continue;
+                        }
+                        String title = ((UserClient)mActivity.getApplicationContext()).getUser().getUsername() + "wants to meets you at:";
+                        String text = formatter.format(message.getMeeting_time());
+                        FCM.send_FCM_Notification(user.getToken(), title, text);
+                    }
                     startActivity(intent);
                 }
             });

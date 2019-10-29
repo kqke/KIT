@@ -116,6 +116,7 @@ public class ContactsFragment extends DBGeoFragment implements
     private ImageAnalysis imageAnalysis;
     private Preview preview;
     private LinearLayout linearLayout;
+    private int numClassified = 0;
 
 
     private static View view;
@@ -411,6 +412,7 @@ public class ContactsFragment extends DBGeoFragment implements
                     cameraPreview.setVisibility(View.GONE);
                     imageAnalysis.removeAnalyzer();
                     preview.removePreviewOutputListener();
+                    numClassified = 0;
                     cameraOpen = false;
                 }
             }
@@ -428,6 +430,7 @@ public class ContactsFragment extends DBGeoFragment implements
                     if (preview != null) {
                         preview.removePreviewOutputListener();
                     }
+                    numClassified = 0;
                     cameraOpen = false;
                 }
             }
@@ -539,17 +542,21 @@ public class ContactsFragment extends DBGeoFragment implements
 
     private void putCameraText(FirebaseVisionText result){
         String resultText = result.getText();
+        numClassified++;
         if(cameraOpen){
             inputUsername.setText(resultText);
-            cameraPreview.setVisibility(View.GONE);
-            startCameraBtn.setText("SCAN AGAIN");
-            if (imageAnalysis != null) {
-                imageAnalysis.removeAnalyzer();
+            if(numClassified >= 4) {
+                cameraPreview.setVisibility(View.GONE);
+                startCameraBtn.setText("SCAN AGAIN");
+                if (imageAnalysis != null) {
+                    imageAnalysis.removeAnalyzer();
+                }
+                if (preview != null) {
+                    preview.removePreviewOutputListener();
+                }
+                numClassified = 0;
+                cameraOpen = false;
             }
-            if (preview != null) {
-                preview.removePreviewOutputListener();
-            }
-            cameraOpen = false;
         }
     }
 
