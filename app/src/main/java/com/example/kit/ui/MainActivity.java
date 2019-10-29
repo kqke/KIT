@@ -136,7 +136,6 @@ public class MainActivity extends AppCompatActivity implements
     private HashSet<String> mChatroomIds = new HashSet<>();
     private boolean mChatroomsFetched;
 
-    private static Fragment curFragment;
     private static String curString;
     private static String prevString;
 
@@ -158,9 +157,6 @@ public class MainActivity extends AppCompatActivity implements
             setTheme(R.style.AppThemeIncognito);
         }
         super.onCreate(savedInstanceState);
-        if (curFragment == null){
-            curFragment = ChatsFragment.getInstance();
-        }
         if (curString == null){
             curString = CHATS_FRAG;
         }
@@ -336,8 +332,19 @@ public class MainActivity extends AppCompatActivity implements
     private void initNavigationBar () {
         bottomNav = findViewById(R.id.bottom_navi_bar);
         bottomNav.setVisibility(View.VISIBLE);
-        if (curString.equals(MAP_FRAG)){
-            curFragment = MapFragment.newInstance();
+        Fragment curFragment;
+        switch (curString){
+            case MAP_FRAG:{
+                curFragment = MapFragment.newInstance();
+                break;
+            }
+            case CONTACTS_FRAG:{
+                curFragment = ContactsRequestsPendingFragment.newInstance();
+                break;
+            }
+            default: {
+                curFragment = ChatsFragment.newInstance();
+            }
         }
         replaceFragment(curFragment, curString, false);
         bottomNav.setOnNavigationItemSelectedListener
@@ -345,10 +352,11 @@ public class MainActivity extends AppCompatActivity implements
                     @Override
                     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                         Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+                        Fragment curFragment;
                         switch (item.getItemId()) {
                             case R.id.action_chats: {
                                 if(!(currentFragment instanceof ChatsFragment)) {
-                                    curFragment = ChatsFragment.getInstance();
+                                    curFragment = ChatsFragment.newInstance();
                                     curString = CHATS_FRAG;
                                     setTitle(R.string.fragment_chats);
                                     replaceFragment(curFragment, curString, false);
@@ -624,7 +632,6 @@ public class MainActivity extends AppCompatActivity implements
         args.putParcelable(CONTACT, contact);
         args.putString(CONTACT_STATE, state);
         contactFrag.setArguments(args);
-        curFragment = contactFrag;
         prevString = curString;
         curString = CONTACT_FRAG;
         replaceFragment(contactFrag, CONTACT_FRAG, true);
@@ -1099,6 +1106,20 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onBackPressed() {
+        Fragment curFragment;
+        switch (curString){
+            case MAP_FRAG:{
+                curFragment = MapFragment.newInstance();
+                break;
+            }
+            case CONTACTS_FRAG:{
+                curFragment = ContactsRequestsPendingFragment.newInstance();
+                break;
+            }
+            default: {
+                curFragment = ChatsFragment.newInstance();
+            }
+        }
         if (curString != CHATS_FRAG) {
             exit = false;
 
@@ -1106,7 +1127,7 @@ public class MainActivity extends AppCompatActivity implements
                 getSupportFragmentManager().popBackStack();
                 switch (prevString){
                     case (CHATS_FRAG):{
-                        curFragment = ChatsFragment.getInstance();
+                        curFragment = ChatsFragment.newInstance();
                         curString = CHATS_FRAG;
                         setTitle(R.string.fragment_chats);
                         bottomNav.setSelectedItemId(R.id.action_chats);
@@ -1133,7 +1154,7 @@ public class MainActivity extends AppCompatActivity implements
             }
             else {
                 bottomNav.setSelectedItemId(R.id.action_chats);
-                curFragment = ChatsFragment.getInstance();
+                curFragment = ChatsFragment.newInstance();
                 curString = CHATS_FRAG;
                 setTitle(R.string.fragment_chats);
             }

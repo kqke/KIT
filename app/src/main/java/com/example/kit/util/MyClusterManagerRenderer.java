@@ -1,9 +1,12 @@
 package com.example.kit.util;
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -68,6 +71,12 @@ public class MyClusterManagerRenderer extends DefaultClusterRenderer<ClusterMark
     super.onClusterItemRendered(clusterItem, marker);
     if (marker.getTag() == null) {
       marker.setTag("tagged");
+    }
+    if (mContext == null) { return;}
+    else{
+      if (((Activity)mContext).isFinishing() || ((Activity) mContext).isDestroyed()) {
+        return;
+      }
     }
     Glide.with(mContext)
             .load(clusterItem.getIconPicture())
